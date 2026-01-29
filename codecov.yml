@@ -1,0 +1,66 @@
+# Codecov Configuration
+# https://docs.codecov.io/docs/codecovyml-reference
+
+coverage:
+  precision: 2
+  round: down
+  range: "50...100"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 5%
+        informational: true
+    patch:
+      default:
+        target: auto
+        threshold: 10%
+        informational: true
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  branches:
+    - main
+    - develop
+
+flags:
+  api:
+    paths:
+      - packages/api/
+    carryforward: true
+  web:
+    paths:
+      - apps/web/
+    carryforward: true
+  admin:
+    paths:
+      - apps/admin/
+    carryforward: true
+  superadmin:
+    paths:
+      - apps/superadmin/
+    carryforward: true
+
+ignore:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "**/tests/**"
+  - "**/e2e/**"
+  - "**/node_modules/**"
+  - "**/.next/**"
+  - "**/dist/**"
+  - "**/coverage/**"

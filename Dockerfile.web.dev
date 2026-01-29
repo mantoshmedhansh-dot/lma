@@ -1,0 +1,30 @@
+# Development Dockerfile for Next.js apps
+FROM node:20-alpine
+
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@8 --activate
+
+WORKDIR /app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/admin/package.json ./apps/admin/
+COPY apps/superadmin/package.json ./apps/superadmin/
+COPY packages/shared/package.json ./packages/shared/
+
+# Install all dependencies (including dev)
+RUN pnpm install
+
+# Copy source code
+COPY apps ./apps
+COPY packages/shared ./packages/shared
+
+# Expose ports for all apps
+EXPOSE 3000 3001 3002
+
+# Set environment
+ENV NODE_ENV=development
+
+# Default command (can be overridden in docker-compose)
+CMD ["pnpm", "dev"]

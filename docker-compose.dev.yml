@@ -1,0 +1,99 @@
+version: '3.8'
+
+# Development docker-compose configuration
+# Use: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # API Service (development mode with hot reload)
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api.dev
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./packages/api/src:/app/packages/api/src
+      - ./packages/shared/src:/app/packages/shared/src
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - CORS_ORIGIN=*
+    command: pnpm --filter @lma/api dev
+    networks:
+      - lma-dev-network
+
+  # Customer Web App (development mode)
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/web:/app/apps/web
+      - ./packages/shared/src:/app/packages/shared/src
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    command: pnpm --filter @lma/web dev
+    depends_on:
+      - api
+    networks:
+      - lma-dev-network
+
+  # Merchant Admin (development mode)
+  admin:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./apps/admin:/app/apps/admin
+      - ./packages/shared/src:/app/packages/shared/src
+      - /app/apps/admin/node_modules
+      - /app/apps/admin/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    command: pnpm --filter @lma/admin dev
+    depends_on:
+      - api
+    networks:
+      - lma-dev-network
+
+  # Super Admin (development mode)
+  superadmin:
+    build:
+      context: .
+      dockerfile: Dockerfile.web.dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./apps/superadmin:/app/apps/superadmin
+      - ./packages/shared/src:/app/packages/shared/src
+      - /app/apps/superadmin/node_modules
+      - /app/apps/superadmin/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_API_URL=http://localhost:4000
+    command: pnpm --filter @lma/superadmin dev
+    depends_on:
+      - api
+    networks:
+      - lma-dev-network
+
+networks:
+  lma-dev-network:
+    driver: bridge

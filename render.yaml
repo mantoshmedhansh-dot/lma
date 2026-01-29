@@ -1,0 +1,69 @@
+# Render Blueprint - Infrastructure as Code
+# Deploy with: render blueprint apply
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  # API Service - Staging
+  - type: web
+    name: lma-api-staging
+    env: node
+    region: singapore
+    plan: starter
+    branch: develop
+    buildCommand: pnpm install && pnpm --filter @lma/api build
+    startCommand: pnpm --filter @lma/api start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: staging
+      - key: PORT
+        value: 4000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+
+  # API Service - Production
+  - type: web
+    name: lma-api-production
+    env: node
+    region: singapore
+    plan: standard
+    branch: main
+    buildCommand: pnpm install && pnpm --filter @lma/api build
+    startCommand: pnpm --filter @lma/api start
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: RATE_LIMIT_WINDOW_MS
+        value: 900000
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: 100
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+
+# Note: Web apps (web, admin, superadmin) are deployed to Vercel
+# Mobile apps (driver, mobile) are built with Expo EAS

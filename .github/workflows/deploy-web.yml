@@ -1,0 +1,227 @@
+name: Deploy Web Apps
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'apps/admin/**'
+      - 'apps/superadmin/**'
+      - 'packages/shared/**'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+    inputs:
+      app:
+        description: 'App to deploy'
+        required: true
+        type: choice
+        options:
+          - all
+          - web
+          - admin
+          - superadmin
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+jobs:
+  # Detect which apps changed
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.filter.outputs.web }}
+      admin: ${{ steps.filter.outputs.admin }}
+      superadmin: ${{ steps.filter.outputs.superadmin }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for changes
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            web:
+              - 'apps/web/**'
+              - 'packages/shared/**'
+            admin:
+              - 'apps/admin/**'
+              - 'packages/shared/**'
+            superadmin:
+              - 'apps/superadmin/**'
+              - 'packages/shared/**'
+
+  # Deploy Customer Web App
+  deploy-web:
+    name: Deploy Web App
+    runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.web == 'true' ||
+      github.event.inputs.app == 'web' ||
+      github.event.inputs.app == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment || 'preview' }}-web
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=${{ github.event.inputs.environment || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/web
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Build
+        run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/web
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+        working-directory: apps/web
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🌐 **Web App Preview**: ${{ steps.deploy.outputs.url }}`
+            })
+
+  # Deploy Merchant Admin
+  deploy-admin:
+    name: Deploy Admin App
+    runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.admin == 'true' ||
+      github.event.inputs.app == 'admin' ||
+      github.event.inputs.app == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment || 'preview' }}-admin
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=${{ github.event.inputs.environment || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/admin
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+
+      - name: Build
+        run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/admin
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+        working-directory: apps/admin
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+
+  # Deploy Super Admin
+  deploy-superadmin:
+    name: Deploy SuperAdmin App
+    runs-on: ubuntu-latest
+    needs: changes
+    if: |
+      needs.changes.outputs.superadmin == 'true' ||
+      github.event.inputs.app == 'superadmin' ||
+      github.event.inputs.app == 'all'
+    environment:
+      name: ${{ github.event.inputs.environment || 'preview' }}-superadmin
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: '8'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel Environment
+        run: vercel pull --yes --environment=${{ github.event.inputs.environment || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/superadmin
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SUPERADMIN_PROJECT_ID }}
+
+      - name: Build
+        run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: apps/superadmin
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SUPERADMIN_PROJECT_ID }}
+
+      - name: Deploy
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
+          echo "url=$url" >> $GITHUB_OUTPUT
+        working-directory: apps/superadmin
+        env:
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_SUPERADMIN_PROJECT_ID }}
