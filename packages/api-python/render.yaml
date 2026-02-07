@@ -1,0 +1,24 @@
+# Render Blueprint for LMA Python API
+
+services:
+  - type: web
+    name: lma-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: API_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false
