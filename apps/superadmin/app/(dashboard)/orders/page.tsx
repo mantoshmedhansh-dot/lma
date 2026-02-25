@@ -87,7 +87,7 @@ export default function OrdersPage() {
         .limit(100);
 
       if (error) throw error;
-      setOrders(data || []);
+      setOrders((data as any) || []);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
