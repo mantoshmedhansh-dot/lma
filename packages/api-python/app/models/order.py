@@ -133,3 +133,46 @@ class PaymentResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# --- Stripe Payment Models ---
+
+class CreatePaymentIntentRequest(BaseModel):
+    order_id: str
+    payment_method: PaymentMethod
+
+
+class PaymentIntentResponse(BaseModel):
+    client_secret: str
+    payment_intent_id: str
+    payment_id: str
+
+
+class PaymentStatusResponse(BaseModel):
+    id: str
+    order_id: str
+    user_id: str
+    amount: float
+    currency: str
+    payment_method: PaymentMethod
+    status: PaymentStatus
+    gateway_provider: Optional[str] = None
+    gateway_payment_id: Optional[str] = None
+    card_brand: Optional[str] = None
+    card_last4: Optional[str] = None
+    paid_at: Optional[datetime] = None
+    failed_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+
+class RefundRequest(BaseModel):
+    reason: Optional[str] = None
+    amount: Optional[float] = None  # Partial refund amount; None = full refund
+
+
+class RefundResponse(BaseModel):
+    refund_id: str
+    payment_id: str
+    amount: float
+    status: str

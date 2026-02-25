@@ -10,6 +10,7 @@ from app.models.order import (
     OrderStatusUpdate,
     OrderCancellation,
     OrderStatus,
+    PaymentMethod,
 )
 
 router = APIRouter(prefix="/orders", tags=["Orders"])
@@ -193,6 +194,28 @@ async def create_order(
     for item in order_items:
         item["order_id"] = order_id
         supabase.table("order_items").insert(item).execute()
+
+    # Create payment record
+    payment_method_val = order_data.payment_method.value if isinstance(order_data.payment_method, PaymentMethod) else order_data.payment_method
+    gateway_provider = None if payment_method_val == "cash" else "stripe"
+    payment_status = "pending"
+
+    supabase.table("payments").insert({
+        "order_id": order_id,
+        "user_id": current_user["id"],
+        "amount": total_amount,
+        "currency": "INR",
+        "payment_method": payment_method_val,
+        "status": payment_status,
+        "gateway_provider": gateway_provider,
+    }).execute()
+
+    # Create order status history
+    supabase.table("order_status_history").insert({
+        "order_id": order_id,
+        "status": "pending",
+        "changed_by": current_user["id"],
+    }).execute()
 
     # Get complete order
     final_order = supabase.table("orders").select("*").eq("id", order_id).single().execute()

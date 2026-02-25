@@ -13,6 +13,7 @@ from app.routers import (
     merchants_router,
     orders_router,
     deliveries_router,
+    payments_router,
 )
 
 # Rate limiter
@@ -73,6 +74,7 @@ app.include_router(auth_router, prefix="/api/v1")
 app.include_router(merchants_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")
 app.include_router(deliveries_router, prefix="/api/v1")
+app.include_router(payments_router, prefix="/api/v1")
 
 
 # Startup event

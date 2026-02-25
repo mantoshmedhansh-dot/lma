@@ -429,6 +429,12 @@ importers:
       '@sentry/nextjs':
         specifier: ^10.40.0
         version: 10.40.0(@opentelemetry/context-async-hooks@2.5.1)(@opentelemetry/core@2.5.1)(@opentelemetry/sdk-trace-base@2.5.1)(next@14.1.0)(react@18.2.0)(webpack@5.105.2)
+      '@stripe/react-stripe-js':
+        specifier: ^5.6.0
+        version: 5.6.0(@stripe/stripe-js@8.8.0)(react-dom@18.3.1)(react@18.2.0)
+      '@stripe/stripe-js':
+        specifier: ^8.8.0
+        version: 8.8.0
       '@supabase/ssr':
         specifier: ^0.1.0
         version: 0.1.0(@supabase/supabase-js@2.93.3)
@@ -6772,6 +6778,24 @@ packages:
     resolution: {integrity: sha512-V4BG07kuYSUkTCSBHG8G8TNhM+F19jXFWnQtzj+we8DrkpSBCee9Z3Ms8yiGer/dlmhe35/Xdgyo3/0rQKg7YA==}
     dependencies:
       '@sinonjs/commons': 3.0.1
+
+  /@stripe/react-stripe-js@5.6.0(@stripe/stripe-js@8.8.0)(react-dom@18.3.1)(react@18.2.0):
+    resolution: {integrity: sha512-tucu/vTGc+5NXbo2pUiaVjA4ENdRBET8qGS00BM4BAU8J4Pi3eY6BHollsP2+VSuzzlvXwMg0it3ZLhbCj2fPg==}
+    peerDependencies:
+      '@stripe/stripe-js': '>=8.0.0 <9.0.0'
+      react: '>=16.8.0 <20.0.0'
+      react-dom: '>=16.8.0 <20.0.0'
+    dependencies:
+      '@stripe/stripe-js': 8.8.0
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.3.1(react@18.2.0)
+    dev: false
+
+  /@stripe/stripe-js@8.8.0:
+    resolution: {integrity: sha512-NNYuyW8qmLjyHnpyFgs/23wUrjB8k0xN9YIZFOMLewCa/pIkIji9e9aY/EgdNryEDDRptc6TcPIHRvG1R0ClFw==}
+    engines: {node: '>=12.16'}
+    dev: false
 
   /@supabase/auth-js@2.93.3:
     resolution: {integrity: sha512-JdnkHZPKexVGSNONtu89RHU4bxz3X9kxx+f5ZnR5osoCIX+vs/MckwWRPZEybAEvlJXt5xjomDb3IB876QCxWQ==}

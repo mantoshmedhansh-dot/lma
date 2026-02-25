@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { createClient } from '@/lib/supabase/client';
 import { useCartStore } from '@/lib/store/cart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   MapPin,
   CreditCard,
@@ -24,6 +24,13 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '@lma/shared';
 import { useToast } from '@/hooks/use-toast';
+
+// Initialize Stripe outside component to avoid re-creating on every render
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
+);
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1';
 
 interface Address {
   id: string;
@@ -42,6 +49,72 @@ const paymentMethods = [
   { id: 'cash', name: 'Cash on Delivery', icon: Banknote, description: 'Pay when you receive' },
 ];
 
+/** Helper to get Supabase auth token for API calls */
+async function getAuthToken(): Promise<string | null> {
+  const supabase = createClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token || null;
+}
+
+/** Inner component that uses Stripe hooks (must be inside <Elements>) */
+function StripePaymentForm({
+  orderId,
+  onSuccess,
+  onError,
+}: {
+  orderId: string;
+  onSuccess: () => void;
+  onError: (msg: string) => void;
+}) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [paying, setPaying] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!stripe || !elements) return;
+
+    setPaying(true);
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        return_url: `${window.location.origin}/orders/${orderId}?payment=success`,
+      },
+    });
+
+    // If we get here, there was an error (success redirects)
+    if (error) {
+      onError(error.message || 'Payment failed. Please try again.');
+    }
+    setPaying(false);
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <PaymentElement />
+      <Button
+        type="submit"
+        className="w-full"
+        size="lg"
+        disabled={!stripe || !elements || paying}
+      >
+        {paying ? (
+          <>
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Processing Payment...
+          </>
+        ) : (
+          'Pay Now'
+        )}
+      </Button>
+    </form>
+  );
+}
+
+type CheckoutStep = 'details' | 'payment';
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -56,12 +129,17 @@ export default function CheckoutPage() {
     clearCart,
   } = useCartStore();
 
+  const [step, setStep] = useState<CheckoutStep>('details');
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [selectedPayment, setSelectedPayment] = useState<string>('card');
   const [loading, setLoading] = useState(false);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [tipAmount, setTipAmount] = useState(0);
+
+  // Stripe payment state
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
 
   const subtotal = getSubtotal();
   const deliveryFee = subtotal > 500 ? 0 : 40;
@@ -86,7 +164,6 @@ export default function CheckoutPage() {
 
       setAddresses(data || []);
 
-      // Select default address
       const defaultAddress = data?.find((a) => a.is_default);
       if (defaultAddress) {
         setSelectedAddressId(defaultAddress.id);
@@ -102,10 +179,10 @@ export default function CheckoutPage() {
 
   // Redirect if cart is empty
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && step === 'details') {
       router.push('/cart');
     }
-  }, [items, router]);
+  }, [items, router, step]);
 
   const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
@@ -120,123 +197,82 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
+      const token = await getAuthToken();
+      if (!token) {
         router.push('/login?redirect=/checkout');
         return;
       }
 
-      // Get merchant details
-      const { data: merchant } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('id', merchantId)
-        .single();
-
-      // Get address details
-      const { data: address } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('id', selectedAddressId)
-        .single();
-
-      if (!merchant || !address) {
-        throw new Error('Invalid merchant or address');
-      }
-
-      // Create order
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          customer_id: user.id,
-          merchant_id: merchantId,
-          status: 'pending',
-          delivery_address_id: selectedAddressId,
-          delivery_address_snapshot: {
-            label: address.label,
-            address_line_1: address.address_line_1,
-            address_line_2: address.address_line_2,
-            city: address.city,
-            state: address.state,
-            postal_code: address.postal_code,
-            country: address.country,
-          },
-          delivery_latitude: address.latitude,
-          delivery_longitude: address.longitude,
-          pickup_address_snapshot: {
-            address_line_1: merchant.address_line_1,
-            address_line_2: merchant.address_line_2,
-            city: merchant.city,
-            state: merchant.state,
-            postal_code: merchant.postal_code,
-            country: merchant.country,
-          },
-          pickup_latitude: merchant.latitude,
-          pickup_longitude: merchant.longitude,
-          subtotal,
-          delivery_fee: deliveryFee,
-          service_fee: serviceFee,
-          tax_amount: 0,
-          discount_amount: 0,
-          tip_amount: tipAmount,
-          total_amount: total,
-          estimated_prep_time: merchant.estimated_prep_time,
-        })
-        .select()
-        .single();
-
-      if (orderError || !order) {
-        throw orderError || new Error('Failed to create order');
-      }
-
-      // Create order items
-      for (const item of items) {
-        const { error: itemError } = await supabase
-          .from('order_items')
-          .insert({
-            order_id: order.id,
-            product_id: item.productId,
-            variant_id: item.variantId || null,
-            product_name: item.name,
-            variant_name: item.variantName || null,
-            unit_price: item.price,
-            quantity: item.quantity,
-            total_price: item.price * item.quantity,
-            special_instructions: item.specialInstructions || null,
-          });
-
-        if (itemError) {
-          console.error('Error creating order item:', itemError);
-        }
-      }
-
-      // Create payment record
-      await supabase.from('payments').insert({
-        order_id: order.id,
-        user_id: user.id,
-        amount: total,
+      // Step 1: Create the order via API
+      const orderPayload = {
+        merchant_id: merchantId,
+        delivery_address_id: selectedAddressId,
+        items: items.map((item) => ({
+          product_id: item.productId,
+          variant_id: item.variantId || null,
+          quantity: item.quantity,
+          special_instructions: item.specialInstructions || null,
+        })),
         payment_method: selectedPayment,
-        status: selectedPayment === 'cash' ? 'pending' : 'processing',
+        tip_amount: tipAmount,
+      };
+
+      const orderRes = await fetch(`${API_URL}/orders/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(orderPayload),
       });
 
-      // Create order status history
-      await supabase.from('order_status_history').insert({
-        order_id: order.id,
-        status: 'pending',
-        changed_by: user.id,
+      if (!orderRes.ok) {
+        const err = await orderRes.json().catch(() => null);
+        throw new Error(err?.detail || 'Failed to create order');
+      }
+
+      const order = await orderRes.json();
+      const newOrderId = order.id;
+      setOrderId(newOrderId);
+
+      // Step 2: For cash — redirect immediately
+      if (selectedPayment === 'cash') {
+        clearCart();
+        router.push(`/orders/${newOrderId}?new=true`);
+        return;
+      }
+
+      // Step 3: For card/UPI — create Stripe PaymentIntent
+      const intentRes = await fetch(`${API_URL}/payments/create-intent`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          order_id: newOrderId,
+          payment_method: selectedPayment,
+        }),
       });
 
-      // Clear cart
+      if (!intentRes.ok) {
+        const err = await intentRes.json().catch(() => null);
+        throw new Error(err?.detail || 'Failed to create payment intent');
+      }
+
+      const intentData = await intentRes.json();
+      setClientSecret(intentData.client_secret);
+
+      // Clear cart now (order is created)
       clearCart();
 
-      // Redirect to order confirmation
-      router.push(`/orders/${order.id}?new=true`);
-    } catch (error) {
+      // Transition to payment step
+      setStep('payment');
+    } catch (error: any) {
       console.error('Error placing order:', error);
       toast({
         title: 'Error',
-        description: 'Failed to place order. Please try again.',
+        description: error.message || 'Failed to place order. Please try again.',
         variant: 'destructive',
       });
     } finally {
@@ -244,10 +280,69 @@ export default function CheckoutPage() {
     }
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && step === 'details') {
     return null;
   }
 
+  // --- PAYMENT STEP: Stripe Elements ---
+  if (step === 'payment' && clientSecret && orderId) {
+    return (
+      <div className="container py-8 max-w-lg mx-auto">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              // Go back to details step (order already created, so just redirect to order)
+              router.push(`/orders/${orderId}`);
+            }}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <h1 className="text-2xl font-bold">Complete Payment</h1>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Secure Payment
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Enter your card details to complete the order
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Elements
+              stripe={stripePromise}
+              options={{
+                clientSecret,
+                appearance: {
+                  theme: 'stripe',
+                },
+              }}
+            >
+              <StripePaymentForm
+                orderId={orderId}
+                onSuccess={() => {
+                  router.push(`/orders/${orderId}?payment=success`);
+                }}
+                onError={(msg) => {
+                  toast({
+                    title: 'Payment Error',
+                    description: msg,
+                    variant: 'destructive',
+                  });
+                }}
+              />
+            </Elements>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // --- DETAILS STEP: Address, Payment method, Tip, Summary ---
   return (
     <div className="container py-8">
       <div className="flex items-center gap-4 mb-6">
