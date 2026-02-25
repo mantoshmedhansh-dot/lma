@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "buildCommand": "cd ../.. && pnpm install && cd apps/web && next build",
+  "buildCommand": "next build",
   "outputDirectory": ".next",
-  "installCommand": "echo 'Dependencies installed in buildCommand'",
+  "installCommand": "cd ../.. && pnpm install",
   "regions": ["sin1"],
   "headers": [
     {
