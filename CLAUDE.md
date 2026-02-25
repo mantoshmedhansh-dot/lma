@@ -40,11 +40,11 @@ Enterprise-grade last-mile delivery platform built for scale.
 - **API Service:** (to be configured)
 
 ### Supabase
-- **Project URL:** https://yqvlbgxhuiuflxfssbix.supabase.co
-- **Project ID:** yqvlbgxhuiuflxfssbix
-- **Database Host:** db.yqvlbgxhuiuflxfssbix.supabase.co:6543
-- **Dashboard:** https://supabase.com/dashboard/project/yqvlbgxhuiuflxfssbix
-- **Publishable Key:** sb_publishable_AQQK7g6dsbMBv-PF8pgvZA_VpG9Wd-m
+- **Project URL:** https://dhosrcfdjyuxozcxfbyh.supabase.co
+- **Project ID:** dhosrcfdjyuxozcxfbyh
+- **Database Host:** aws-1-ap-southeast-2.pooler.supabase.com:6543
+- **Dashboard:** https://supabase.com/dashboard/project/dhosrcfdjyuxozcxfbyh
+- **Publishable Key:** sb_publishable_Ogs1mp9CdUokbO0frsvxzg_QWBFoGlF
 - **Secret Key:** (stored in .env - never commit)
 
 ### Vercel
