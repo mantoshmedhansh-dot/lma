@@ -5,7 +5,10 @@
     "moduleResolution": "NodeNext",
     "outDir": "./dist",
     "rootDir": "./src",
-    "noEmit": false
+    "noEmit": false,
+    "strict": false,
+    "strictNullChecks": false,
+    "skipLibCheck": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

@@ -114,15 +114,23 @@ class Logger {
     }
   }
 
-  error(message: string, error?: Error, context?: LogContext): void {
+  error(message: string, errorOrContext?: Error | LogContext, context?: LogContext): void {
     if (this.shouldLog('error')) {
-      this.output(this.formatEntry('error', message, context, error));
+      if (errorOrContext instanceof Error) {
+        this.output(this.formatEntry('error', message, context, errorOrContext));
+      } else {
+        this.output(this.formatEntry('error', message, errorOrContext));
+      }
     }
   }
 
-  fatal(message: string, error?: Error, context?: LogContext): void {
+  fatal(message: string, errorOrContext?: Error | LogContext, context?: LogContext): void {
     if (this.shouldLog('fatal')) {
-      this.output(this.formatEntry('fatal', message, context, error));
+      if (errorOrContext instanceof Error) {
+        this.output(this.formatEntry('fatal', message, context, errorOrContext));
+      } else {
+        this.output(this.formatEntry('fatal', message, errorOrContext));
+      }
     }
   }
 

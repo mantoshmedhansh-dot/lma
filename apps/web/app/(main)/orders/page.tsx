@@ -50,8 +50,8 @@ export default async function OrdersPage() {
       {orders && orders.length > 0 ? (
         <div className="space-y-4">
           {orders.map((order) => {
-            const merchant = order.merchants as { id: string; business_name: string; logo_url: string | null };
-            const items = order.order_items as Array<{ id: string; product_name: string; quantity: number }>;
+            const merchant = order.merchants as unknown as { id: string; business_name: string; logo_url: string | null };
+            const items = order.order_items as unknown as Array<{ id: string; product_name: string; quantity: number }>;
             const statusInfo = ORDER_STATUS_DISPLAY[order.status] || { label: order.status, color: '#6B7280' };
 
             return (

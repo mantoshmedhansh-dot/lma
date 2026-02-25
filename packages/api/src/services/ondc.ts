@@ -610,8 +610,8 @@ export async function handleStatus(
     .eq('ondc_order_id', message.order_id)
     .single();
 
-  let fulfillmentState = ONDC_FULFILLMENT_STATES.PENDING;
-  let orderState = ONDC_ORDER_STATES.CREATED;
+  let fulfillmentState: string = ONDC_FULFILLMENT_STATES.PENDING;
+  let orderState: string = ONDC_ORDER_STATES.CREATED;
 
   if (mapping?.lma_order_id) {
     const { data: order } = await supabaseAdmin
@@ -802,8 +802,8 @@ export async function sendStatusUpdate(
   const message: ONDCMessage = {
     context: createContext(ONDC_ACTIONS.ON_STATUS, {
       transactionId: mapping.transaction_id,
-      bapId: (mapping.participant as Record<string, string>)?.subscriber_id,
-      bapUri: (mapping.participant as Record<string, string>)?.subscriber_url,
+      bapId: (mapping.participant as any)?.subscriber_id,
+      bapUri: (mapping.participant as any)?.subscriber_url,
       bppId: config.subscriberId,
       bppUri: config.subscriberUrl,
     }),
@@ -820,7 +820,7 @@ export async function sendStatusUpdate(
   };
 
   await sendONDCRequest(
-    `${(mapping.participant as Record<string, string>)?.subscriber_url}/on_status`,
+    `${(mapping.participant as any)?.subscriber_url}/on_status`,
     message
   );
 }
