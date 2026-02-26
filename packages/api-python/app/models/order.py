@@ -159,7 +159,7 @@ class PaymentStatusResponse(BaseModel):
     gateway_provider: Optional[str] = None
     gateway_payment_id: Optional[str] = None
     card_brand: Optional[str] = None
-    card_last4: Optional[str] = None
+    card_last_four: Optional[str] = None
     paid_at: Optional[datetime] = None
     failed_at: Optional[datetime] = None
     created_at: Optional[datetime] = None

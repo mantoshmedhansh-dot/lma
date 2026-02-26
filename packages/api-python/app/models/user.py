@@ -8,6 +8,7 @@ class UserRole(str, Enum):
     CUSTOMER = "customer"
     DRIVER = "driver"
     MERCHANT = "merchant"
+    HUB_MANAGER = "hub_manager"
     ADMIN = "admin"
     SUPER_ADMIN = "super_admin"
 

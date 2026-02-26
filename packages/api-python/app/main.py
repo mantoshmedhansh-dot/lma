@@ -14,6 +14,12 @@ from app.routers import (
     orders_router,
     deliveries_router,
     payments_router,
+    hubs_router,
+    hub_orders_router,
+    hub_routes_router,
+    fleet_router,
+    hub_delivery_router,
+    hub_analytics_router,
 )
 
 # Rate limiter
@@ -23,7 +29,7 @@ limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="LMA - Last Mile Delivery Application API",
+    description="Delivery Hub Operations System API",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
@@ -75,6 +81,12 @@ app.include_router(merchants_router, prefix="/api/v1")
 app.include_router(orders_router, prefix="/api/v1")
 app.include_router(deliveries_router, prefix="/api/v1")
 app.include_router(payments_router, prefix="/api/v1")
+app.include_router(hubs_router, prefix="/api/v1")
+app.include_router(hub_orders_router, prefix="/api/v1")
+app.include_router(hub_routes_router, prefix="/api/v1")
+app.include_router(fleet_router, prefix="/api/v1")
+app.include_router(hub_delivery_router, prefix="/api/v1")
+app.include_router(hub_analytics_router, prefix="/api/v1")
 
 
 # Startup event
@@ -83,7 +95,7 @@ async def startup_event():
     print(f"""
 ╔════════════════════════════════════════════════════════╗
 ║                                                        ║
-║   🚀 LMA API Server (Python/FastAPI)                   ║
+║   🚀 Delivery Hub Operations API (FastAPI)              ║
 ║                                                        ║
 ║   Environment: {settings.NODE_ENV.ljust(39)}║
 ║   Port: {str(settings.PORT).ljust(45)}║

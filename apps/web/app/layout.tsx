@@ -10,12 +10,12 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: {
-    default: 'LMA - Last Mile Delivery',
-    template: '%s | LMA',
+    default: 'Delivery Hub Operations',
+    template: '%s | Delivery Hub',
   },
-  description: 'Order food and essentials from your favorite local stores. Fast delivery to your doorstep.',
-  keywords: ['delivery', 'food delivery', 'last mile', 'quick commerce', 'local stores'],
-  authors: [{ name: 'LMA Team' }],
+  description: 'Delivery Hub Operations System for consumer durable brands. Route planning, driver management, and delivery tracking.',
+  keywords: ['delivery', 'hub operations', 'last mile', 'route planning', 'fleet management'],
+  authors: [{ name: 'Delivery Hub' }],
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',

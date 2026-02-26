@@ -10,8 +10,9 @@ export default function AuthLayout({
       {/* Header */}
       <header className="border-b">
         <div className="container flex h-16 items-center">
-          <Link href="/" className="text-2xl font-bold text-primary">
-            LMA
+          <Link href="/" className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">DH</div>
+            <span className="text-xl font-bold">Delivery Hub</span>
           </Link>
         </div>
       </header>
@@ -26,7 +27,7 @@ export default function AuthLayout({
       {/* Footer */}
       <footer className="border-t py-4">
         <div className="container text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} LMA. All rights reserved.
+          &copy; {new Date().getFullYear()} Delivery Hub. All rights reserved.
         </div>
       </footer>
     </div>

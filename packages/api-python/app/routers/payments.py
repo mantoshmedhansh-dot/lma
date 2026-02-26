@@ -146,7 +146,7 @@ async def stripe_webhook(request: Request):
             "status": "completed",
             "paid_at": now,
             "card_brand": card_brand,
-            "card_last4": card_last4,
+            "card_last_four": card_last4,
         }).eq("id", payment_id).execute()
 
         # Update order to confirmed

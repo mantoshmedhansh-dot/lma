@@ -46,7 +46,7 @@ function LoginForm() {
       return;
     }
 
-    router.push('/explore');
+    router.push('/orders');
     router.refresh();
   };
 
@@ -68,9 +68,9 @@ function LoginForm() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+        <CardTitle className="text-2xl text-center">Delivery Hub</CardTitle>
         <CardDescription className="text-center">
-          Sign in to your account to continue
+          Sign in to hub operations dashboard
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
