@@ -41,18 +41,17 @@ export const useEarningsStore = create<EarningsState>((set) => ({
 
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-      // Fetch all delivered orders for this driver in the past month
+      // Fetch delivered orders from delivery_orders table
       const { data: orders, error } = await supabase
-        .from('orders')
-        .select('delivery_fee, delivered_at')
+        .from('delivery_orders')
+        .select('cod_amount, is_cod, delivered_at, updated_at')
         .eq('driver_id', driverId)
         .eq('status', 'delivered')
-        .gte('delivered_at', monthStart)
-        .order('delivered_at', { ascending: false });
+        .gte('updated_at', monthStart)
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
 
-      // Calculate earnings
       let todayEarnings = 0;
       let todayDeliveries = 0;
       let weekEarnings = 0;
@@ -63,35 +62,30 @@ export const useEarningsStore = create<EarningsState>((set) => ({
       const dailyMap = new Map<string, { amount: number; deliveries: number }>();
 
       orders?.forEach((order) => {
-        const deliveredAt = new Date(order.delivered_at);
-        const dateStr = deliveredAt.toISOString().split('T')[0];
-        const fee = order.delivery_fee || 0;
+        const completedAt = new Date(order.delivered_at || order.updated_at);
+        const dateStr = completedAt.toISOString().split('T')[0];
+        const amount = order.is_cod ? (order.cod_amount || 0) : 0;
 
-        // Monthly
-        monthEarnings += fee;
+        monthEarnings += amount;
         monthDeliveries++;
 
-        // Weekly
-        if (deliveredAt >= weekStart) {
-          weekEarnings += fee;
+        if (completedAt >= weekStart) {
+          weekEarnings += amount;
           weekDeliveries++;
         }
 
-        // Today
-        if (deliveredAt >= new Date(todayStart)) {
-          todayEarnings += fee;
+        if (completedAt >= new Date(todayStart)) {
+          todayEarnings += amount;
           todayDeliveries++;
         }
 
-        // Daily breakdown
         const existing = dailyMap.get(dateStr) || { amount: 0, deliveries: 0 };
         dailyMap.set(dateStr, {
-          amount: existing.amount + fee,
+          amount: existing.amount + amount,
           deliveries: existing.deliveries + 1,
         });
       });
 
-      // Convert daily map to array
       const dailyEarnings = Array.from(dailyMap.entries())
         .map(([date, data]) => ({ date, ...data }))
         .sort((a, b) => b.date.localeCompare(a.date))

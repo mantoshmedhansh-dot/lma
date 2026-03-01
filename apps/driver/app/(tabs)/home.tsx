@@ -1,102 +1,67 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  Switch,
   TouchableOpacity,
   RefreshControl,
   ScrollView,
-  Alert,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Location from 'expo-location';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/lib/store/auth';
-import { useOrdersStore } from '@/lib/store/orders';
-import { useEarningsStore } from '@/lib/store/earnings';
+import { useRouteStore } from '@/lib/store/route';
 import { useThemeColors } from '@/hooks/useThemeColor';
+import type { RouteStop } from '@/lib/types/route';
 
 export default function HomeScreen() {
   const colors = useThemeColors();
-  const { driver, updateOnlineStatus, updateLocation } = useAuthStore();
-  const { availableOrders, activeOrder, fetchAvailableOrders, fetchActiveOrder, acceptOrder, subscribeToOrders } =
-    useOrdersStore();
-  const { todayEarnings, todayDeliveries, fetchEarnings } = useEarningsStore();
+  const router = useRouter();
+  const { driver } = useAuthStore();
+  const { route, currentStop, loading, fetchRoute } = useRouteStore();
   const [refreshing, setRefreshing] = useState(false);
-  const [locationPermission, setLocationPermission] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (driver) {
-      requestLocationPermission();
-      fetchData();
-      const unsubscribe = subscribeToOrders(driver.id);
-      return () => unsubscribe();
+      fetchRoute();
     }
   }, [driver?.id]);
 
-  const requestLocationPermission = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    setLocationPermission(status === 'granted');
-
-    if (status === 'granted') {
-      startLocationTracking();
+  // Auto-refresh every 60s when route is in_progress
+  useEffect(() => {
+    if (route?.status === 'in_progress') {
+      intervalRef.current = setInterval(() => {
+        fetchRoute();
+      }, 60000);
     }
-  };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [route?.status]);
 
-  const startLocationTracking = async () => {
-    if (!driver?.is_online) return;
-
-    try {
-      const location = await Location.getCurrentPositionAsync({});
-      await updateLocation(location.coords.latitude, location.coords.longitude);
-    } catch (error) {
-      console.error('Error getting location:', error);
-    }
-  };
-
-  const fetchData = async () => {
-    if (!driver) return;
-    await Promise.all([
-      fetchAvailableOrders(driver.id),
-      fetchActiveOrder(driver.id),
-      fetchEarnings(driver.id),
-    ]);
-  };
-
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await fetchData();
+    await fetchRoute();
     setRefreshing(false);
-  };
+  }, [fetchRoute]);
 
-  const handleToggleOnline = async (value: boolean) => {
-    if (!locationPermission && value) {
-      Alert.alert(
-        'Location Required',
-        'Please enable location access to go online.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Enable', onPress: requestLocationPermission },
-        ]
-      );
-      return;
-    }
-
-    await updateOnlineStatus(value);
-    if (value) {
-      startLocationTracking();
-    }
-  };
-
-  const handleAcceptOrder = async (orderId: string) => {
-    if (!driver) return;
-
-    const { error } = await acceptOrder(orderId, driver.id);
-    if (error) {
-      Alert.alert('Error', error.message);
+  const openMaps = (stop: RouteStop) => {
+    const order = stop.order;
+    if (!order) return;
+    const { delivery_latitude: lat, delivery_longitude: lng, delivery_address } = order;
+    if (lat && lng) {
+      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
     } else {
-      Alert.alert('Success', 'Order accepted! Navigate to the merchant to pick up.');
+      Linking.openURL(
+        `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(delivery_address)}`,
+      );
     }
+  };
+
+  const callCustomer = (phone: string) => {
+    Linking.openURL(`tel:${phone}`);
   };
 
   if (!driver) {
@@ -107,8 +72,31 @@ export default function HomeScreen() {
     );
   }
 
+  // Status banners
   const isPending = driver.status === 'pending';
   const isSuspended = driver.status === 'suspended';
+
+  // Route stats
+  const deliveredCount = route?.stops.filter((s) => s.status === 'delivered').length || 0;
+  const failedCount = route?.stops.filter((s) => s.status === 'failed').length || 0;
+  const totalStops = route?.stops.length || 0;
+  const remainingCount = totalStops - deliveredCount - failedCount;
+  const allDone = route && remainingCount === 0;
+
+  // Upcoming stops (next 3 after current)
+  const upcomingStops = route?.stops
+    .filter((s) => s.status === 'pending' && s.id !== currentStop?.id)
+    .slice(0, 3) || [];
+
+  const statusColor = (status: string) => {
+    switch (status) {
+      case 'planned': return colors.textSecondary;
+      case 'assigned': return colors.warning;
+      case 'in_progress': return colors.tint;
+      case 'completed': return colors.success;
+      default: return colors.textSecondary;
+    }
+  };
 
   return (
     <ScrollView
@@ -118,173 +106,225 @@ export default function HomeScreen() {
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
-      {/* Status Banner */}
+      {/* Status Banners */}
       {isPending && (
         <View style={[styles.banner, { backgroundColor: colors.warning }]}>
           <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.bannerText}>
-            Your account is pending approval
-          </Text>
+          <Text style={styles.bannerText}>Your account is pending approval</Text>
         </View>
       )}
-
       {isSuspended && (
         <View style={[styles.banner, { backgroundColor: colors.error }]}>
           <Ionicons name="alert-circle-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.bannerText}>
-            Your account has been suspended
+          <Text style={styles.bannerText}>Your account has been suspended</Text>
+        </View>
+      )}
+
+      {/* No Route State */}
+      {!loading && !route && (
+        <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Ionicons name="car-outline" size={56} color={colors.textSecondary} />
+          <Text style={[styles.emptyTitle, { color: colors.text }]}>
+            No route assigned for today
+          </Text>
+          <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
+            Pull down to refresh
           </Text>
         </View>
       )}
 
-      {/* Online Toggle */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.onlineRow}>
-          <View>
-            <Text style={[styles.onlineLabel, { color: colors.text }]}>
-              {driver.is_online ? 'You are Online' : 'You are Offline'}
-            </Text>
-            <Text style={[styles.onlineSubtext, { color: colors.textSecondary }]}>
-              {driver.is_online
-                ? 'Receiving delivery requests'
-                : 'Go online to receive orders'}
-            </Text>
-          </View>
-          <Switch
-            value={driver.is_online}
-            onValueChange={handleToggleOnline}
-            disabled={isPending || isSuspended}
-            trackColor={{ false: colors.border, true: colors.tintLight }}
-            thumbColor={driver.is_online ? colors.tint : colors.textSecondary}
-          />
-        </View>
-      </View>
-
-      {/* Today's Stats */}
-      <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Ionicons name="wallet-outline" size={24} color={colors.tint} />
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            ₹{todayEarnings.toFixed(0)}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            Today's Earnings
-          </Text>
-        </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Ionicons name="checkmark-circle-outline" size={24} color={colors.success} />
-          <Text style={[styles.statValue, { color: colors.text }]}>
-            {todayDeliveries}
-          </Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
-            Deliveries
-          </Text>
-        </View>
-      </View>
-
-      {/* Active Order */}
-      {activeOrder && (
+      {/* Route Header Card */}
+      {route && (
         <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.cardHeader}>
-            <Text style={[styles.cardTitle, { color: colors.text }]}>
-              Active Delivery
-            </Text>
-            <View style={[styles.badge, { backgroundColor: colors.tintLight }]}>
-              <Text style={[styles.badgeText, { color: colors.tint }]}>
-                #{activeOrder.order_number}
+          <View style={styles.routeHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.routeName, { color: colors.text }]}>
+                {route.route_name || 'Today\'s Route'}
+              </Text>
+              <Text style={[styles.routeDate, { color: colors.textSecondary }]}>
+                {new Date(route.route_date).toLocaleDateString('en-IN', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'short',
+                })}
+              </Text>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: statusColor(route.status) + '20' }]}>
+              <Text style={[styles.statusBadgeText, { color: statusColor(route.status) }]}>
+                {route.status.replace('_', ' ').toUpperCase()}
               </Text>
             </View>
           </View>
 
-          <View style={styles.orderDetails}>
-            <View style={styles.orderRow}>
-              <Ionicons name="storefront-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.orderText, { color: colors.text }]}>
-                {activeOrder.merchant?.name}
+          {/* Vehicle info */}
+          {route.vehicle && (
+            <View style={styles.vehicleRow}>
+              <Ionicons name="car-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.vehicleText, { color: colors.textSecondary }]}>
+                {route.vehicle.vehicle_type} - {route.vehicle.plate_number}
               </Text>
             </View>
-            <View style={styles.orderRow}>
-              <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.orderText, { color: colors.text }]}>
-                {activeOrder.delivery_address?.street}, {activeOrder.delivery_address?.city}
-              </Text>
+          )}
+
+          {/* Progress Bar */}
+          <View style={styles.progressSection}>
+            <View style={[styles.progressBar, { backgroundColor: colors.backgroundSecondary }]}>
+              {totalStops > 0 && (
+                <>
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        backgroundColor: colors.success,
+                        width: `${(deliveredCount / totalStops) * 100}%`,
+                      },
+                    ]}
+                  />
+                  <View
+                    style={[
+                      styles.progressFill,
+                      {
+                        backgroundColor: colors.error,
+                        width: `${(failedCount / totalStops) * 100}%`,
+                      },
+                    ]}
+                  />
+                </>
+              )}
             </View>
-            <View style={styles.orderRow}>
-              <Ionicons name="person-outline" size={18} color={colors.textSecondary} />
-              <Text style={[styles.orderText, { color: colors.text }]}>
-                {activeOrder.customer?.full_name}
+            <View style={styles.progressStats}>
+              <Text style={[styles.progressText, { color: colors.success }]}>
+                {deliveredCount} delivered
+              </Text>
+              {failedCount > 0 && (
+                <Text style={[styles.progressText, { color: colors.error }]}>
+                  {failedCount} failed
+                </Text>
+              )}
+              <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+                {remainingCount} remaining
               </Text>
             </View>
           </View>
-
-          <TouchableOpacity
-            style={[styles.primaryButton, { backgroundColor: colors.tint }]}
-          >
-            <Ionicons name="navigate" size={20} color="#FFFFFF" />
-            <Text style={styles.primaryButtonText}>Navigate</Text>
-          </TouchableOpacity>
         </View>
       )}
 
-      {/* Available Orders */}
-      {!activeOrder && driver.is_online && (
-        <View>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>
-            Available Orders ({availableOrders.length})
-          </Text>
-
-          {availableOrders.length === 0 ? (
-            <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-              <Ionicons name="bicycle-outline" size={48} color={colors.textSecondary} />
-              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-                No orders available right now
-              </Text>
-              <Text style={[styles.emptySubtext, { color: colors.textSecondary }]}>
-                New orders will appear here
-              </Text>
+      {/* Current Stop Card */}
+      {route && currentStop && !allDone && (
+        <View style={[styles.currentStopCard, { backgroundColor: colors.card, borderColor: colors.tint }]}>
+          <View style={styles.currentStopHeader}>
+            <View style={[styles.stopBadge, { backgroundColor: colors.tint }]}>
+              <Text style={styles.stopBadgeText}>Stop #{currentStop.sequence}</Text>
             </View>
-          ) : (
-            availableOrders.slice(0, 5).map((order) => (
-              <View
-                key={order.id}
-                style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}
-              >
-                <View style={styles.cardHeader}>
-                  <Text style={[styles.merchantName, { color: colors.text }]}>
-                    {order.merchant?.name}
-                  </Text>
-                  <Text style={[styles.orderFee, { color: colors.tint }]}>
-                    ₹{order.delivery_fee}
-                  </Text>
-                </View>
+            {currentStop.status === 'arrived' && (
+              <View style={[styles.arrivedBadge, { backgroundColor: '#3B82F620' }]}>
+                <Text style={{ color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>ARRIVED</Text>
+              </View>
+            )}
+          </View>
 
-                <View style={styles.orderDetails}>
-                  <View style={styles.orderRow}>
-                    <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
-                    <Text
-                      style={[styles.orderText, { color: colors.textSecondary }]}
-                      numberOfLines={1}
-                    >
-                      {order.delivery_address?.street}
-                    </Text>
-                  </View>
-                  <View style={styles.orderRow}>
-                    <Ionicons name="cube-outline" size={16} color={colors.textSecondary} />
-                    <Text style={[styles.orderText, { color: colors.textSecondary }]}>
-                      {order.items?.length || 0} items
-                    </Text>
-                  </View>
-                </View>
-
-                <TouchableOpacity
-                  style={[styles.acceptButton, { backgroundColor: colors.tint }]}
-                  onPress={() => handleAcceptOrder(order.id)}
-                >
-                  <Text style={styles.acceptButtonText}>Accept Order</Text>
+          {currentStop.order && (
+            <View style={styles.stopDetails}>
+              <View style={styles.stopRow}>
+                <Ionicons name="person-outline" size={18} color={colors.textSecondary} />
+                <Text style={[styles.stopCustomerName, { color: colors.text }]}>
+                  {currentStop.order.customer_name}
+                </Text>
+                <TouchableOpacity onPress={() => callCustomer(currentStop.order!.customer_phone)}>
+                  <Ionicons name="call-outline" size={20} color={colors.tint} />
                 </TouchableOpacity>
               </View>
-            ))
+
+              <TouchableOpacity style={styles.stopRow} onPress={() => openMaps(currentStop)}>
+                <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
+                <Text style={[styles.stopAddress, { color: colors.text }]} numberOfLines={2}>
+                  {currentStop.order.delivery_address}
+                </Text>
+                <Ionicons name="open-outline" size={16} color={colors.tint} />
+              </TouchableOpacity>
+
+              <View style={styles.stopRow}>
+                <Ionicons name="cube-outline" size={18} color={colors.textSecondary} />
+                <Text style={[styles.stopText, { color: colors.textSecondary }]}>
+                  {currentStop.order.product_description}
+                </Text>
+              </View>
+
+              {currentStop.order.is_cod && (
+                <View style={[styles.codTag, { backgroundColor: colors.warning + '20' }]}>
+                  <Ionicons name="cash-outline" size={16} color={colors.warning} />
+                  <Text style={[styles.codTagText, { color: colors.warning }]}>
+                    COD: Rs. {currentStop.order.cod_amount}
+                  </Text>
+                </View>
+              )}
+            </View>
           )}
+
+          <View style={styles.currentStopActions}>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}
+              onPress={() => openMaps(currentStop)}
+            >
+              <Ionicons name="navigate" size={20} color={colors.tint} />
+              <Text style={[styles.actionButtonText, { color: colors.tint }]}>Navigate</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: colors.tint }]}
+              onPress={() => router.push(`/delivery/${currentStop.id}`)}
+            >
+              <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
+              <Text style={[styles.actionButtonText, { color: '#FFFFFF' }]}>Start Delivery</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+
+      {/* Upcoming Stops */}
+      {route && upcomingStops.length > 0 && !allDone && (
+        <View>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Stops</Text>
+          {upcomingStops.map((stop) => (
+            <View
+              key={stop.id}
+              style={[styles.upcomingCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            >
+              <View style={[styles.seqBadge, { backgroundColor: colors.backgroundSecondary }]}>
+                <Text style={[styles.seqText, { color: colors.textSecondary }]}>
+                  {stop.sequence}
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.upcomingName, { color: colors.text }]}>
+                  {stop.order?.customer_name || 'Unknown'}
+                </Text>
+                <Text style={[styles.upcomingAddress, { color: colors.textSecondary }]} numberOfLines={1}>
+                  {stop.order?.delivery_address || ''}
+                </Text>
+              </View>
+              {stop.order?.is_cod && (
+                <View style={[styles.smallCodTag, { backgroundColor: colors.warning + '20' }]}>
+                  <Text style={{ color: colors.warning, fontSize: 10, fontWeight: '600' }}>COD</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Route Complete State */}
+      {route && allDone && (
+        <View style={[styles.completeCard, { backgroundColor: colors.success + '15', borderColor: colors.success }]}>
+          <Ionicons name="checkmark-circle" size={48} color={colors.success} />
+          <Text style={[styles.completeTitle, { color: colors.success }]}>
+            All Stops Completed!
+          </Text>
+          <Text style={[styles.completeStats, { color: colors.text }]}>
+            {deliveredCount} delivered{failedCount > 0 ? ` / ${failedCount} failed` : ''}
+          </Text>
+          <Text style={[styles.completeSubtext, { color: colors.textSecondary }]}>
+            Return to the hub to end your route
+          </Text>
         </View>
       )}
     </ScrollView>
@@ -310,123 +350,214 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
+  emptyCard: {
+    padding: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 40,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+  },
   card: {
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     gap: 12,
   },
-  onlineRow: {
+  routeHeaderRow: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  onlineLabel: {
+  routeName: {
     fontSize: 18,
     fontWeight: '600',
   },
-  onlineSubtext: {
-    fontSize: 14,
+  routeDate: {
+    fontSize: 13,
     marginTop: 2,
   },
-  statsRow: {
+  statusBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  vehicleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  vehicleText: {
+    fontSize: 13,
+  },
+  progressSection: {
+    gap: 8,
+  },
+  progressBar: {
+    height: 8,
+    borderRadius: 4,
+    flexDirection: 'row',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+  },
+  progressStats: {
     flexDirection: 'row',
     gap: 12,
   },
-  statCard: {
-    flex: 1,
+  progressText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  currentStopCard: {
     padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    alignItems: 'center',
-    gap: 8,
+    borderWidth: 2,
+    gap: 14,
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  statLabel: {
-    fontSize: 12,
-  },
-  cardHeader: {
+  currentStopHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  badge: {
-    paddingHorizontal: 8,
+  stopBadge: {
+    paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 6,
   },
-  badgeText: {
-    fontSize: 12,
+  stopBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '600',
   },
-  orderDetails: {
-    gap: 8,
+  arrivedBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
-  orderRow: {
+  stopDetails: {
+    gap: 10,
+  },
+  stopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  orderText: {
+  stopCustomerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    flex: 1,
+  },
+  stopAddress: {
+    fontSize: 14,
+    flex: 1,
+    lineHeight: 20,
+  },
+  stopText: {
     fontSize: 14,
     flex: 1,
   },
-  primaryButton: {
+  codTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+  },
+  codTagText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  currentStopActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 14,
     borderRadius: 10,
-    gap: 8,
+    borderWidth: 1,
+    gap: 6,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+  actionButtonText: {
+    fontSize: 15,
     fontWeight: '600',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
-    marginTop: 8,
+    marginBottom: 4,
   },
-  emptyCard: {
+  upcomingCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    gap: 12,
+    marginBottom: 8,
+  },
+  seqBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  seqText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  upcomingName: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  upcomingAddress: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  smallCodTag: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  completeCard: {
     padding: 32,
-    borderRadius: 12,
+    borderRadius: 16,
     borderWidth: 1,
     alignItems: 'center',
     gap: 8,
+    marginTop: 20,
   },
-  emptyText: {
+  completeTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 4,
+  },
+  completeStats: {
     fontSize: 16,
     fontWeight: '500',
-    marginTop: 8,
   },
-  emptySubtext: {
+  completeSubtext: {
     fontSize: 14,
-  },
-  merchantName: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  orderFee: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  acceptButton: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  acceptButtonText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '600',
+    marginTop: 4,
   },
 });

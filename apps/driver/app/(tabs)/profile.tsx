@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,11 +12,41 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/lib/store/auth';
 import { useThemeColors } from '@/hooks/useThemeColor';
+import { supabase } from '@/lib/supabase';
 
 export default function ProfileScreen() {
   const colors = useThemeColors();
   const router = useRouter();
   const { driver, signOut, loading } = useAuthStore();
+  const [hubName, setHubName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (driver) {
+      fetchHubName();
+    }
+  }, [driver?.id]);
+
+  const fetchHubName = async () => {
+    if (!driver) return;
+    try {
+      const { data } = await supabase
+        .from('drivers')
+        .select('hub_id')
+        .eq('id', driver.id)
+        .single();
+
+      if (data?.hub_id) {
+        const { data: hub } = await supabase
+          .from('hubs')
+          .select('name')
+          .eq('id', data.hub_id)
+          .single();
+        if (hub) setHubName(hub.name);
+      }
+    } catch {
+      // Hub info is optional
+    }
+  };
 
   const handleSignOut = () => {
     Alert.alert(
@@ -102,6 +132,14 @@ export default function ProfileScreen() {
           <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>
             {driver.email}
           </Text>
+          {hubName && (
+            <View style={styles.hubRow}>
+              <Ionicons name="business-outline" size={14} color={colors.tint} />
+              <Text style={[styles.hubText, { color: colors.tint }]}>
+                Hub: {hubName}
+              </Text>
+            </View>
+          )}
           <View style={styles.profileStats}>
             <View style={styles.profileStat}>
               <Ionicons name="star" size={14} color="#F59E0B" />
@@ -285,6 +323,16 @@ const styles = StyleSheet.create({
   profileEmail: {
     fontSize: 14,
     marginTop: 2,
+  },
+  hubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  hubText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   profileStats: {
     flexDirection: 'row',

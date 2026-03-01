@@ -31,20 +31,11 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="orders"
+        name="stops"
         options={{
-          title: 'Orders',
+          title: 'Stops',
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="route"
-        options={{
-          title: 'Route',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="navigate" size={size} color={color} />
           ),
         }}
       />
