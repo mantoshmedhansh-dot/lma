@@ -11,9 +11,27 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
 
 jobs:
+  # Check secrets availability (secrets can't be used in job-level if)
+  preflight:
+    name: Preflight Check
+    runs-on: ubuntu-latest
+    outputs:
+      has_render: ${{ steps.check.outputs.has_render }}
+      has_vercel_web: ${{ steps.check.outputs.has_vercel_web }}
+      has_vercel_admin: ${{ steps.check.outputs.has_vercel_admin }}
+    steps:
+      - name: Check secrets
+        id: check
+        run: |
+          echo "has_render=${{ secrets.RENDER_SERVICE_ID != '' && secrets.RENDER_API_KEY != '' }}" >> $GITHUB_OUTPUT
+          echo "has_vercel_web=${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_WEB_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
+          echo "has_vercel_admin=${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ADMIN_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
+
   deploy-api:
     name: Deploy API to Render
     runs-on: ubuntu-latest
+    needs: preflight
+    if: needs.preflight.outputs.has_render == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -27,7 +45,8 @@ jobs:
   deploy-web:
     name: Deploy Web to Vercel
     runs-on: ubuntu-latest
-    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_WEB_PROJECT_ID != '' }}
+    needs: preflight
+    if: needs.preflight.outputs.has_vercel_web == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,7 +85,8 @@ jobs:
   deploy-admin:
     name: Deploy Admin to Vercel
     runs-on: ubuntu-latest
-    if: ${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ADMIN_PROJECT_ID != '' }}
+    needs: preflight
+    if: needs.preflight.outputs.has_vercel_admin == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4

@@ -23,12 +23,30 @@ env:
   PNPM_VERSION: '8'
 
 jobs:
+  # Check if required secrets are available
+  preflight:
+    name: Preflight Check
+    runs-on: ubuntu-latest
+    outputs:
+      has_render_key: ${{ steps.check.outputs.has_render_key }}
+      has_staging_id: ${{ steps.check.outputs.has_staging_id }}
+      has_production_id: ${{ steps.check.outputs.has_production_id }}
+    steps:
+      - name: Check secrets availability
+        id: check
+        run: |
+          echo "has_render_key=${{ secrets.RENDER_API_KEY != '' }}" >> $GITHUB_OUTPUT
+          echo "has_staging_id=${{ secrets.RENDER_STAGING_SERVICE_ID != '' }}" >> $GITHUB_OUTPUT
+          echo "has_production_id=${{ secrets.RENDER_PRODUCTION_SERVICE_ID != '' }}" >> $GITHUB_OUTPUT
+
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
+    needs: preflight
     if: |
       (github.event_name == 'push' || github.event.inputs.environment == 'staging') &&
-      secrets.RENDER_API_KEY != '' && secrets.RENDER_STAGING_SERVICE_ID != ''
+      needs.preflight.outputs.has_render_key == 'true' &&
+      needs.preflight.outputs.has_staging_id == 'true'
     environment:
       name: staging
       url: ${{ vars.API_STAGING_URL }}
@@ -44,23 +62,24 @@ jobs:
           wait-for-success: true
 
       - name: Health check
+        if: vars.API_STAGING_URL != ''
         run: |
           sleep 30
           curl -f ${{ vars.API_STAGING_URL }}/health || exit 1
 
       - name: Notify success
-        if: success()
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "✅ API deployed to staging successfully",
+              "text": "API deployed to staging successfully",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "✅ *API Staging Deployment Successful*\n\nCommit: `${{ github.sha }}`\nBranch: `${{ github.ref_name }}`\nURL: ${{ vars.API_STAGING_URL }}"
+                    "text": "*API Staging Deployment Successful*\n\nCommit: `${{ github.sha }}`\nBranch: `${{ github.ref_name }}`\nURL: ${{ vars.API_STAGING_URL }}"
                   }
                 }
               ]
@@ -73,10 +92,11 @@ jobs:
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
-    needs: deploy-staging
+    needs: [preflight, deploy-staging]
     if: |
       github.event.inputs.environment == 'production' &&
-      secrets.RENDER_API_KEY != '' && secrets.RENDER_PRODUCTION_SERVICE_ID != ''
+      needs.preflight.outputs.has_render_key == 'true' &&
+      needs.preflight.outputs.has_production_id == 'true'
     environment:
       name: production
       url: ${{ vars.API_PRODUCTION_URL }}
@@ -92,23 +112,24 @@ jobs:
           wait-for-success: true
 
       - name: Health check
+        if: vars.API_PRODUCTION_URL != ''
         run: |
           sleep 30
           curl -f ${{ vars.API_PRODUCTION_URL }}/health || exit 1
 
       - name: Notify success
-        if: success()
+        if: success() && secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
-              "text": "🚀 API deployed to production successfully",
+              "text": "API deployed to production successfully",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "🚀 *API Production Deployment Successful*\n\nCommit: `${{ github.sha }}`\nBranch: `${{ github.ref_name }}`\nURL: ${{ vars.API_PRODUCTION_URL }}"
+                    "text": "*API Production Deployment Successful*\n\nCommit: `${{ github.sha }}`\nBranch: `${{ github.ref_name }}`\nURL: ${{ vars.API_PRODUCTION_URL }}"
                   }
                 }
               ]

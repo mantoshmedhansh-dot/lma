@@ -42,6 +42,10 @@ jobs:
       web: ${{ steps.filter.outputs.web }}
       admin: ${{ steps.filter.outputs.admin }}
       superadmin: ${{ steps.filter.outputs.superadmin }}
+      has_vercel_token: ${{ steps.check.outputs.has_vercel_token }}
+      has_web_id: ${{ steps.check.outputs.has_web_id }}
+      has_admin_id: ${{ steps.check.outputs.has_admin_id }}
+      has_superadmin_id: ${{ steps.check.outputs.has_superadmin_id }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,6 +65,14 @@ jobs:
               - 'apps/superadmin/**'
               - 'packages/shared/**'
 
+      - name: Check secrets availability
+        id: check
+        run: |
+          echo "has_vercel_token=${{ secrets.VERCEL_TOKEN != '' }}" >> $GITHUB_OUTPUT
+          echo "has_web_id=${{ secrets.VERCEL_WEB_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
+          echo "has_admin_id=${{ secrets.VERCEL_ADMIN_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
+          echo "has_superadmin_id=${{ secrets.VERCEL_SUPERADMIN_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
+
   # Deploy Customer Web App
   deploy-web:
     name: Deploy Web App
@@ -70,7 +82,8 @@ jobs:
       (needs.changes.outputs.web == 'true' ||
       github.event.inputs.app == 'web' ||
       github.event.inputs.app == 'all') &&
-      secrets.VERCEL_TOKEN != '' && secrets.VERCEL_WEB_PROJECT_ID != ''
+      needs.changes.outputs.has_vercel_token == 'true' &&
+      needs.changes.outputs.has_web_id == 'true'
     environment:
       name: ${{ github.event.inputs.environment || 'preview' }}-web
       url: ${{ steps.deploy.outputs.url }}
@@ -134,7 +147,8 @@ jobs:
       (needs.changes.outputs.admin == 'true' ||
       github.event.inputs.app == 'admin' ||
       github.event.inputs.app == 'all') &&
-      secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ADMIN_PROJECT_ID != ''
+      needs.changes.outputs.has_vercel_token == 'true' &&
+      needs.changes.outputs.has_admin_id == 'true'
     environment:
       name: ${{ github.event.inputs.environment || 'preview' }}-admin
       url: ${{ steps.deploy.outputs.url }}
@@ -186,7 +200,8 @@ jobs:
       (needs.changes.outputs.superadmin == 'true' ||
       github.event.inputs.app == 'superadmin' ||
       github.event.inputs.app == 'all') &&
-      secrets.VERCEL_TOKEN != '' && secrets.VERCEL_SUPERADMIN_PROJECT_ID != ''
+      needs.changes.outputs.has_vercel_token == 'true' &&
+      needs.changes.outputs.has_superadmin_id == 'true'
     environment:
       name: ${{ github.event.inputs.environment || 'preview' }}-superadmin
       url: ${{ steps.deploy.outputs.url }}
