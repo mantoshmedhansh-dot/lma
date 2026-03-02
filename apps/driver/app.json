@@ -12,7 +12,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#10b981"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": ["assets/**/*"],
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.lma.driver",
