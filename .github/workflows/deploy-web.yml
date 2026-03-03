@@ -1,14 +1,8 @@
 name: Deploy Web Apps
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/web/**'
-      - 'apps/admin/**'
-      - 'apps/superadmin/**'
-      - 'packages/shared/**'
-      - '.github/workflows/deploy-web.yml'
+  # Auto-deploys handled by Vercel Git Integration
+  # Use workflow_dispatch for manual preview/production deploys
   workflow_dispatch:
     inputs:
       app:
