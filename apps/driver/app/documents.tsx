@@ -83,7 +83,10 @@ export default function DocumentsScreen() {
     } catch {
       // If endpoint fails, show all as not uploaded
       setDocuments(
-        DOCUMENT_TYPES.map((dt) => ({ ...dt, status: "not_uploaded" as const })),
+        DOCUMENT_TYPES.map((dt) => ({
+          ...dt,
+          status: "not_uploaded" as const,
+        })),
       );
     } finally {
       setLoading(false);
@@ -244,10 +247,7 @@ export default function DocumentsScreen() {
                     ]}
                   >
                     <Text
-                      style={[
-                        styles.statusText,
-                        { color: statusConfig.color },
-                      ]}
+                      style={[styles.statusText, { color: statusConfig.color }]}
                     >
                       {statusConfig.label}
                     </Text>

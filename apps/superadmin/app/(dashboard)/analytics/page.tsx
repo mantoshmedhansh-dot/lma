@@ -43,7 +43,14 @@ interface DailyRow {
   cod_collected: number;
 }
 
-const COLORS = ["#7c3aed", "#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#ec4899"];
+const COLORS = [
+  "#7c3aed",
+  "#22c55e",
+  "#3b82f6",
+  "#f59e0b",
+  "#ef4444",
+  "#ec4899",
+];
 
 export default function AnalyticsPage() {
   const [hubs, setHubs] = useState<Hub[]>([]);
@@ -62,7 +69,13 @@ export default function AnalyticsPage() {
 
   // Hub comparison data (all hubs daily)
   const [hubComparison, setHubComparison] = useState<
-    { hub_name: string; total: number; delivered: number; failed: number; success_rate: number }[]
+    {
+      hub_name: string;
+      total: number;
+      delivered: number;
+      failed: number;
+      success_rate: number;
+    }[]
   >([]);
 
   useEffect(() => {
@@ -122,7 +135,10 @@ export default function AnalyticsPage() {
               total: hubTotal,
               delivered: hubDelivered,
               failed: hubFailed,
-              success_rate: attempted > 0 ? Math.round((hubDelivered / attempted) * 100) : 0,
+              success_rate:
+                attempted > 0
+                  ? Math.round((hubDelivered / attempted) * 100)
+                  : 0,
             });
           } catch {
             // Hub might not have data
@@ -132,7 +148,8 @@ export default function AnalyticsPage() {
         // Recalculate success rates for merged data
         for (const row of allDaily) {
           const attempted = row.delivered + row.failed;
-          row.success_rate = attempted > 0 ? Math.round((row.delivered / attempted) * 100) : 0;
+          row.success_rate =
+            attempted > 0 ? Math.round((row.delivered / attempted) * 100) : 0;
         }
 
         setDailyData(allDaily.sort((a, b) => a.date.localeCompare(b.date)));
@@ -209,7 +226,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Total Orders</p>
-                  <p className="text-xl font-bold">{formatNumber(totalOrders)}</p>
+                  <p className="text-xl font-bold">
+                    {formatNumber(totalOrders)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -222,7 +241,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Delivered</p>
-                  <p className="text-xl font-bold">{formatNumber(totalDelivered)}</p>
+                  <p className="text-xl font-bold">
+                    {formatNumber(totalDelivered)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -235,7 +256,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Failed</p>
-                  <p className="text-xl font-bold">{formatNumber(totalFailed)}</p>
+                  <p className="text-xl font-bold">
+                    {formatNumber(totalFailed)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -341,7 +364,7 @@ export default function AnalyticsPage() {
                 <div className="text-center py-8 text-muted-foreground">
                   {selectedHubId === "all"
                     ? "No hub data available"
-                    : "Select \"All Hubs\" to see comparison"}
+                    : 'Select "All Hubs" to see comparison'}
                 </div>
               ) : (
                 <div className="h-72">
@@ -402,8 +425,13 @@ export default function AnalyticsPage() {
                   </thead>
                   <tbody>
                     {hubComparison.map((hub) => (
-                      <tr key={hub.hub_name} className="border-b hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium">{hub.hub_name}</td>
+                      <tr
+                        key={hub.hub_name}
+                        className="border-b hover:bg-muted/30"
+                      >
+                        <td className="px-4 py-3 font-medium">
+                          {hub.hub_name}
+                        </td>
                         <td className="px-4 py-3 text-right">{hub.total}</td>
                         <td className="px-4 py-3 text-right text-green-600">
                           {hub.delivered}
@@ -445,7 +473,9 @@ export default function AnalyticsPage() {
                   <thead>
                     <tr className="border-b bg-muted/50">
                       <th className="px-4 py-3 text-left font-medium">Date</th>
-                      <th className="px-4 py-3 text-right font-medium">Total</th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Total
+                      </th>
                       <th className="px-4 py-3 text-right font-medium">
                         Delivered
                       </th>

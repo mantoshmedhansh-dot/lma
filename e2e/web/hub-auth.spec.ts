@@ -32,9 +32,7 @@ test.describe("Hub Manager Authentication", () => {
     await expect(page).toHaveURL(/login/);
   });
 
-  test("should redirect to dashboard on successful login", async ({
-    page,
-  }) => {
+  test("should redirect to dashboard on successful login", async ({ page }) => {
     const loginPage = new HubLoginPage(page);
     await loginPage.goto();
 

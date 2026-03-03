@@ -31,7 +31,10 @@ export default function RootLayout() {
     );
 
     responseListener.current = addNotificationResponseListener((response) => {
-      console.log("Notification tapped:", response.notification.request.content);
+      console.log(
+        "Notification tapped:",
+        response.notification.request.content,
+      );
     });
 
     return () => {

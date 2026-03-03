@@ -50,24 +50,29 @@ function TrackingMap({ routes }: { routes: ActiveRoute[] }) {
       setGoogleMap(() => mod.GoogleMap);
       setMarker(() => mod.Marker);
       setInfoWindow(() => mod.InfoWindow);
-      setUseLoadScript(() => () => mod.useLoadScript({
-        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
-      }));
+      setUseLoadScript(
+        () => () =>
+          mod.useLoadScript({
+            googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY || "",
+          }),
+      );
       setLoaded(true);
     });
   }, []);
 
   if (!loaded || !useLoadScript) return <MapPlaceholder />;
 
-  return <MapInner
-    routes={routes}
-    GoogleMap={GoogleMap}
-    Marker={Marker}
-    InfoWindow={InfoWindow}
-    useLoadScript={useLoadScript}
-    selectedStop={selectedStop}
-    setSelectedStop={setSelectedStop}
-  />;
+  return (
+    <MapInner
+      routes={routes}
+      GoogleMap={GoogleMap}
+      Marker={Marker}
+      InfoWindow={InfoWindow}
+      useLoadScript={useLoadScript}
+      selectedStop={selectedStop}
+      setSelectedStop={setSelectedStop}
+    />
+  );
 }
 
 function MapInner({
@@ -90,7 +95,7 @@ function MapInner({
   }
 
   const allStops = routes.flatMap((r: ActiveRoute) =>
-    (r.stops || []).filter((s: RouteStop) => s.order?.delivery_address)
+    (r.stops || []).filter((s: RouteStop) => s.order?.delivery_address),
   );
 
   // Default center (India)
@@ -98,7 +103,11 @@ function MapInner({
 
   return (
     <GoogleMap
-      mapContainerStyle={{ width: "100%", height: "400px", borderRadius: "8px" }}
+      mapContainerStyle={{
+        width: "100%",
+        height: "400px",
+        borderRadius: "8px",
+      }}
       center={defaultCenter}
       zoom={5}
       options={{
@@ -152,7 +161,8 @@ function MapInner({
                 fontSize: "11px",
                 padding: "2px 6px",
                 borderRadius: "4px",
-                backgroundColor: STOP_STATUS_COLORS[selectedStop.status] || "#6B7280",
+                backgroundColor:
+                  STOP_STATUS_COLORS[selectedStop.status] || "#6B7280",
                 color: "#fff",
               }}
             >
@@ -254,12 +264,16 @@ export default function TrackingPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "route_stops" },
-        () => { fetchActiveRoutes(); },
+        () => {
+          fetchActiveRoutes();
+        },
       )
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "delivery_attempts" },
-        () => { fetchActiveRoutes(); },
+        () => {
+          fetchActiveRoutes();
+        },
       )
       .subscribe();
 

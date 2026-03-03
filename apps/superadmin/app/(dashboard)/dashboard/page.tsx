@@ -80,12 +80,10 @@ export default function DashboardPage() {
     );
   }
 
-  const totalDriversOnline = data?.hubs.reduce(
-    (sum, h) => sum + h.drivers_online,
-    0,
-  ) || 0;
+  const totalDriversOnline =
+    data?.hubs.reduce((sum, h) => sum + h.drivers_online, 0) || 0;
   const overallSuccessRate =
-    data && (data.total_delivered + data.total_failed) > 0
+    data && data.total_delivered + data.total_failed > 0
       ? Math.round(
           (data.total_delivered / (data.total_delivered + data.total_failed)) *
             100,
@@ -254,8 +252,13 @@ export default function DashboardPage() {
                   </thead>
                   <tbody>
                     {data?.hubs.map((hub) => (
-                      <tr key={hub.hub_id} className="border-b hover:bg-muted/30">
-                        <td className="px-4 py-3 font-medium">{hub.hub_name}</td>
+                      <tr
+                        key={hub.hub_id}
+                        className="border-b hover:bg-muted/30"
+                      >
+                        <td className="px-4 py-3 font-medium">
+                          {hub.hub_name}
+                        </td>
                         <td className="px-4 py-3 text-muted-foreground">
                           {hub.hub_code}
                         </td>

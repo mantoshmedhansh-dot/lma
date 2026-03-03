@@ -126,7 +126,9 @@ export default function ReportsPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "delivery_orders" },
-        () => { fetchData(); },
+        () => {
+          fetchData();
+        },
       )
       .subscribe();
 

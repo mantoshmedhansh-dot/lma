@@ -106,9 +106,7 @@ export class RoutesPage {
   }
 
   async clickRoute(routeName: string) {
-    await this.page
-      .getByRole("link", { name: new RegExp(routeName) })
-      .click();
+    await this.page.getByRole("link", { name: new RegExp(routeName) }).click();
   }
 }
 
@@ -145,9 +143,9 @@ export class TrackingPage {
     this.page = page;
     this.heading = page.getByRole("heading", { name: /live tracking/i });
     this.refreshButton = page.getByRole("button", { name: /refresh/i });
-    this.mapContainer = page.locator('[class*="map"]').or(
-      page.getByText(/live map/i),
-    );
+    this.mapContainer = page
+      .locator('[class*="map"]')
+      .or(page.getByText(/live map/i));
     this.routeCards = page.locator('[class*="card"]');
   }
 

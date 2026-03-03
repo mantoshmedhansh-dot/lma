@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { FleetPage, TrackingPage, ReportsPage, HubLoginPage } from "../fixtures/hub-pages";
+import {
+  FleetPage,
+  TrackingPage,
+  ReportsPage,
+  HubLoginPage,
+} from "../fixtures/hub-pages";
 import { hubTestUsers } from "../fixtures/test-data";
 
 test.describe("Hub Fleet Management", () => {
@@ -83,7 +88,10 @@ test.describe("Hub Live Tracking", () => {
     await trackingPage.goto();
 
     // Either a map or the placeholder text should be visible
-    const hasMap = await page.locator('[class*="map"]').isVisible().catch(() => false);
+    const hasMap = await page
+      .locator('[class*="map"]')
+      .isVisible()
+      .catch(() => false);
     const hasPlaceholder = await page
       .getByText(/live map|google maps/i)
       .isVisible()

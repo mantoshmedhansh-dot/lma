@@ -81,7 +81,9 @@ export default function RoutesPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "delivery_routes" },
-        () => { fetchRoutes(); },
+        () => {
+          fetchRoutes();
+        },
       )
       .subscribe();
 

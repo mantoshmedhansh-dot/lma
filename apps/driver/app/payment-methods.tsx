@@ -192,12 +192,10 @@ export default function PaymentMethodsScreen() {
           </View>
 
           {renderField("Bank Name", "bank_name", "e.g., State Bank of India")}
-          {renderField(
-            "Account Number",
-            "account_number",
-            "e.g., 1234567890",
-            { keyboardType: "numeric", autoCapitalize: "none" },
-          )}
+          {renderField("Account Number", "account_number", "e.g., 1234567890", {
+            keyboardType: "numeric",
+            autoCapitalize: "none",
+          })}
           {renderField("IFSC Code", "ifsc_code", "e.g., SBIN0001234", {
             autoCapitalize: "characters",
           })}
@@ -232,10 +230,7 @@ export default function PaymentMethodsScreen() {
           <View style={styles.buttonRow}>
             {hasSaved && (
               <TouchableOpacity
-                style={[
-                  styles.cancelButton,
-                  { borderColor: colors.border },
-                ]}
+                style={[styles.cancelButton, { borderColor: colors.border }]}
                 onPress={() => {
                   setEditing(false);
                   fetchPaymentInfo();
@@ -249,7 +244,10 @@ export default function PaymentMethodsScreen() {
             <TouchableOpacity
               style={[
                 styles.saveButton,
-                { backgroundColor: colors.tint, flex: hasSaved ? 1 : undefined },
+                {
+                  backgroundColor: colors.tint,
+                  flex: hasSaved ? 1 : undefined,
+                },
               ]}
               onPress={handleSave}
               disabled={saving}
