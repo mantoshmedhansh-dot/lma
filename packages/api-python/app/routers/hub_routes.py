@@ -6,6 +6,7 @@ import math
 
 from app.core.supabase import get_supabase
 from app.core.security import get_current_user, require_role
+from app.services.notifications import notify_route_assigned, notify_route_dispatched
 from app.models.hub import (
     RouteCreate,
     RouteUpdate,
@@ -234,6 +235,17 @@ async def assign_route(
         "assigned_driver_id": assign_data.driver_id,
     }).eq("id", assign_data.vehicle_id).execute()
 
+    # Send push notification to driver
+    try:
+        driver = supabase.table("drivers").select("user_id").eq(
+            "id", assign_data.driver_id
+        ).single().execute()
+        if driver.data:
+            route_name = result.data[0].get("route_name") or "New Route"
+            await notify_route_assigned(driver.data["user_id"], route_name)
+    except Exception:
+        pass  # Don't fail route assignment if notification fails
+
     return RouteResponse(**result.data[0])
 
 
@@ -267,6 +279,17 @@ async def dispatch_route(
 
     # Update driver status
     supabase.table("drivers").update({"status": "on_delivery"}).eq("id", route.data["driver_id"]).execute()
+
+    # Send push notification to driver
+    try:
+        driver = supabase.table("drivers").select("user_id").eq(
+            "id", route.data["driver_id"]
+        ).single().execute()
+        if driver.data:
+            route_name = result.data[0].get("route_name") or "Your Route"
+            await notify_route_dispatched(driver.data["user_id"], route_name)
+    except Exception:
+        pass  # Don't fail dispatch if notification fails
 
     return RouteResponse(**result.data[0])
 

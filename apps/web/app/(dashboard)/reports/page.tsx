@@ -118,6 +118,23 @@ export default function ReportsPage() {
     fetchData();
   }, [fetchData]);
 
+  // Supabase Realtime: auto-refresh on delivery_orders changes
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("reports-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "delivery_orders" },
+        () => { fetchData(); },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchData]);
+
   return (
     <div>
       <DashboardHeader

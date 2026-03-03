@@ -1,23 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
+import { apiAuthFetch } from "@/lib/api";
 import {
-  Users,
-  Store,
-  Truck,
-  ShoppingBag,
+  Building2,
+  Package,
+  CheckCircle,
+  XCircle,
   TrendingUp,
-  TrendingDown,
-  DollarSign,
+  Truck,
+  Users,
   Activity,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -25,238 +23,133 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
 
-interface Stats {
-  totalUsers: number;
-  totalMerchants: number;
-  activeMerchants: number;
-  pendingMerchants: number;
-  totalDrivers: number;
-  activeDrivers: number;
-  totalOrders: number;
-  todayOrders: number;
-  totalRevenue: number;
-  todayRevenue: number;
+interface HubStat {
+  hub_id: string;
+  hub_name: string;
+  hub_code: string;
+  total_orders: number;
+  delivered: number;
+  failed: number;
+  success_rate: number;
+  drivers_online: number;
 }
 
-const COLORS = [
-  "#7c3aed",
-  "#22c55e",
-  "#f59e0b",
-  "#ef4444",
-  "#3b82f6",
-  "#ec4899",
-];
+interface OverviewData {
+  date: string;
+  total_hubs: number;
+  hubs: HubStat[];
+  total_orders: number;
+  total_delivered: number;
+  total_failed: number;
+}
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<Stats>({
-    totalUsers: 0,
-    totalMerchants: 0,
-    activeMerchants: 0,
-    pendingMerchants: 0,
-    totalDrivers: 0,
-    activeDrivers: 0,
-    totalOrders: 0,
-    todayOrders: 0,
-    totalRevenue: 0,
-    todayRevenue: 0,
-  });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [dailyStats, setDailyStats] = useState<any[]>([]);
-  const [ordersByStatus, setOrdersByStatus] = useState<any[]>([]);
+  const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchOverview();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchOverview = async () => {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString();
-
-      // Fetch counts
-      const [usersRes, merchantsRes, driversRes, ordersRes, todayOrdersRes] =
-        await Promise.all([
-          supabase.from("users").select("id", { count: "exact", head: true }),
-          supabase.from("merchants").select("id, status", { count: "exact" }),
-          supabase.from("drivers").select("id, status", { count: "exact" }),
-          supabase
-            .from("orders")
-            .select("id, total_amount", { count: "exact" }),
-          supabase
-            .from("orders")
-            .select("id, total_amount")
-            .gte("created_at", todayStr),
-        ]);
-
-      const merchants = merchantsRes.data || [];
-      const drivers = driversRes.data || [];
-      const orders = ordersRes.data || [];
-      const todayOrders = todayOrdersRes.data || [];
-
-      const totalRevenue = orders.reduce(
-        (sum, o) => sum + (o.total_amount || 0),
-        0,
+      const result = await apiAuthFetch<OverviewData>(
+        "/api/v1/analytics/overview",
       );
-      const todayRevenue = todayOrders.reduce(
-        (sum, o) => sum + (o.total_amount || 0),
-        0,
-      );
-
-      setStats({
-        totalUsers: usersRes.count || 0,
-        totalMerchants: merchantsRes.count || 0,
-        activeMerchants: merchants.filter((m) => m.status === "active").length,
-        pendingMerchants: merchants.filter((m) => m.status === "pending")
-          .length,
-        totalDrivers: driversRes.count || 0,
-        activeDrivers: drivers.filter(
-          (d) => d.status === "online" || d.status === "busy",
-        ).length,
-        totalOrders: ordersRes.count || 0,
-        todayOrders: todayOrders.length,
-        totalRevenue,
-        todayRevenue,
-      });
-
-      // Fetch recent orders
-      const { data: recent } = await supabase
-        .from("orders")
-        .select(
-          `
-          id,
-          order_number,
-          status,
-          total_amount,
-          created_at,
-          merchant:merchants(name)
-        `,
-        )
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      setRecentOrders(recent || []);
-
-      // Fetch daily stats for last 7 days
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const { data: dailyOrders } = await supabase
-        .from("orders")
-        .select("total_amount, created_at")
-        .gte("created_at", sevenDaysAgo.toISOString());
-
-      // Group by day
-      const dailyMap = new Map<string, { revenue: number; orders: number }>();
-      for (let i = 0; i < 7; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
-        dailyMap.set(dateStr, { revenue: 0, orders: 0 });
-      }
-
-      dailyOrders?.forEach((order) => {
-        const dateStr = order.created_at.split("T")[0];
-        if (dailyMap.has(dateStr)) {
-          const current = dailyMap.get(dateStr)!;
-          dailyMap.set(dateStr, {
-            revenue: current.revenue + (order.total_amount || 0),
-            orders: current.orders + 1,
-          });
-        }
-      });
-
-      const dailyData = Array.from(dailyMap.entries())
-        .map(([date, data]) => ({
-          date: new Date(date).toLocaleDateString("en", { weekday: "short" }),
-          ...data,
-        }))
-        .reverse();
-
-      setDailyStats(dailyData);
-
-      // Orders by status
-      const { data: statusOrders } = await supabase
-        .from("orders")
-        .select("status");
-
-      const statusMap = new Map<string, number>();
-      statusOrders?.forEach((order) => {
-        statusMap.set(order.status, (statusMap.get(order.status) || 0) + 1);
-      });
-
-      setOrdersByStatus(
-        Array.from(statusMap.entries()).map(([status, count]) => ({
-          name:
-            status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
-          value: count,
-        })),
-      );
+      setData(result);
     } catch (error) {
-      console.error("Error fetching dashboard data:", error);
+      console.error("Error fetching overview:", error);
     } finally {
       setLoading(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div>
+        <Header
+          title="Hub Operations Dashboard"
+          description="Cross-hub delivery operations overview"
+        />
+        <div className="p-6 text-center text-muted-foreground py-12">
+          Loading dashboard...
+        </div>
+      </div>
+    );
+  }
+
+  const totalDriversOnline = data?.hubs.reduce(
+    (sum, h) => sum + h.drivers_online,
+    0,
+  ) || 0;
+  const overallSuccessRate =
+    data && (data.total_delivered + data.total_failed) > 0
+      ? Math.round(
+          (data.total_delivered / (data.total_delivered + data.total_failed)) *
+            100,
+        )
+      : 0;
+
   const statCards = [
     {
-      title: "Total Users",
-      value: formatNumber(stats.totalUsers),
-      icon: Users,
-      color: "text-blue-500",
-      bgColor: "bg-blue-100",
-    },
-    {
-      title: "Merchants",
-      value: formatNumber(stats.totalMerchants),
-      subtitle: `${stats.pendingMerchants} pending`,
-      icon: Store,
+      title: "Total Hubs",
+      value: formatNumber(data?.total_hubs || 0),
+      icon: Building2,
       color: "text-purple-500",
       bgColor: "bg-purple-100",
     },
     {
-      title: "Drivers",
-      value: formatNumber(stats.totalDrivers),
-      subtitle: `${stats.activeDrivers} online`,
-      icon: Truck,
+      title: "Orders Today",
+      value: formatNumber(data?.total_orders || 0),
+      icon: Package,
+      color: "text-blue-500",
+      bgColor: "bg-blue-100",
+    },
+    {
+      title: "Delivered",
+      value: formatNumber(data?.total_delivered || 0),
+      icon: CheckCircle,
       color: "text-green-500",
       bgColor: "bg-green-100",
     },
     {
-      title: "Total Orders",
-      value: formatNumber(stats.totalOrders),
-      subtitle: `${stats.todayOrders} today`,
-      icon: ShoppingBag,
-      color: "text-orange-500",
-      bgColor: "bg-orange-100",
+      title: "Failed",
+      value: formatNumber(data?.total_failed || 0),
+      icon: XCircle,
+      color: "text-red-500",
+      bgColor: "bg-red-100",
     },
     {
-      title: "Total Revenue",
-      value: formatCurrency(stats.totalRevenue),
-      icon: DollarSign,
+      title: "Success Rate",
+      value: `${overallSuccessRate}%`,
+      icon: TrendingUp,
       color: "text-emerald-500",
       bgColor: "bg-emerald-100",
     },
     {
-      title: "Today's Revenue",
-      value: formatCurrency(stats.todayRevenue),
-      icon: TrendingUp,
+      title: "Drivers Online",
+      value: formatNumber(totalDriversOnline),
+      icon: Users,
       color: "text-cyan-500",
       bgColor: "bg-cyan-100",
     },
   ];
 
+  const chartData = (data?.hubs || []).map((hub) => ({
+    name: hub.hub_code || hub.hub_name,
+    orders: hub.total_orders,
+    delivered: hub.delivered,
+    failed: hub.failed,
+  }));
+
   return (
     <div>
-      <Header title="Dashboard" description="Platform overview and analytics" />
+      <Header
+        title="Hub Operations Dashboard"
+        description="Cross-hub delivery operations overview"
+      />
 
       <div className="p-6 space-y-6">
         {/* Stats Grid */}
@@ -272,11 +165,6 @@ export default function DashboardPage() {
                         {stat.title}
                       </p>
                       <p className="text-2xl font-bold mt-1">{stat.value}</p>
-                      {stat.subtitle && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {stat.subtitle}
-                        </p>
-                      )}
                     </div>
                     <div className={`p-3 rounded-full ${stat.bgColor}`}>
                       <Icon className={`w-6 h-6 ${stat.color}`} />
@@ -288,155 +176,122 @@ export default function DashboardPage() {
           })}
         </div>
 
-        {/* Charts Row */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Revenue Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue (Last 7 Days)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={dailyStats}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip
-                      formatter={(value: number) => [
-                        formatCurrency(value),
-                        "Revenue",
-                      ]}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#7c3aed"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+        {/* Hub Comparison Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Hub Delivery Comparison (Today)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {chartData.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No hub data available
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Orders Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders (Last 7 Days)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
+            ) : (
+              <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dailyStats}>
+                  <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
                     <Bar
-                      dataKey="orders"
-                      fill="#7c3aed"
+                      dataKey="delivered"
+                      fill="#22c55e"
+                      name="Delivered"
                       radius={[4, 4, 0, 0]}
+                      stackId="a"
+                    />
+                    <Bar
+                      dataKey="failed"
+                      fill="#ef4444"
+                      name="Failed"
+                      radius={[4, 4, 0, 0]}
+                      stackId="a"
                     />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
 
-        {/* Bottom Row */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Recent Orders */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Orders</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentOrders.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No orders yet
-                  </p>
-                ) : (
-                  recentOrders.map((order) => (
-                    <div
-                      key={order.id}
-                      className="flex items-center justify-between py-2 border-b last:border-0"
-                    >
-                      <div>
-                        <p className="font-medium text-sm">
-                          #{order.order_number}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {order.merchant?.name}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-sm">
-                          {formatCurrency(order.total_amount)}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {order.status.replace("_", " ")}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                )}
+        {/* Hub Comparison Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Hub Performance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {(data?.hubs || []).length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No hubs found
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Orders by Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders by Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-64">
-                {ordersByStatus.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No data available
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={ordersByStatus}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {ordersByStatus.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-4 py-3 text-left font-medium">Hub</th>
+                      <th className="px-4 py-3 text-left font-medium">Code</th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Orders
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Delivered
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Failed
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Success %
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Drivers Online
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data?.hubs.map((hub) => (
+                      <tr key={hub.hub_id} className="border-b hover:bg-muted/30">
+                        <td className="px-4 py-3 font-medium">{hub.hub_name}</td>
+                        <td className="px-4 py-3 text-muted-foreground">
+                          {hub.hub_code}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {hub.total_orders}
+                        </td>
+                        <td className="px-4 py-3 text-right text-green-600">
+                          {hub.delivered}
+                        </td>
+                        <td className="px-4 py-3 text-right text-red-600">
+                          {hub.failed}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                              hub.success_rate >= 90
+                                ? "bg-green-100 text-green-800"
+                                : hub.success_rate >= 70
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {hub.success_rate}%
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {hub.drivers_online}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div className="flex flex-wrap justify-center gap-4 mt-4">
-                {ordersByStatus.map((entry, index) => (
-                  <div key={entry.name} className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                    />
-                    <span className="text-xs">{entry.name}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

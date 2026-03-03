@@ -174,3 +174,36 @@ async def reset_password(token: str, new_password: str):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid or expired token"
         )
+
+
+@router.post("/register-device")
+async def register_device(
+    device_data: dict,
+    current_user: Dict = Depends(get_current_user),
+):
+    """Register a device push token for notifications."""
+    supabase = get_supabase()
+    push_token = device_data.get("push_token")
+    device_type = device_data.get("device_type", "unknown")
+
+    if not push_token:
+        raise HTTPException(status_code=400, detail="push_token is required")
+
+    # Upsert: update if token exists, insert otherwise
+    existing = supabase.table("user_devices").select("id").eq(
+        "push_token", push_token
+    ).execute()
+
+    if existing.data:
+        supabase.table("user_devices").update({
+            "user_id": current_user["id"],
+            "device_type": device_type,
+        }).eq("push_token", push_token).execute()
+    else:
+        supabase.table("user_devices").insert({
+            "user_id": current_user["id"],
+            "push_token": push_token,
+            "device_type": device_type,
+        }).execute()
+
+    return {"message": "Device registered"}

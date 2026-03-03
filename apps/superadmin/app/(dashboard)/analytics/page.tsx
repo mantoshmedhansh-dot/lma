@@ -5,551 +5,486 @@ import { createClient } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, formatNumber } from "@/lib/utils";
+import { formatNumber } from "@/lib/utils";
+import { apiAuthFetch } from "@/lib/api";
 import {
-  TrendingUp,
-  TrendingDown,
-  DollarSign,
-  ShoppingBag,
-  Users,
-  Store,
   Calendar,
+  TrendingUp,
+  Package,
+  CheckCircle,
+  XCircle,
+  Building2,
 } from "lucide-react";
 import {
   LineChart,
   Line,
   BarChart,
   Bar,
-  AreaChart,
-  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   Legend,
 } from "recharts";
 
-const COLORS = [
-  "#7c3aed",
-  "#22c55e",
-  "#f59e0b",
-  "#ef4444",
-  "#3b82f6",
-  "#ec4899",
-];
+interface Hub {
+  id: string;
+  name: string;
+  code: string;
+}
 
-type Period = "7d" | "30d" | "90d";
+interface DailyRow {
+  date: string;
+  total: number;
+  delivered: number;
+  failed: number;
+  success_rate: number;
+  cod_collected: number;
+}
+
+const COLORS = ["#7c3aed", "#22c55e", "#3b82f6", "#f59e0b", "#ef4444", "#ec4899"];
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState<Period>("30d");
+  const [hubs, setHubs] = useState<Hub[]>([]);
+  const [selectedHubId, setSelectedHubId] = useState<string>("all");
+  const [dailyData, setDailyData] = useState<DailyRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({
-    totalRevenue: 0,
-    previousRevenue: 0,
-    totalOrders: 0,
-    previousOrders: 0,
-    avgOrderValue: 0,
-    newCustomers: 0,
-    newMerchants: 0,
-    newDrivers: 0,
+
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split("T")[0];
   });
-  const [dailyData, setDailyData] = useState<any[]>([]);
-  const [topMerchants, setTopMerchants] = useState<any[]>([]);
-  const [ordersByType, setOrdersByType] = useState<any[]>([]);
-  const supabase = createClient();
+  const [endDate, setEndDate] = useState(
+    new Date().toISOString().split("T")[0],
+  );
+
+  // Hub comparison data (all hubs daily)
+  const [hubComparison, setHubComparison] = useState<
+    { hub_name: string; total: number; delivered: number; failed: number; success_rate: number }[]
+  >([]);
+
+  useEffect(() => {
+    fetchHubs();
+  }, []);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [period]);
+  }, [selectedHubId, startDate, endDate]);
+
+  const fetchHubs = async () => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("hubs")
+        .select("id, name, code")
+        .eq("is_active", true)
+        .order("name");
+      setHubs(data || []);
+    } catch (err) {
+      console.error("Failed to fetch hubs:", err);
+    }
+  };
 
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
-      const now = new Date();
-      const startDate = new Date();
-      startDate.setDate(now.getDate() - days);
-      const previousStart = new Date(startDate);
-      previousStart.setDate(previousStart.getDate() - days);
+      if (selectedHubId === "all") {
+        // Fetch daily data for each hub and merge
+        const allDaily: DailyRow[] = [];
+        const comparison: typeof hubComparison = [];
 
-      // Fetch orders for current period
-      const { data: currentOrders } = await supabase
-        .from("orders")
-        .select("total_amount, created_at, status, merchant_id")
-        .gte("created_at", startDate.toISOString())
-        .eq("status", "delivered");
-
-      // Fetch orders for previous period
-      const { data: previousOrders } = await supabase
-        .from("orders")
-        .select("total_amount")
-        .gte("created_at", previousStart.toISOString())
-        .lt("created_at", startDate.toISOString())
-        .eq("status", "delivered");
-
-      // Calculate stats
-      const totalRevenue =
-        currentOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
-      const previousRevenue =
-        previousOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
-      const totalOrders = currentOrders?.length || 0;
-      const previousOrderCount = previousOrders?.length || 0;
-      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-      // New users counts
-      const [usersRes, merchantsRes, driversRes] = await Promise.all([
-        supabase
-          .from("users")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", startDate.toISOString())
-          .eq("role", "customer"),
-        supabase
-          .from("merchants")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", startDate.toISOString()),
-        supabase
-          .from("drivers")
-          .select("id", { count: "exact", head: true })
-          .gte("created_at", startDate.toISOString()),
-      ]);
-
-      setStats({
-        totalRevenue,
-        previousRevenue,
-        totalOrders,
-        previousOrders: previousOrderCount,
-        avgOrderValue,
-        newCustomers: usersRes.count || 0,
-        newMerchants: merchantsRes.count || 0,
-        newDrivers: driversRes.count || 0,
-      });
-
-      // Daily data
-      const dailyMap = new Map<string, { revenue: number; orders: number }>();
-      for (let i = 0; i < days; i++) {
-        const date = new Date();
-        date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split("T")[0];
-        dailyMap.set(dateStr, { revenue: 0, orders: 0 });
-      }
-
-      currentOrders?.forEach((order) => {
-        const dateStr = order.created_at.split("T")[0];
-        if (dailyMap.has(dateStr)) {
-          const current = dailyMap.get(dateStr)!;
-          dailyMap.set(dateStr, {
-            revenue: current.revenue + (order.total_amount || 0),
-            orders: current.orders + 1,
-          });
+        for (const hub of hubs) {
+          try {
+            const data = await apiAuthFetch<DailyRow[]>(
+              `/api/v1/analytics/hub/${hub.id}/daily?start_date=${startDate}&end_date=${endDate}`,
+            );
+            // Merge into allDaily
+            for (const row of data) {
+              const existing = allDaily.find((d) => d.date === row.date);
+              if (existing) {
+                existing.total += row.total;
+                existing.delivered += row.delivered;
+                existing.failed += row.failed;
+                existing.cod_collected += row.cod_collected;
+              } else {
+                allDaily.push({ ...row });
+              }
+            }
+            // Hub comparison totals
+            const hubTotal = data.reduce((s, r) => s + r.total, 0);
+            const hubDelivered = data.reduce((s, r) => s + r.delivered, 0);
+            const hubFailed = data.reduce((s, r) => s + r.failed, 0);
+            const attempted = hubDelivered + hubFailed;
+            comparison.push({
+              hub_name: hub.code || hub.name,
+              total: hubTotal,
+              delivered: hubDelivered,
+              failed: hubFailed,
+              success_rate: attempted > 0 ? Math.round((hubDelivered / attempted) * 100) : 0,
+            });
+          } catch {
+            // Hub might not have data
+          }
         }
-      });
 
-      const dailyDataArray = Array.from(dailyMap.entries())
-        .map(([date, data]) => ({
-          date: new Date(date).toLocaleDateString("en", {
-            month: "short",
-            day: "numeric",
-          }),
-          ...data,
-        }))
-        .reverse();
-
-      setDailyData(dailyDataArray);
-
-      // Top merchants
-      const merchantRevenue = new Map<string, number>();
-      currentOrders?.forEach((order) => {
-        if (order.merchant_id) {
-          merchantRevenue.set(
-            order.merchant_id,
-            (merchantRevenue.get(order.merchant_id) || 0) +
-              (order.total_amount || 0),
-          );
+        // Recalculate success rates for merged data
+        for (const row of allDaily) {
+          const attempted = row.delivered + row.failed;
+          row.success_rate = attempted > 0 ? Math.round((row.delivered / attempted) * 100) : 0;
         }
-      });
 
-      const topMerchantIds = Array.from(merchantRevenue.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([id]) => id);
-
-      if (topMerchantIds.length > 0) {
-        const { data: merchantNames } = await supabase
-          .from("merchants")
-          .select("id, name, type")
-          .in("id", topMerchantIds);
-
-        const topMerchantsData = topMerchantIds.map((id) => {
-          const merchant = merchantNames?.find((m) => m.id === id);
-          return {
-            name: merchant?.name || "Unknown",
-            type: merchant?.type || "other",
-            revenue: merchantRevenue.get(id) || 0,
-          };
-        });
-
-        setTopMerchants(topMerchantsData);
-      }
-
-      // Orders by merchant type
-      const { data: allMerchants } = await supabase
-        .from("merchants")
-        .select("id, type");
-      const merchantTypes = new Map<string, string>();
-      allMerchants?.forEach((m) => merchantTypes.set(m.id, m.type));
-
-      const typeRevenue = new Map<string, number>();
-      currentOrders?.forEach((order) => {
-        const type = merchantTypes.get(order.merchant_id) || "other";
-        typeRevenue.set(
-          type,
-          (typeRevenue.get(type) || 0) + (order.total_amount || 0),
+        setDailyData(allDaily.sort((a, b) => a.date.localeCompare(b.date)));
+        setHubComparison(comparison);
+      } else {
+        // Single hub
+        const data = await apiAuthFetch<DailyRow[]>(
+          `/api/v1/analytics/hub/${selectedHubId}/daily?start_date=${startDate}&end_date=${endDate}`,
         );
-      });
-
-      setOrdersByType(
-        Array.from(typeRevenue.entries()).map(([type, revenue]) => ({
-          name: type.charAt(0).toUpperCase() + type.slice(1),
-          value: revenue,
-        })),
-      );
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
+        setDailyData(data);
+        setHubComparison([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const revenueChange =
-    stats.previousRevenue > 0
-      ? ((stats.totalRevenue - stats.previousRevenue) / stats.previousRevenue) *
-        100
+  const totalOrders = dailyData.reduce((s, r) => s + r.total, 0);
+  const totalDelivered = dailyData.reduce((s, r) => s + r.delivered, 0);
+  const totalFailed = dailyData.reduce((s, r) => s + r.failed, 0);
+  const overallSuccess =
+    totalDelivered + totalFailed > 0
+      ? Math.round((totalDelivered / (totalDelivered + totalFailed)) * 100)
       : 0;
-
-  const ordersChange =
-    stats.previousOrders > 0
-      ? ((stats.totalOrders - stats.previousOrders) / stats.previousOrders) *
-        100
-      : 0;
+  const totalCod = dailyData.reduce((s, r) => s + r.cod_collected, 0);
 
   return (
     <div>
       <Header
-        title="Analytics"
-        description="Platform performance and insights"
+        title="Hub Analytics"
+        description="Delivery performance across hubs"
       />
 
       <div className="p-6 space-y-6">
-        {/* Period Selector */}
-        <div className="flex items-center gap-2">
+        {/* Filters */}
+        <div className="flex flex-wrap items-center gap-3">
           <Calendar className="w-4 h-4 text-muted-foreground" />
-          <div className="flex gap-2">
-            {(["7d", "30d", "90d"] as Period[]).map((p) => (
-              <Button
-                key={p}
-                variant={period === p ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPeriod(p)}
-              >
-                {p === "7d"
-                  ? "Last 7 Days"
-                  : p === "30d"
-                    ? "Last 30 Days"
-                    : "Last 90 Days"}
-              </Button>
+          <input
+            type="date"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <span className="text-sm text-muted-foreground">to</span>
+          <input
+            type="date"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+          <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            value={selectedHubId}
+            onChange={(e) => setSelectedHubId(e.target.value)}
+          >
+            <option value="all">All Hubs</option>
+            {hubs.map((hub) => (
+              <option key={hub.id} value={hub.id}>
+                {hub.name}
+              </option>
             ))}
-          </div>
+          </select>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Summary Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(stats.totalRevenue)}
-                  </p>
-                  <div
-                    className={`flex items-center text-sm mt-1 ${revenueChange >= 0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {revenueChange >= 0 ? (
-                      <TrendingUp className="w-4 h-4 mr-1" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 mr-1" />
-                    )}
-                    {Math.abs(revenueChange).toFixed(1)}% vs previous
-                  </div>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 rounded-lg">
+                  <Package className="w-5 h-5 text-blue-600" />
                 </div>
-                <div className="p-3 bg-green-100 rounded-full">
-                  <DollarSign className="w-6 h-6 text-green-600" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Orders</p>
+                  <p className="text-xl font-bold">{formatNumber(totalOrders)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="text-2xl font-bold">
-                    {formatNumber(stats.totalOrders)}
-                  </p>
-                  <div
-                    className={`flex items-center text-sm mt-1 ${ordersChange >= 0 ? "text-green-600" : "text-red-600"}`}
-                  >
-                    {ordersChange >= 0 ? (
-                      <TrendingUp className="w-4 h-4 mr-1" />
-                    ) : (
-                      <TrendingDown className="w-4 h-4 mr-1" />
-                    )}
-                    {Math.abs(ordersChange).toFixed(1)}% vs previous
-                  </div>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
                 </div>
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <ShoppingBag className="w-6 h-6 text-blue-600" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Delivered</p>
+                  <p className="text-xl font-bold">{formatNumber(totalDelivered)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">
-                    Avg Order Value
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {formatCurrency(stats.avgOrderValue)}
-                  </p>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 rounded-lg">
+                  <XCircle className="w-5 h-5 text-red-600" />
                 </div>
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <TrendingUp className="w-6 h-6 text-purple-600" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Failed</p>
+                  <p className="text-xl font-bold">{formatNumber(totalFailed)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">New Customers</p>
-                  <p className="text-2xl font-bold">
-                    {formatNumber(stats.newCustomers)}
-                  </p>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <TrendingUp className="w-5 h-5 text-emerald-600" />
                 </div>
-                <div className="p-3 bg-orange-100 rounded-full">
-                  <Users className="w-6 h-6 text-orange-600" />
+                <div>
+                  <p className="text-xs text-muted-foreground">Success Rate</p>
+                  <p className="text-xl font-bold">{overallSuccess}%</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 rounded-lg">
+                  <Building2 className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">COD Collected</p>
+                  <p className="text-xl font-bold">
+                    Rs. {totalCod.toLocaleString()}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Charts Row */}
+        {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
-          {/* Revenue Chart */}
+          {/* Daily Trend Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Revenue Trend</CardTitle>
+              <CardTitle>Daily Delivery Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={dailyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12 }}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis
-                      tick={{ fontSize: 12 }}
-                      tickFormatter={(v) => `₹${v / 1000}k`}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [
-                        formatCurrency(value),
-                        "Revenue",
-                      ]}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="revenue"
-                      stroke="#7c3aed"
-                      fill="#7c3aed"
-                      fillOpacity={0.1}
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Orders Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Orders Trend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dailyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 12 }}
-                      interval="preserveStartEnd"
-                    />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar
-                      dataKey="orders"
-                      fill="#7c3aed"
-                      radius={[4, 4, 0, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Bottom Row */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Top Merchants */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Top Merchants</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {topMerchants.length === 0 ? (
+              {loading ? (
                 <div className="text-center py-8 text-muted-foreground">
-                  No data available
+                  Loading...
+                </div>
+              ) : dailyData.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No data for selected period
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {topMerchants.map((merchant, index) => (
-                    <div key={index} className="flex items-center gap-4">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-medium">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{merchant.name}</p>
-                        <p className="text-sm text-muted-foreground capitalize">
-                          {merchant.type}
-                        </p>
-                      </div>
-                      <p className="font-semibold">
-                        {formatCurrency(merchant.revenue)}
-                      </p>
-                    </div>
-                  ))}
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={dailyData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 11 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="delivered"
+                        stroke="#22c55e"
+                        strokeWidth={2}
+                        name="Delivered"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="failed"
+                        stroke="#ef4444"
+                        strokeWidth={2}
+                        name="Failed"
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="total"
+                        stroke="#7c3aed"
+                        strokeWidth={2}
+                        name="Total"
+                        dot={false}
+                        strokeDasharray="5 5"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Revenue by Category */}
+          {/* Hub Comparison Bar Chart (only when "All Hubs" selected) */}
           <Card>
             <CardHeader>
-              <CardTitle>Revenue by Category</CardTitle>
+              <CardTitle>Hub Comparison</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64">
-                {ordersByType.length === 0 ? (
-                  <div className="flex items-center justify-center h-full text-muted-foreground">
-                    No data available
-                  </div>
-                ) : (
+              {hubComparison.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  {selectedHubId === "all"
+                    ? "No hub data available"
+                    : "Select \"All Hubs\" to see comparison"}
+                </div>
+              ) : (
+                <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={ordersByType}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={2}
-                        dataKey="value"
-                      >
-                        {ordersByType.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number) => formatCurrency(value)}
-                      />
+                    <BarChart data={hubComparison}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <XAxis dataKey="hub_name" tick={{ fontSize: 11 }} />
+                      <YAxis tick={{ fontSize: 12 }} />
+                      <Tooltip />
                       <Legend />
-                    </PieChart>
+                      <Bar
+                        dataKey="delivered"
+                        fill="#22c55e"
+                        name="Delivered"
+                        radius={[4, 4, 0, 0]}
+                        stackId="a"
+                      />
+                      <Bar
+                        dataKey="failed"
+                        fill="#ef4444"
+                        name="Failed"
+                        radius={[4, 4, 0, 0]}
+                        stackId="a"
+                      />
+                    </BarChart>
                   </ResponsiveContainer>
-                )}
-              </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Growth Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* Hub Performance Table (when "All Hubs" selected) */}
+        {hubComparison.length > 0 && (
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <Users className="w-6 h-6 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">New Customers</p>
-                  <p className="text-2xl font-bold">
-                    {formatNumber(stats.newCustomers)}
-                  </p>
-                </div>
+            <CardHeader>
+              <CardTitle>Hub Performance Summary</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-4 py-3 text-left font-medium">Hub</th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Total Orders
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Delivered
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Failed
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Success Rate
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hubComparison.map((hub) => (
+                      <tr key={hub.hub_name} className="border-b hover:bg-muted/30">
+                        <td className="px-4 py-3 font-medium">{hub.hub_name}</td>
+                        <td className="px-4 py-3 text-right">{hub.total}</td>
+                        <td className="px-4 py-3 text-right text-green-600">
+                          {hub.delivered}
+                        </td>
+                        <td className="px-4 py-3 text-right text-red-600">
+                          {hub.failed}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                              hub.success_rate >= 90
+                                ? "bg-green-100 text-green-800"
+                                : hub.success_rate >= 70
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {hub.success_rate}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
+        )}
 
+        {/* Daily Data Table */}
+        {dailyData.length > 0 && (
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <Store className="w-6 h-6 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">New Merchants</p>
-                  <p className="text-2xl font-bold">
-                    {formatNumber(stats.newMerchants)}
-                  </p>
-                </div>
+            <CardHeader>
+              <CardTitle>Daily Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-4 py-3 text-left font-medium">Date</th>
+                      <th className="px-4 py-3 text-right font-medium">Total</th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Delivered
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Failed
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        Success %
+                      </th>
+                      <th className="px-4 py-3 text-right font-medium">
+                        COD Collected
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyData.map((row) => (
+                      <tr key={row.date} className="border-b">
+                        <td className="px-4 py-3">{row.date}</td>
+                        <td className="px-4 py-3 text-right">{row.total}</td>
+                        <td className="px-4 py-3 text-right text-green-600">
+                          {row.delivered}
+                        </td>
+                        <td className="px-4 py-3 text-right text-red-600">
+                          {row.failed}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {row.success_rate}%
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          Rs. {row.cod_collected.toLocaleString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-green-100 rounded-full">
-                  <Users className="w-6 h-6 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">New Drivers</p>
-                  <p className="text-2xl font-bold">
-                    {formatNumber(stats.newDrivers)}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        )}
       </div>
     </div>
   );

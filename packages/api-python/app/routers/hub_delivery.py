@@ -6,6 +6,7 @@ import string
 
 from app.core.supabase import get_supabase
 from app.core.security import get_current_user, require_role
+from app.core.config import settings
 from app.models.delivery_order import (
     OtpSendRequest,
     OtpVerifyRequest,
@@ -58,8 +59,22 @@ async def send_otp(
         "expires_at": expires_at.isoformat(),
     }).execute()
 
-    # TODO: Send SMS via Twilio/MSG91
-    # For now, return success (OTP visible in DB for testing)
+    # Send SMS via Twilio (if configured)
+    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER:
+        try:
+            from twilio.rest import Client
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Your LMA delivery OTP is: {otp_code}. Valid for 10 minutes.",
+                from_=settings.TWILIO_FROM_NUMBER,
+                to=order.data["customer_phone"],
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to send SMS: {e}")
+    else:
+        import logging
+        logging.getLogger(__name__).info(f"Twilio not configured. OTP {otp_code} for order {otp_data.order_id} stored in DB.")
 
     return OtpResponse(
         success=True,
@@ -304,3 +319,98 @@ async def complete_stop(
         raise HTTPException(status_code=404, detail="Stop not found")
 
     return {"message": f"Stop marked as {status_value}", "stop_id": stop_id}
+
+
+# =====================================================
+# DRIVER DOCUMENTS
+# =====================================================
+
+@router.get("/my-documents")
+async def get_my_documents(
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Get driver's uploaded documents."""
+    supabase = get_supabase()
+    driver = supabase.table("drivers").select("id, documents").eq(
+        "user_id", current_user["id"]
+    ).single().execute()
+
+    if not driver.data:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+
+    return {"documents": driver.data.get("documents") or {}}
+
+
+@router.post("/documents")
+async def upload_document(
+    doc_data: dict,
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Save document metadata after upload to storage."""
+    supabase = get_supabase()
+    driver = supabase.table("drivers").select("id, documents").eq(
+        "user_id", current_user["id"]
+    ).single().execute()
+
+    if not driver.data:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+
+    documents = driver.data.get("documents") or {}
+    documents[doc_data["doc_type"]] = {
+        "url": doc_data["url"],
+        "status": "uploaded",
+        "uploaded_at": datetime.utcnow().isoformat(),
+    }
+
+    supabase.table("drivers").update({
+        "documents": documents,
+    }).eq("id", driver.data["id"]).execute()
+
+    return {"message": "Document saved", "doc_type": doc_data["doc_type"]}
+
+
+# =====================================================
+# DRIVER PAYMENT INFO
+# =====================================================
+
+@router.get("/payment-info")
+async def get_payment_info(
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Get driver's payment information."""
+    supabase = get_supabase()
+    driver = supabase.table("drivers").select("id, payment_info").eq(
+        "user_id", current_user["id"]
+    ).single().execute()
+
+    if not driver.data:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+
+    return {"payment_info": driver.data.get("payment_info")}
+
+
+@router.put("/payment-info")
+async def update_payment_info(
+    payment_data: dict,
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Update driver's payment information."""
+    supabase = get_supabase()
+    driver = supabase.table("drivers").select("id").eq(
+        "user_id", current_user["id"]
+    ).single().execute()
+
+    if not driver.data:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+
+    supabase.table("drivers").update({
+        "payment_info": {
+            "bank_name": payment_data.get("bank_name", ""),
+            "account_number": payment_data.get("account_number", ""),
+            "ifsc_code": payment_data.get("ifsc_code", ""),
+            "account_holder_name": payment_data.get("account_holder_name", ""),
+            "upi_id": payment_data.get("upi_id"),
+        },
+    }).eq("id", driver.data["id"]).execute()
+
+    return {"message": "Payment info updated"}

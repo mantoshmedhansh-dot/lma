@@ -80,17 +80,12 @@ export default function ProfileScreen() {
     {
       icon: "document-text-outline" as const,
       label: "Documents",
-      onPress: () =>
-        Alert.alert(
-          "Coming Soon",
-          "Document management will be available soon.",
-        ),
+      onPress: () => router.push("/documents"),
     },
     {
       icon: "card-outline" as const,
       label: "Payment Methods",
-      onPress: () =>
-        Alert.alert("Coming Soon", "Payment methods will be available soon."),
+      onPress: () => router.push("/payment-methods"),
     },
     {
       icon: "notifications-outline" as const,

@@ -73,6 +73,23 @@ export default function RoutesPage() {
     fetchRoutes();
   }, [fetchRoutes]);
 
+  // Supabase Realtime: auto-refresh on delivery_routes changes
+  useEffect(() => {
+    const supabase = createClient();
+    const channel = supabase
+      .channel("routes-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "delivery_routes" },
+        () => { fetchRoutes(); },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchRoutes]);
+
   return (
     <div>
       <DashboardHeader

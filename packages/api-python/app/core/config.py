@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     SENDGRID_API_KEY: str = ""
     TWILIO_ACCOUNT_SID: str = ""
     TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM_NUMBER: str = ""
     MAPBOX_TOKEN: str = ""
 
     @property

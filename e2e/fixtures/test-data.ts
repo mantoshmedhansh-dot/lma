@@ -41,3 +41,34 @@ export const testAddress = {
   postalCode: "400001",
   country: "India",
 };
+
+/**
+ * Hub Operations test data
+ */
+export const hubTestUsers = {
+  superadmin: {
+    email: "themanagingdirector@aquapurite.com",
+    password: "Admin@123",
+  },
+  hubManager: {
+    email: "e2e-hubmanager@test.com",
+    password: "TestPassword123!",
+  },
+};
+
+export const testOrder = {
+  orderNumber: "TEST-001",
+  customerName: "Test Customer",
+  customerPhone: "+919876543210",
+  deliveryAddress: "123 Test Street, Mumbai, MH 400001",
+  productDescription: "Water Purifier RO System",
+  totalWeightKg: 12.5,
+  priority: "normal",
+  source: "manual",
+};
+
+export const testVehicle = {
+  vehicleNumber: "MH-01-AB-1234",
+  vehicleType: "van",
+  capacityKg: 500,
+};
