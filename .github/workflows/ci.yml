@@ -41,12 +41,15 @@ jobs:
 
       - name: Lint
         run: pnpm lint
+        timeout-minutes: 15
 
       - name: Type check
         run: pnpm typecheck
+        timeout-minutes: 10
 
       - name: Format check
         run: pnpm format:check
+        timeout-minutes: 5
 
   # Unit tests for API
   test-api:
