@@ -1,6 +1,6 @@
-import express, { Express } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
+import express, { Express } from "express";
+import cors from "cors";
+import helmet from "helmet";
 
 // Create a test app instance without starting the server
 export function createTestApp(routes: express.Router): Express {
@@ -16,17 +16,24 @@ export function createTestApp(routes: express.Router): Express {
   app.use(routes);
 
   // Error handling
-  app.use((err: Error & { statusCode?: number; code?: string; details?: unknown }, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-    const statusCode = err.statusCode || 500;
-    res.status(statusCode).json({
-      success: false,
-      error: {
-        code: err.code || 'INTERNAL_ERROR',
-        message: err.message || 'Internal server error',
-        details: err.details,
-      },
-    });
-  });
+  app.use(
+    (
+      err: Error & { statusCode?: number; code?: string; details?: unknown },
+      _req: express.Request,
+      res: express.Response,
+      _next: express.NextFunction,
+    ) => {
+      const statusCode = err.statusCode || 500;
+      res.status(statusCode).json({
+        success: false,
+        error: {
+          code: err.code || "INTERNAL_ERROR",
+          message: err.message || "Internal server error",
+          details: err.details,
+        },
+      });
+    },
+  );
 
   return app;
 }
@@ -47,22 +54,27 @@ export function createAuthHeader(token: string): { Authorization: string } {
 }
 
 // Common test assertions
-export const expectSuccessResponse = (response: { body: { success: boolean } }) => {
-  expect(response.body).toHaveProperty('success', true);
-  expect(response.body).toHaveProperty('data');
+export const expectSuccessResponse = (response: {
+  body: { success: boolean };
+}) => {
+  expect(response.body).toHaveProperty("success", true);
+  expect(response.body).toHaveProperty("data");
 };
 
 export const expectErrorResponse = (
-  response: { body: { success: boolean; error?: { code?: string; message?: string } } },
+  response: {
+    body: { success: boolean; error?: { code?: string; message?: string } };
+  },
   statusCode: number,
-  errorCode?: string
+  errorCode?: string,
 ) => {
-  expect(response.body).toHaveProperty('success', false);
-  expect(response.body).toHaveProperty('error');
+  expect(response.body).toHaveProperty("success", false);
+  expect(response.body).toHaveProperty("error");
   if (errorCode) {
-    expect(response.body.error).toHaveProperty('code', errorCode);
+    expect(response.body.error).toHaveProperty("code", errorCode);
   }
 };
 
 // Wait helper for async operations
-export const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export const wait = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));

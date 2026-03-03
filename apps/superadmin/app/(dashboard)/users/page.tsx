@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -13,9 +13,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { formatDate } from '@/lib/utils';
-import { Search, MoreVertical, UserCheck, UserX, RefreshCw } from 'lucide-react';
+} from "@/components/ui/table";
+import { formatDate } from "@/lib/utils";
+import {
+  Search,
+  MoreVertical,
+  UserCheck,
+  UserX,
+  RefreshCw,
+} from "lucide-react";
 
 interface User {
   id: string;
@@ -31,8 +37,8 @@ interface User {
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const supabase = createClient();
 
   useEffect(() => {
@@ -43,14 +49,14 @@ export default function UsersPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     } finally {
       setLoading(false);
     }
@@ -59,14 +65,14 @@ export default function UsersPage() {
   const toggleUserStatus = async (userId: string, currentStatus: boolean) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .update({ is_active: !currentStatus })
-        .eq('id', userId);
+        .eq("id", userId);
 
       if (error) throw error;
       fetchUsers();
     } catch (error) {
-      console.error('Error updating user:', error);
+      console.error("Error updating user:", error);
     }
   };
 
@@ -74,16 +80,19 @@ export default function UsersPage() {
     const matchesSearch =
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
 
-  const roleColors: Record<string, 'default' | 'success' | 'warning' | 'info' | 'destructive'> = {
-    customer: 'default',
-    driver: 'info',
-    merchant: 'warning',
-    admin: 'success',
-    super_admin: 'destructive',
+  const roleColors: Record<
+    string,
+    "default" | "success" | "warning" | "info" | "destructive"
+  > = {
+    customer: "default",
+    driver: "info",
+    merchant: "warning",
+    admin: "success",
+    super_admin: "destructive",
   };
 
   return (
@@ -121,19 +130,19 @@ export default function UsersPage() {
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {['all', 'customer', 'driver', 'merchant', 'admin'].map((role) => (
+          {["all", "customer", "driver", "merchant", "admin"].map((role) => (
             <div
               key={role}
               className="bg-card border rounded-lg p-4 cursor-pointer hover:border-primary transition-colors"
               onClick={() => setRoleFilter(role)}
             >
               <p className="text-2xl font-bold">
-                {role === 'all'
+                {role === "all"
                   ? users.length
                   : users.filter((u) => u.role === role).length}
               </p>
               <p className="text-sm text-muted-foreground capitalize">
-                {role === 'all' ? 'Total' : role + 's'}
+                {role === "all" ? "Total" : role + "s"}
               </p>
             </div>
           ))}
@@ -161,7 +170,10 @@ export default function UsersPage() {
                 </TableRow>
               ) : filteredUsers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={6}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No users found
                   </TableCell>
                 </TableRow>
@@ -170,29 +182,37 @@ export default function UsersPage() {
                   <TableRow key={user.id}>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{user.full_name || 'N/A'}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="font-medium">{user.full_name || "N/A"}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={roleColors[user.role] || 'default'}>
+                      <Badge variant={roleColors[user.role] || "default"}>
                         {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={user.is_active ? 'success' : 'destructive'}>
-                        {user.is_active ? 'Active' : 'Inactive'}
+                      <Badge
+                        variant={user.is_active ? "success" : "destructive"}
+                      >
+                        {user.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
                     <TableCell>{formatDate(user.created_at)}</TableCell>
                     <TableCell>
-                      {user.last_login_at ? formatDate(user.last_login_at) : 'Never'}
+                      {user.last_login_at
+                        ? formatDate(user.last_login_at)
+                        : "Never"}
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => toggleUserStatus(user.id, user.is_active)}
+                        onClick={() =>
+                          toggleUserStatus(user.id, user.is_active)
+                        }
                       >
                         {user.is_active ? (
                           <UserX className="w-4 h-4 text-destructive" />

@@ -7,7 +7,7 @@
  * - Fallback support
  */
 
-import { logger } from '../../../lib/logger.js';
+import { logger } from "../../../lib/logger.js";
 
 interface SMSPayload {
   message: string;
@@ -31,7 +31,7 @@ interface SMSResult {
   cost?: number;
 }
 
-type SMSProvider = 'twilio' | 'msg91' | 'mock';
+type SMSProvider = "twilio" | "msg91" | "mock";
 
 interface ProviderConfig {
   twilio?: {
@@ -47,15 +47,20 @@ interface ProviderConfig {
 
 class SMSNotificationChannel {
   private config: ProviderConfig = {};
-  private defaultProvider: SMSProvider = 'mock';
+  private defaultProvider: SMSProvider = "mock";
 
   /**
    * Initialize SMS providers
    */
-  initialize(config: ProviderConfig, defaultProvider: SMSProvider = 'twilio'): void {
+  initialize(
+    config: ProviderConfig,
+    defaultProvider: SMSProvider = "twilio",
+  ): void {
     this.config = config;
     this.defaultProvider = defaultProvider;
-    logger.info('SMS notification channel initialized', { provider: defaultProvider });
+    logger.info("SMS notification channel initialized", {
+      provider: defaultProvider,
+    });
   }
 
   /**
@@ -64,7 +69,7 @@ class SMSNotificationChannel {
   async send(
     recipient: SMSRecipient,
     payload: SMSPayload,
-    provider?: SMSProvider
+    provider?: SMSProvider,
   ): Promise<SMSResult> {
     const selectedProvider = provider || this.defaultProvider;
 
@@ -72,10 +77,10 @@ class SMSNotificationChannel {
       let result: SMSResult;
 
       switch (selectedProvider) {
-        case 'twilio':
+        case "twilio":
           result = await this.sendViaTwilio(recipient, payload);
           break;
-        case 'msg91':
+        case "msg91":
           result = await this.sendViaMsg91(recipient, payload);
           break;
         default:
@@ -83,7 +88,7 @@ class SMSNotificationChannel {
       }
 
       if (result.success) {
-        logger.info('SMS sent successfully', {
+        logger.info("SMS sent successfully", {
           userId: recipient.userId,
           provider: selectedProvider,
           messageId: result.messageId,
@@ -92,8 +97,9 @@ class SMSNotificationChannel {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Failed to send SMS', {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      logger.error("Failed to send SMS", {
         userId: recipient.userId,
         provider: selectedProvider,
         error: errorMessage,
@@ -114,14 +120,14 @@ class SMSNotificationChannel {
   async sendBatch(
     recipients: SMSRecipient[],
     payload: SMSPayload,
-    provider?: SMSProvider
+    provider?: SMSProvider,
   ): Promise<SMSResult[]> {
     const results = await Promise.all(
-      recipients.map((recipient) => this.send(recipient, payload, provider))
+      recipients.map((recipient) => this.send(recipient, payload, provider)),
     );
 
     const successCount = results.filter((r) => r.success).length;
-    logger.info('Batch SMS sent', {
+    logger.info("Batch SMS sent", {
       total: recipients.length,
       success: successCount,
       failed: recipients.length - successCount,
@@ -135,10 +141,10 @@ class SMSNotificationChannel {
    */
   private async sendViaTwilio(
     recipient: SMSRecipient,
-    payload: SMSPayload
+    payload: SMSPayload,
   ): Promise<SMSResult> {
     if (!this.config.twilio) {
-      throw new Error('Twilio not configured');
+      throw new Error("Twilio not configured");
     }
 
     // In production, use Twilio SDK:
@@ -160,7 +166,7 @@ class SMSNotificationChannel {
       success: true,
       messageId,
       recipient,
-      provider: 'twilio',
+      provider: "twilio",
       cost: 0.0075, // Approximate cost per SMS
     };
   }
@@ -170,10 +176,10 @@ class SMSNotificationChannel {
    */
   private async sendViaMsg91(
     recipient: SMSRecipient,
-    payload: SMSPayload
+    payload: SMSPayload,
   ): Promise<SMSResult> {
     if (!this.config.msg91) {
-      throw new Error('MSG91 not configured');
+      throw new Error("MSG91 not configured");
     }
 
     // In production, use MSG91 API:
@@ -199,7 +205,7 @@ class SMSNotificationChannel {
       success: true,
       messageId,
       recipient,
-      provider: 'msg91',
+      provider: "msg91",
       cost: 0.002, // Approximate cost per SMS in India
     };
   }
@@ -209,12 +215,12 @@ class SMSNotificationChannel {
    */
   private async sendViaMock(
     recipient: SMSRecipient,
-    payload: SMSPayload
+    payload: SMSPayload,
   ): Promise<SMSResult> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    logger.debug('Mock SMS sent', {
+    logger.debug("Mock SMS sent", {
       to: recipient.phoneNumber,
       message: payload.message,
     });
@@ -223,7 +229,7 @@ class SMSNotificationChannel {
       success: true,
       messageId: `mock_${Date.now()}`,
       recipient,
-      provider: 'mock',
+      provider: "mock",
       cost: 0,
     };
   }
@@ -234,11 +240,11 @@ class SMSNotificationChannel {
   async sendOTP(
     recipient: SMSRecipient,
     otp: string,
-    expiryMinutes: number = 10
+    expiryMinutes: number = 10,
   ): Promise<SMSResult> {
     const payload: SMSPayload = {
       message: `Your LMA verification code is ${otp}. Valid for ${expiryMinutes} minutes. Do not share this code with anyone.`,
-      templateId: 'otp_template', // DLT template ID
+      templateId: "otp_template", // DLT template ID
       variables: {
         otp,
         expiry: String(expiryMinutes),
@@ -255,17 +261,18 @@ class SMSNotificationChannel {
     recipient: SMSRecipient,
     orderId: string,
     status: string,
-    details?: string
+    details?: string,
   ): Promise<SMSResult> {
     const statusMessages: Record<string, string> = {
       confirmed: `Your order #${orderId.slice(-6)} has been confirmed and is being prepared.`,
       ready_for_pickup: `Your order #${orderId.slice(-6)} is ready! Driver is on the way to pick it up.`,
       picked_up: `Your order #${orderId.slice(-6)} has been picked up and is on the way to you.`,
       delivered: `Your order #${orderId.slice(-6)} has been delivered. Thank you for ordering!`,
-      cancelled: `Your order #${orderId.slice(-6)} has been cancelled. ${details || ''}`,
+      cancelled: `Your order #${orderId.slice(-6)} has been cancelled. ${details || ""}`,
     };
 
-    const message = statusMessages[status] || `Order #${orderId.slice(-6)} status: ${status}`;
+    const message =
+      statusMessages[status] || `Order #${orderId.slice(-6)} status: ${status}`;
 
     return this.send(recipient, { message });
   }
@@ -278,7 +285,7 @@ class SMSNotificationChannel {
     currency: string;
   }> {
     // In production, query provider API for balance
-    return { balance: 1000, currency: 'INR' };
+    return { balance: 1000, currency: "INR" };
   }
 }
 

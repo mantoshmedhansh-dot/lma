@@ -7,7 +7,7 @@
  * - SMTP fallback
  */
 
-import { logger } from '../../../lib/logger.js';
+import { logger } from "../../../lib/logger.js";
 
 interface EmailPayload {
   subject: string;
@@ -39,7 +39,7 @@ interface EmailResult {
   provider: string;
 }
 
-type EmailProvider = 'sendgrid' | 'ses' | 'smtp' | 'mock';
+type EmailProvider = "sendgrid" | "ses" | "smtp" | "mock";
 
 interface ProviderConfig {
   sendgrid?: {
@@ -65,15 +65,20 @@ interface ProviderConfig {
 
 class EmailNotificationChannel {
   private config: Partial<ProviderConfig> = {};
-  private defaultProvider: EmailProvider = 'mock';
+  private defaultProvider: EmailProvider = "mock";
 
   /**
    * Initialize email providers
    */
-  initialize(config: ProviderConfig, defaultProvider: EmailProvider = 'sendgrid'): void {
+  initialize(
+    config: ProviderConfig,
+    defaultProvider: EmailProvider = "sendgrid",
+  ): void {
     this.config = config;
     this.defaultProvider = defaultProvider;
-    logger.info('Email notification channel initialized', { provider: defaultProvider });
+    logger.info("Email notification channel initialized", {
+      provider: defaultProvider,
+    });
   }
 
   /**
@@ -82,7 +87,7 @@ class EmailNotificationChannel {
   async send(
     recipient: EmailRecipient,
     payload: EmailPayload,
-    provider?: EmailProvider
+    provider?: EmailProvider,
   ): Promise<EmailResult> {
     const selectedProvider = provider || this.defaultProvider;
 
@@ -90,13 +95,13 @@ class EmailNotificationChannel {
       let result: EmailResult;
 
       switch (selectedProvider) {
-        case 'sendgrid':
+        case "sendgrid":
           result = await this.sendViaSendGrid(recipient, payload);
           break;
-        case 'ses':
+        case "ses":
           result = await this.sendViaSES(recipient, payload);
           break;
-        case 'smtp':
+        case "smtp":
           result = await this.sendViaSMTP(recipient, payload);
           break;
         default:
@@ -104,7 +109,7 @@ class EmailNotificationChannel {
       }
 
       if (result.success) {
-        logger.info('Email sent successfully', {
+        logger.info("Email sent successfully", {
           userId: recipient.userId,
           email: recipient.email,
           provider: selectedProvider,
@@ -114,8 +119,9 @@ class EmailNotificationChannel {
 
       return result;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Failed to send email', {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      logger.error("Failed to send email", {
         email: recipient.email,
         provider: selectedProvider,
         error: errorMessage,
@@ -136,15 +142,15 @@ class EmailNotificationChannel {
   async sendBatch(
     recipients: EmailRecipient[],
     payload: EmailPayload,
-    provider?: EmailProvider
+    provider?: EmailProvider,
   ): Promise<EmailResult[]> {
     // SendGrid supports batch sending, others need individual sends
     const results = await Promise.all(
-      recipients.map((recipient) => this.send(recipient, payload, provider))
+      recipients.map((recipient) => this.send(recipient, payload, provider)),
     );
 
     const successCount = results.filter((r) => r.success).length;
-    logger.info('Batch email sent', {
+    logger.info("Batch email sent", {
       total: recipients.length,
       success: successCount,
       failed: recipients.length - successCount,
@@ -158,10 +164,10 @@ class EmailNotificationChannel {
    */
   private async sendViaSendGrid(
     recipient: EmailRecipient,
-    payload: EmailPayload
+    payload: EmailPayload,
   ): Promise<EmailResult> {
     if (!this.config.sendgrid) {
-      throw new Error('SendGrid not configured');
+      throw new Error("SendGrid not configured");
     }
 
     // In production, use SendGrid SDK:
@@ -188,7 +194,7 @@ class EmailNotificationChannel {
       success: true,
       messageId,
       recipient,
-      provider: 'sendgrid',
+      provider: "sendgrid",
     };
   }
 
@@ -197,10 +203,10 @@ class EmailNotificationChannel {
    */
   private async sendViaSES(
     recipient: EmailRecipient,
-    payload: EmailPayload
+    payload: EmailPayload,
   ): Promise<EmailResult> {
     if (!this.config.ses) {
-      throw new Error('AWS SES not configured');
+      throw new Error("AWS SES not configured");
     }
 
     // In production, use AWS SDK:
@@ -234,7 +240,7 @@ class EmailNotificationChannel {
       success: true,
       messageId,
       recipient,
-      provider: 'ses',
+      provider: "ses",
     };
   }
 
@@ -243,10 +249,10 @@ class EmailNotificationChannel {
    */
   private async sendViaSMTP(
     recipient: EmailRecipient,
-    payload: EmailPayload
+    payload: EmailPayload,
   ): Promise<EmailResult> {
     if (!this.config.smtp) {
-      throw new Error('SMTP not configured');
+      throw new Error("SMTP not configured");
     }
 
     // In production, use nodemailer:
@@ -269,7 +275,7 @@ class EmailNotificationChannel {
       success: true,
       messageId,
       recipient,
-      provider: 'smtp',
+      provider: "smtp",
     };
   }
 
@@ -278,12 +284,12 @@ class EmailNotificationChannel {
    */
   private async sendViaMock(
     recipient: EmailRecipient,
-    payload: EmailPayload
+    payload: EmailPayload,
   ): Promise<EmailResult> {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    logger.debug('Mock email sent', {
+    logger.debug("Mock email sent", {
       to: recipient.email,
       subject: payload.subject,
     });
@@ -292,7 +298,7 @@ class EmailNotificationChannel {
       success: true,
       messageId: `mock_${Date.now()}`,
       recipient,
-      provider: 'mock',
+      provider: "mock",
     };
   }
 
@@ -307,7 +313,7 @@ class EmailNotificationChannel {
       total: number;
       deliveryAddress: string;
       estimatedDelivery: string;
-    }
+    },
   ): Promise<EmailResult> {
     const itemsHtml = orderDetails.items
       .map(
@@ -316,14 +322,14 @@ class EmailNotificationChannel {
             <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.name}</td>
             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity}</td>
             <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">₹${item.price.toFixed(2)}</td>
-          </tr>`
+          </tr>`,
       )
-      .join('');
+      .join("");
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #333;">Order Confirmed!</h1>
-        <p>Hi ${recipient.name || 'there'},</p>
+        <p>Hi ${recipient.name || "there"},</p>
         <p>Thank you for your order. Here are the details:</p>
 
         <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -373,12 +379,12 @@ class EmailNotificationChannel {
       total: number;
       deliveryTime: string;
       feedbackLink: string;
-    }
+    },
   ): Promise<EmailResult> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #22c55e;">Delivered!</h1>
-        <p>Hi ${recipient.name || 'there'},</p>
+        <p>Hi ${recipient.name || "there"},</p>
         <p>Your order #${orderDetails.orderId.slice(-8)} has been delivered.</p>
 
         <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -408,12 +414,12 @@ class EmailNotificationChannel {
   async sendPasswordReset(
     recipient: EmailRecipient,
     resetLink: string,
-    expiryMinutes: number = 60
+    expiryMinutes: number = 60,
   ): Promise<EmailResult> {
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #333;">Password Reset</h1>
-        <p>Hi ${recipient.name || 'there'},</p>
+        <p>Hi ${recipient.name || "there"},</p>
         <p>We received a request to reset your password. Click the button below to create a new password:</p>
 
         <a href="${resetLink}" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 20px 0;">
@@ -426,7 +432,7 @@ class EmailNotificationChannel {
     `;
 
     return this.send(recipient, {
-      subject: 'Reset Your Password - LMA',
+      subject: "Reset Your Password - LMA",
       html,
       text: `Reset your password: ${resetLink}. Link expires in ${expiryMinutes} minutes.`,
     });

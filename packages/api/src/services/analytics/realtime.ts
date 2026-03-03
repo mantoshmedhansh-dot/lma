@@ -8,8 +8,8 @@
  * - Live dashboard feeds
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
 
 // Real-time metric types
 interface LiveOrderStats {
@@ -55,7 +55,7 @@ interface LiveOperationalMetrics {
 interface Alert {
   id: string;
   type: AlertType;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   title: string;
   message: string;
   data?: Record<string, unknown>;
@@ -64,14 +64,14 @@ interface Alert {
 }
 
 type AlertType =
-  | 'order_delayed'
-  | 'driver_shortage'
-  | 'high_cancellation'
-  | 'surge_active'
-  | 'system_error'
-  | 'payment_issue'
-  | 'driver_inactive'
-  | 'merchant_offline';
+  | "order_delayed"
+  | "driver_shortage"
+  | "high_cancellation"
+  | "surge_active"
+  | "system_error"
+  | "payment_issue"
+  | "driver_inactive"
+  | "merchant_offline";
 
 interface DashboardFeed {
   orders: LiveOrderStats;
@@ -100,16 +100,16 @@ export async function getLiveOrderStats(): Promise<LiveOrderStats> {
 
   // Get active orders
   const { data: activeOrders } = await supabaseAdmin
-    .from('orders')
-    .select('id, status, created_at')
-    .in('status', [
-      'pending',
-      'confirmed',
-      'preparing',
-      'ready_for_pickup',
-      'driver_assigned',
-      'picked_up',
-      'in_transit',
+    .from("orders")
+    .select("id, status, created_at")
+    .in("status", [
+      "pending",
+      "confirmed",
+      "preparing",
+      "ready_for_pickup",
+      "driver_assigned",
+      "picked_up",
+      "in_transit",
     ]);
 
   // Count by status
@@ -120,23 +120,26 @@ export async function getLiveOrderStats(): Promise<LiveOrderStats> {
   activeOrders?.forEach((order) => {
     byStatus[order.status] = (byStatus[order.status] || 0) + 1;
 
-    const waitTime = (now.getTime() - new Date(order.created_at).getTime()) / 60000;
+    const waitTime =
+      (now.getTime() - new Date(order.created_at).getTime()) / 60000;
     totalWaitTime += waitTime;
 
-    if (order.status === 'pending' && waitTime > oldestPendingTime) {
+    if (order.status === "pending" && waitTime > oldestPendingTime) {
       oldestPendingTime = waitTime;
     }
   });
 
   // Get recently completed/cancelled (last 5 minutes)
   const { data: recentOrders } = await supabaseAdmin
-    .from('orders')
-    .select('status')
-    .gte('updated_at', fiveMinutesAgo.toISOString())
-    .in('status', ['delivered', 'cancelled']);
+    .from("orders")
+    .select("status")
+    .gte("updated_at", fiveMinutesAgo.toISOString())
+    .in("status", ["delivered", "cancelled"]);
 
-  const recentlyCompleted = recentOrders?.filter((o) => o.status === 'delivered').length || 0;
-  const recentlyCancelled = recentOrders?.filter((o) => o.status === 'cancelled').length || 0;
+  const recentlyCompleted =
+    recentOrders?.filter((o) => o.status === "delivered").length || 0;
+  const recentlyCancelled =
+    recentOrders?.filter((o) => o.status === "cancelled").length || 0;
 
   const totalActive = activeOrders?.length || 0;
 
@@ -155,31 +158,36 @@ export async function getLiveOrderStats(): Promise<LiveOrderStats> {
  */
 export async function getLiveDriverStats(): Promise<LiveDriverStats> {
   const { data: drivers } = await supabaseAdmin
-    .from('drivers')
-    .select(`
+    .from("drivers")
+    .select(
+      `
       id,
       status,
       current_latitude,
       current_longitude,
       updated_at,
       users(full_name)
-    `)
-    .eq('is_active', true);
+    `,
+    )
+    .eq("is_active", true);
 
   // Count by status
-  const totalOnline = drivers?.filter((d) => d.status === 'online').length || 0;
-  const totalOnDelivery = drivers?.filter((d) => d.status === 'on_delivery').length || 0;
-  const totalIdle = drivers?.filter((d) => d.status === 'idle').length || 0;
-  const totalOffline = drivers?.filter((d) => d.status === 'offline').length || 0;
+  const totalOnline = drivers?.filter((d) => d.status === "online").length || 0;
+  const totalOnDelivery =
+    drivers?.filter((d) => d.status === "on_delivery").length || 0;
+  const totalIdle = drivers?.filter((d) => d.status === "idle").length || 0;
+  const totalOffline =
+    drivers?.filter((d) => d.status === "offline").length || 0;
 
   // Get current orders for drivers on delivery
-  const onDeliveryIds = drivers?.filter((d) => d.status === 'on_delivery').map((d) => d.id) || [];
+  const onDeliveryIds =
+    drivers?.filter((d) => d.status === "on_delivery").map((d) => d.id) || [];
 
   const { data: currentOrders } = await supabaseAdmin
-    .from('orders')
-    .select('driver_id, id')
-    .in('driver_id', onDeliveryIds)
-    .in('status', ['driver_assigned', 'picked_up', 'in_transit']);
+    .from("orders")
+    .select("driver_id, id")
+    .in("driver_id", onDeliveryIds)
+    .in("status", ["driver_assigned", "picked_up", "in_transit"]);
 
   const driverOrderMap: Record<string, string> = {};
   currentOrders?.forEach((o) => {
@@ -191,7 +199,7 @@ export async function getLiveDriverStats(): Promise<LiveDriverStats> {
     .filter((d) => d.current_latitude && d.current_longitude)
     .map((d) => ({
       driverId: d.id,
-      name: (d.users as { full_name: string })?.full_name || 'Unknown',
+      name: (d.users as { full_name: string })?.full_name || "Unknown",
       latitude: d.current_latitude,
       longitude: d.current_longitude,
       status: d.status,
@@ -201,7 +209,8 @@ export async function getLiveDriverStats(): Promise<LiveDriverStats> {
 
   // Calculate average active orders per driver
   const activeDrivers = totalOnline + totalOnDelivery;
-  const avgActiveOrders = activeDrivers > 0 ? onDeliveryIds.length / activeDrivers : 0;
+  const avgActiveOrders =
+    activeDrivers > 0 ? onDeliveryIds.length / activeDrivers : 0;
 
   return {
     totalOnline,
@@ -224,63 +233,71 @@ export async function getLiveOperationalMetrics(): Promise<LiveOperationalMetric
 
   // Orders per minute (last minute)
   const { count: ordersLastMinute } = await supabaseAdmin
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .gte('created_at', oneMinuteAgo.toISOString());
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .gte("created_at", oneMinuteAgo.toISOString());
 
   // Today's stats
   const { data: todayOrders } = await supabaseAdmin
-    .from('orders')
-    .select('status, created_at, delivered_at')
-    .gte('created_at', todayStart.toISOString());
+    .from("orders")
+    .select("status, created_at, delivered_at")
+    .gte("created_at", todayStart.toISOString());
 
   const totalToday = todayOrders?.length || 0;
-  const completedToday = todayOrders?.filter((o) => o.status === 'delivered').length || 0;
-  const completionRateToday = totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
+  const completedToday =
+    todayOrders?.filter((o) => o.status === "delivered").length || 0;
+  const completionRateToday =
+    totalToday > 0 ? (completedToday / totalToday) * 100 : 0;
 
   // Average delivery time today
   const deliveryTimes: number[] = [];
   todayOrders?.forEach((o) => {
-    if (o.status === 'delivered' && o.delivered_at && o.created_at) {
-      const time = (new Date(o.delivered_at).getTime() - new Date(o.created_at).getTime()) / 60000;
+    if (o.status === "delivered" && o.delivered_at && o.created_at) {
+      const time =
+        (new Date(o.delivered_at).getTime() -
+          new Date(o.created_at).getTime()) /
+        60000;
       if (time > 0 && time < 180) {
         deliveryTimes.push(time);
       }
     }
   });
 
-  const avgDeliveryTimeToday = deliveryTimes.length > 0
-    ? deliveryTimes.reduce((a, b) => a + b, 0) / deliveryTimes.length
-    : 0;
+  const avgDeliveryTimeToday =
+    deliveryTimes.length > 0
+      ? deliveryTimes.reduce((a, b) => a + b, 0) / deliveryTimes.length
+      : 0;
 
   // Get surge zones
   const { data: surgeZones } = await supabaseAdmin
-    .from('geofence_zones')
-    .select('id, name')
-    .eq('type', 'surge')
-    .eq('is_active', true);
+    .from("geofence_zones")
+    .select("id, name")
+    .eq("type", "surge")
+    .eq("is_active", true);
 
   const currentSurgeZones = (surgeZones || []).map((z) => ({
     zoneId: z.id,
     name: z.name,
     multiplier: 1.5, // Would calculate actual multiplier
-    reason: 'High demand',
+    reason: "High demand",
   }));
 
   // Pending assignments
   const { count: pendingAssignments } = await supabaseAdmin
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .in('status', ['pending', 'confirmed', 'ready_for_pickup'])
-    .is('driver_id', null);
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .in("status", ["pending", "confirmed", "ready_for_pickup"])
+    .is("driver_id", null);
 
   // Delayed orders (pending for more than threshold)
-  const delayThreshold = new Date(now.getTime() - ALERT_THRESHOLDS.orderDelayMinutes * 60 * 1000);
+  const delayThreshold = new Date(
+    now.getTime() - ALERT_THRESHOLDS.orderDelayMinutes * 60 * 1000,
+  );
   const { count: delayedOrders } = await supabaseAdmin
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .in('status', ['pending', 'confirmed', 'preparing', 'ready_for_pickup'])
-    .lt('created_at', delayThreshold.toISOString());
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .in("status", ["pending", "confirmed", "preparing", "ready_for_pickup"])
+    .lt("created_at", delayThreshold.toISOString());
 
   return {
     ordersPerMinute: ordersLastMinute || 0,
@@ -300,12 +317,15 @@ export async function getActiveAlerts(): Promise<Alert[]> {
 
   // Check for delayed orders
   const liveOrderStats = await getLiveOrderStats();
-  if (liveOrderStats.oldestPendingMinutes > ALERT_THRESHOLDS.orderDelayMinutes) {
+  if (
+    liveOrderStats.oldestPendingMinutes > ALERT_THRESHOLDS.orderDelayMinutes
+  ) {
     alerts.push({
       id: `alert_order_delay_${Date.now()}`,
-      type: 'order_delayed',
-      severity: liveOrderStats.oldestPendingMinutes > 60 ? 'critical' : 'warning',
-      title: 'Orders Delayed',
+      type: "order_delayed",
+      severity:
+        liveOrderStats.oldestPendingMinutes > 60 ? "critical" : "warning",
+      title: "Orders Delayed",
       message: `Oldest pending order waiting for ${liveOrderStats.oldestPendingMinutes} minutes`,
       data: { oldestPendingMinutes: liveOrderStats.oldestPendingMinutes },
       timestamp: new Date(),
@@ -316,14 +336,17 @@ export async function getActiveAlerts(): Promise<Alert[]> {
   // Check for driver shortage
   const liveDriverStats = await getLiveDriverStats();
   const availableDrivers = liveDriverStats.totalOnline;
-  const pendingOrders = liveOrderStats.byStatus['pending'] || 0;
+  const pendingOrders = liveOrderStats.byStatus["pending"] || 0;
 
-  if (availableDrivers > 0 && pendingOrders / availableDrivers > ALERT_THRESHOLDS.driverShortageRatio) {
+  if (
+    availableDrivers > 0 &&
+    pendingOrders / availableDrivers > ALERT_THRESHOLDS.driverShortageRatio
+  ) {
     alerts.push({
       id: `alert_driver_shortage_${Date.now()}`,
-      type: 'driver_shortage',
-      severity: pendingOrders / availableDrivers > 1 ? 'critical' : 'warning',
-      title: 'Driver Shortage',
+      type: "driver_shortage",
+      severity: pendingOrders / availableDrivers > 1 ? "critical" : "warning",
+      title: "Driver Shortage",
       message: `${pendingOrders} pending orders with only ${availableDrivers} available drivers`,
       data: { pendingOrders, availableDrivers },
       timestamp: new Date(),
@@ -332,15 +355,17 @@ export async function getActiveAlerts(): Promise<Alert[]> {
   }
 
   // Check for high cancellation rate
-  const totalRecent = liveOrderStats.recentlyCompleted + liveOrderStats.recentlyCancelled;
+  const totalRecent =
+    liveOrderStats.recentlyCompleted + liveOrderStats.recentlyCancelled;
   if (totalRecent > 0) {
-    const cancellationRate = (liveOrderStats.recentlyCancelled / totalRecent) * 100;
+    const cancellationRate =
+      (liveOrderStats.recentlyCancelled / totalRecent) * 100;
     if (cancellationRate > ALERT_THRESHOLDS.highCancellationRate) {
       alerts.push({
         id: `alert_high_cancellation_${Date.now()}`,
-        type: 'high_cancellation',
-        severity: cancellationRate > 25 ? 'critical' : 'warning',
-        title: 'High Cancellation Rate',
+        type: "high_cancellation",
+        severity: cancellationRate > 25 ? "critical" : "warning",
+        title: "High Cancellation Rate",
         message: `${Math.round(cancellationRate)}% cancellation rate in the last 5 minutes`,
         data: { cancellationRate, cancelled: liveOrderStats.recentlyCancelled },
         timestamp: new Date(),
@@ -350,17 +375,19 @@ export async function getActiveAlerts(): Promise<Alert[]> {
   }
 
   // Check for inactive drivers (on shift but no location update)
-  const inactiveThreshold = new Date(Date.now() - ALERT_THRESHOLDS.driverInactiveMinutes * 60 * 1000);
+  const inactiveThreshold = new Date(
+    Date.now() - ALERT_THRESHOLDS.driverInactiveMinutes * 60 * 1000,
+  );
   const inactiveDrivers = liveDriverStats.driverLocations.filter(
-    (d) => d.status === 'online' && d.lastUpdate < inactiveThreshold
+    (d) => d.status === "online" && d.lastUpdate < inactiveThreshold,
   );
 
   if (inactiveDrivers.length > 0) {
     alerts.push({
       id: `alert_driver_inactive_${Date.now()}`,
-      type: 'driver_inactive',
-      severity: 'info',
-      title: 'Inactive Drivers',
+      type: "driver_inactive",
+      severity: "info",
+      title: "Inactive Drivers",
       message: `${inactiveDrivers.length} drivers haven't updated location in ${ALERT_THRESHOLDS.driverInactiveMinutes}+ minutes`,
       data: { inactiveDrivers: inactiveDrivers.map((d) => d.driverId) },
       timestamp: new Date(),
@@ -370,10 +397,10 @@ export async function getActiveAlerts(): Promise<Alert[]> {
 
   // Get persisted alerts from database
   const { data: dbAlerts } = await supabaseAdmin
-    .from('operational_alerts')
-    .select('*')
-    .eq('acknowledged', false)
-    .order('created_at', { ascending: false })
+    .from("operational_alerts")
+    .select("*")
+    .eq("acknowledged", false)
+    .order("created_at", { ascending: false })
     .limit(20);
 
   dbAlerts?.forEach((a) => {
@@ -400,19 +427,19 @@ export async function getActiveAlerts(): Promise<Alert[]> {
  */
 export async function acknowledgeAlert(alertId: string): Promise<void> {
   await supabaseAdmin
-    .from('operational_alerts')
+    .from("operational_alerts")
     .update({ acknowledged: true, acknowledged_at: new Date().toISOString() })
-    .eq('id', alertId);
+    .eq("id", alertId);
 }
 
 /**
  * Create a new alert
  */
 export async function createAlert(
-  alert: Omit<Alert, 'id' | 'timestamp' | 'acknowledged'>
+  alert: Omit<Alert, "id" | "timestamp" | "acknowledged">,
 ): Promise<Alert> {
   const { data, error } = await supabaseAdmin
-    .from('operational_alerts')
+    .from("operational_alerts")
     .insert({
       type: alert.type,
       severity: alert.severity,
@@ -425,8 +452,8 @@ export async function createAlert(
     .single();
 
   if (error) {
-    logger.error('Failed to create alert', { error });
-    throw new Error('Failed to create alert');
+    logger.error("Failed to create alert", { error });
+    throw new Error("Failed to create alert");
   }
 
   return {
@@ -467,12 +494,12 @@ export async function getDashboardFeed(): Promise<DashboardFeed> {
 export async function trackOrderStatusChange(
   orderId: string,
   previousStatus: string,
-  newStatus: string
+  newStatus: string,
 ): Promise<void> {
   const timestamp = new Date();
 
   // Log status change
-  await supabaseAdmin.from('order_status_log').insert({
+  await supabaseAdmin.from("order_status_log").insert({
     order_id: orderId,
     previous_status: previousStatus,
     new_status: newStatus,
@@ -480,16 +507,16 @@ export async function trackOrderStatusChange(
   });
 
   // Check for alert conditions
-  if (newStatus === 'cancelled') {
+  if (newStatus === "cancelled") {
     // Could trigger high cancellation rate check
-    logger.info('Order cancelled', { orderId, previousStatus });
+    logger.info("Order cancelled", { orderId, previousStatus });
   }
 
-  if (newStatus === 'delayed') {
+  if (newStatus === "delayed") {
     await createAlert({
-      type: 'order_delayed',
-      severity: 'warning',
-      title: 'Order Delayed',
+      type: "order_delayed",
+      severity: "warning",
+      title: "Order Delayed",
       message: `Order ${orderId} has been marked as delayed`,
       data: { orderId, previousStatus },
     });
@@ -502,22 +529,22 @@ export async function trackOrderStatusChange(
 export async function trackDriverLocation(
   driverId: string,
   latitude: number,
-  longitude: number
+  longitude: number,
 ): Promise<void> {
   const timestamp = new Date();
 
   // Update driver location
   await supabaseAdmin
-    .from('drivers')
+    .from("drivers")
     .update({
       current_latitude: latitude,
       current_longitude: longitude,
       updated_at: timestamp.toISOString(),
     })
-    .eq('id', driverId);
+    .eq("id", driverId);
 
   // Log location for history
-  await supabaseAdmin.from('driver_location_log').insert({
+  await supabaseAdmin.from("driver_location_log").insert({
     driver_id: driverId,
     latitude,
     longitude,
@@ -528,16 +555,18 @@ export async function trackDriverLocation(
 /**
  * Get order tracking timeline
  */
-export async function getOrderTimeline(orderId: string): Promise<Array<{
-  status: string;
-  timestamp: Date;
-  duration?: number;
-}>> {
+export async function getOrderTimeline(orderId: string): Promise<
+  Array<{
+    status: string;
+    timestamp: Date;
+    duration?: number;
+  }>
+> {
   const { data: logs } = await supabaseAdmin
-    .from('order_status_log')
-    .select('new_status, changed_at')
-    .eq('order_id', orderId)
-    .order('changed_at', { ascending: true });
+    .from("order_status_log")
+    .select("new_status, changed_at")
+    .eq("order_id", orderId)
+    .order("changed_at", { ascending: true });
 
   if (!logs || logs.length === 0) {
     return [];
@@ -563,19 +592,27 @@ export async function getOrderTimeline(orderId: string): Promise<Array<{
 /**
  * Get live heatmap data for orders
  */
-export async function getOrderHeatmapData(): Promise<Array<{
-  latitude: number;
-  longitude: number;
-  intensity: number;
-}>> {
+export async function getOrderHeatmapData(): Promise<
+  Array<{
+    latitude: number;
+    longitude: number;
+    intensity: number;
+  }>
+> {
   const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
 
   const { data: recentOrders } = await supabaseAdmin
-    .from('orders')
-    .select('pickup_latitude, pickup_longitude, delivery_latitude, delivery_longitude')
-    .gte('created_at', thirtyMinutesAgo.toISOString());
+    .from("orders")
+    .select(
+      "pickup_latitude, pickup_longitude, delivery_latitude, delivery_longitude",
+    )
+    .gte("created_at", thirtyMinutesAgo.toISOString());
 
-  const heatmapPoints: Array<{ latitude: number; longitude: number; intensity: number }> = [];
+  const heatmapPoints: Array<{
+    latitude: number;
+    longitude: number;
+    intensity: number;
+  }> = [];
 
   recentOrders?.forEach((order) => {
     if (order.pickup_latitude && order.pickup_longitude) {
@@ -608,16 +645,16 @@ export async function getSystemHealth(): Promise<{
 }> {
   // Database health check
   const dbStart = Date.now();
-  await supabaseAdmin.from('orders').select('id').limit(1);
+  await supabaseAdmin.from("orders").select("id").limit(1);
   const dbLatency = Date.now() - dbStart;
 
   return {
     database: {
-      status: dbLatency < 500 ? 'healthy' : 'degraded',
+      status: dbLatency < 500 ? "healthy" : "degraded",
       latency: dbLatency,
     },
     api: {
-      status: 'healthy',
+      status: "healthy",
       requestsPerMinute: 150, // Would need actual tracking
     },
     workers: {

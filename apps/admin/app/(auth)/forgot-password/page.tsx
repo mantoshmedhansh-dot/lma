@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
-import { Store, Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
+import { Store, Mail, ArrowLeft, CheckCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const { toast } = useToast();
@@ -26,9 +26,9 @@ export default function ForgotPasswordPage() {
 
       if (error) {
         toast({
-          title: 'Error',
+          title: "Error",
           description: error.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
@@ -36,9 +36,9 @@ export default function ForgotPasswordPage() {
       setSent(true);
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -119,7 +119,7 @@ export default function ForgotPasswordPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Sending...' : 'Send Reset Link'}
+            {loading ? "Sending..." : "Send Reset Link"}
           </Button>
         </form>
       </div>

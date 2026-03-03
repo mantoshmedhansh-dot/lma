@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { formatDate, formatCurrency } from '@/lib/utils';
+} from "@/components/ui/table";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import {
   Search,
   ShoppingBag,
@@ -25,7 +25,7 @@ import {
   CheckCircle,
   XCircle,
   Truck,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Order {
   id: string;
@@ -55,8 +55,8 @@ interface Order {
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const supabase = createClient();
 
@@ -68,8 +68,9 @@ export default function OrdersPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('orders')
-        .select(`
+        .from("orders")
+        .select(
+          `
           id,
           order_number,
           status,
@@ -82,14 +83,15 @@ export default function OrdersPage() {
           merchant:merchants(name),
           customer:users!orders_customer_id_fkey(full_name, email),
           driver:drivers(full_name)
-        `)
-        .order('created_at', { ascending: false })
+        `,
+        )
+        .order("created_at", { ascending: false })
         .limit(100);
 
       if (error) throw error;
       setOrders((data as any) || []);
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error("Error fetching orders:", error);
     } finally {
       setLoading(false);
     }
@@ -98,20 +100,26 @@ export default function OrdersPage() {
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer?.full_name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       order.merchant?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const statusColors: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'secondary' | 'default'> = {
-    pending: 'warning',
-    confirmed: 'info',
-    preparing: 'info',
-    ready: 'success',
-    picked_up: 'info',
-    delivered: 'success',
-    cancelled: 'destructive',
+  const statusColors: Record<
+    string,
+    "success" | "warning" | "destructive" | "info" | "secondary" | "default"
+  > = {
+    pending: "warning",
+    confirmed: "info",
+    preparing: "info",
+    ready: "success",
+    picked_up: "info",
+    delivered: "success",
+    cancelled: "destructive",
   };
 
   const statusIcons: Record<string, typeof Clock> = {
@@ -127,8 +135,13 @@ export default function OrdersPage() {
   // Calculate stats
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const todayOrders = orders.filter((o) => new Date(o.created_at) >= todayStart);
-  const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const todayOrders = orders.filter(
+    (o) => new Date(o.created_at) >= todayStart,
+  );
+  const todayRevenue = todayOrders.reduce(
+    (sum, o) => sum + (o.total_amount || 0),
+    0,
+  );
 
   return (
     <div>
@@ -152,14 +165,16 @@ export default function OrdersPage() {
           <Card>
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Today's Revenue</p>
-              <p className="text-2xl font-bold">{formatCurrency(todayRevenue)}</p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(todayRevenue)}
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
               <p className="text-sm text-muted-foreground">Pending</p>
               <p className="text-2xl font-bold">
-                {orders.filter((o) => o.status === 'pending').length}
+                {orders.filter((o) => o.status === "pending").length}
               </p>
             </CardContent>
           </Card>
@@ -219,7 +234,10 @@ export default function OrdersPage() {
                 </TableRow>
               ) : filteredOrders.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No orders found
                   </TableCell>
                 </TableRow>
@@ -233,21 +251,27 @@ export default function OrdersPage() {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{order.customer?.full_name || 'N/A'}</p>
+                          <p className="font-medium">
+                            {order.customer?.full_name || "N/A"}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             {order.delivery_address?.city}
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>{order.merchant?.name || 'N/A'}</TableCell>
+                      <TableCell>{order.merchant?.name || "N/A"}</TableCell>
                       <TableCell>
-                        <Badge variant={statusColors[order.status] || 'secondary'}>
+                        <Badge
+                          variant={statusColors[order.status] || "secondary"}
+                        >
                           <StatusIcon className="w-3 h-3 mr-1" />
-                          {order.status.replace('_', ' ')}
+                          {order.status.replace("_", " ")}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">{formatCurrency(order.total_amount)}</p>
+                        <p className="font-medium">
+                          {formatCurrency(order.total_amount)}
+                        </p>
                       </TableCell>
                       <TableCell>{formatDate(order.created_at)}</TableCell>
                       <TableCell className="text-right">
@@ -279,9 +303,11 @@ export default function OrdersPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">Order #{selectedOrder.order_number}</h2>
+              <h2 className="text-xl font-bold">
+                Order #{selectedOrder.order_number}
+              </h2>
               <Badge variant={statusColors[selectedOrder.status]}>
-                {selectedOrder.status.replace('_', ' ')}
+                {selectedOrder.status.replace("_", " ")}
               </Badge>
             </div>
 
@@ -289,7 +315,9 @@ export default function OrdersPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Customer</p>
-                  <p className="font-medium">{selectedOrder.customer?.full_name}</p>
+                  <p className="font-medium">
+                    {selectedOrder.customer?.full_name}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Merchant</p>
@@ -298,13 +326,14 @@ export default function OrdersPage() {
                 <div>
                   <p className="text-muted-foreground">Driver</p>
                   <p className="font-medium">
-                    {selectedOrder.driver?.full_name || 'Not assigned'}
+                    {selectedOrder.driver?.full_name || "Not assigned"}
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Delivery Address</p>
                   <p className="font-medium">
-                    {selectedOrder.delivery_address?.street}, {selectedOrder.delivery_address?.city}
+                    {selectedOrder.delivery_address?.street},{" "}
+                    {selectedOrder.delivery_address?.city}
                   </p>
                 </div>
               </div>
@@ -340,7 +369,11 @@ export default function OrdersPage() {
                 )}
               </div>
 
-              <Button variant="outline" className="w-full" onClick={() => setSelectedOrder(null)}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setSelectedOrder(null)}
+              >
                 Close
               </Button>
             </div>

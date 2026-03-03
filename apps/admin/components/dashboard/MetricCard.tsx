@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { ReactNode } from 'react';
-import { ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/solid';
+import { ReactNode } from "react";
+import { ArrowUpIcon, ArrowDownIcon } from "@heroicons/react/24/solid";
 
 interface MetricCardProps {
   title: string;
@@ -10,7 +10,7 @@ interface MetricCardProps {
   change?: number;
   changeLabel?: string;
   icon?: ReactNode;
-  variant?: 'default' | 'success' | 'warning' | 'danger';
+  variant?: "default" | "success" | "warning" | "danger";
   loading?: boolean;
 }
 
@@ -21,21 +21,21 @@ export function MetricCard({
   change,
   changeLabel,
   icon,
-  variant = 'default',
+  variant = "default",
   loading = false,
 }: MetricCardProps) {
   const variantStyles = {
-    default: 'bg-white border-gray-200',
-    success: 'bg-green-50 border-green-200',
-    warning: 'bg-yellow-50 border-yellow-200',
-    danger: 'bg-red-50 border-red-200',
+    default: "bg-white border-gray-200",
+    success: "bg-green-50 border-green-200",
+    warning: "bg-yellow-50 border-yellow-200",
+    danger: "bg-red-50 border-red-200",
   };
 
   const iconBgStyles = {
-    default: 'bg-gray-100 text-gray-600',
-    success: 'bg-green-100 text-green-600',
-    warning: 'bg-yellow-100 text-yellow-600',
-    danger: 'bg-red-100 text-red-600',
+    default: "bg-gray-100 text-gray-600",
+    success: "bg-green-100 text-green-600",
+    warning: "bg-yellow-100 text-yellow-600",
+    danger: "bg-red-100 text-red-600",
   };
 
   if (loading) {
@@ -56,9 +56,7 @@ export function MetricCard({
         <div>
           <p className="text-sm font-medium text-gray-500">{title}</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
-          {subtitle && (
-            <p className="text-sm text-gray-500 mt-1">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
         </div>
         {icon && (
           <div className={`p-3 rounded-full ${iconBgStyles[variant]}`}>
@@ -76,7 +74,7 @@ export function MetricCard({
           )}
           <span
             className={`text-sm font-medium ml-1 ${
-              change >= 0 ? 'text-green-600' : 'text-red-600'
+              change >= 0 ? "text-green-600" : "text-red-600"
             }`}
           >
             {Math.abs(change).toFixed(1)}%

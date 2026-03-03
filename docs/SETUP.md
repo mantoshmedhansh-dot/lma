@@ -3,12 +3,14 @@
 ## Prerequisites
 
 ### Required Software
+
 - **Node.js** 20.x or later
 - **PNPM** 8.x or later (`npm install -g pnpm`)
 - **Git** 2.x or later
 - **Docker** (optional, for local Supabase)
 
 ### Required Accounts
+
 - **Supabase** - [supabase.com](https://supabase.com)
 - **Vercel** - [vercel.com](https://vercel.com)
 - **Render** - [render.com](https://render.com)
@@ -17,6 +19,7 @@
 - **Firebase** - For push notifications
 
 ### For Mobile Development
+
 - **Expo CLI** (`npm install -g expo-cli`)
 - **EAS CLI** (`npm install -g eas-cli`)
 - **Xcode** (macOS only, for iOS development)
@@ -73,6 +76,7 @@ supabase db push
 Create environment files for each app:
 
 #### Web App (`apps/web/.env.local`)
+
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -91,6 +95,7 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=your_stripe_pk
 ```
 
 #### API Server (`packages/api/.env`)
+
 ```bash
 # Server
 PORT=4000
@@ -114,6 +119,7 @@ MAPBOX_SECRET_TOKEN=your_mapbox_secret_token
 ```
 
 #### Mobile App (`apps/mobile/.env`)
+
 ```bash
 EXPO_PUBLIC_SUPABASE_URL=your_supabase_url
 EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -124,6 +130,7 @@ EXPO_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
 ### 4. Set Up External Services
 
 #### Stripe Setup
+
 1. Create account at [stripe.com](https://stripe.com)
 2. Get API keys from Dashboard > Developers > API keys
 3. Set up webhooks:
@@ -131,11 +138,13 @@ EXPO_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
    - Events: `payment_intent.succeeded`, `payment_intent.failed`
 
 #### Mapbox Setup
+
 1. Create account at [mapbox.com](https://mapbox.com)
 2. Get access token from Account > Tokens
 3. For mobile, download offline maps SDK
 
 #### Firebase Setup (Push Notifications)
+
 1. Create project at [Firebase Console](https://console.firebase.google.com)
 2. Add iOS and Android apps
 3. Download config files:
@@ -157,6 +166,7 @@ pnpm dev:mobile
 ```
 
 Or run everything together:
+
 ```bash
 pnpm dev
 ```
@@ -243,6 +253,7 @@ LMA/
 ## Common Issues & Solutions
 
 ### Issue: Supabase connection failing
+
 ```bash
 # Check if Supabase is running (local)
 supabase status
@@ -252,6 +263,7 @@ echo $SUPABASE_URL
 ```
 
 ### Issue: Mobile app not connecting to API
+
 - Ensure API URL uses your machine's IP, not `localhost`
 - Check if firewall allows port 4000
 
@@ -262,12 +274,14 @@ ifconfig | grep "inet " | grep -v 127.0.0.1
 ```
 
 ### Issue: TypeScript errors
+
 ```bash
 # Regenerate types from Supabase
 supabase gen types typescript --local > packages/shared/types/database.ts
 ```
 
 ### Issue: Dependency conflicts
+
 ```bash
 # Clear node_modules and reinstall
 rm -rf node_modules

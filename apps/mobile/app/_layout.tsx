@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useAuthStore } from '@/lib/store/auth';
-import { Colors } from '@/constants/colors';
+import { useEffect } from "react";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { useAuthStore } from "@/lib/store/auth";
+import { Colors } from "@/constants/colors";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -15,7 +15,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Stack
         screenOptions={{
           headerStyle: {
@@ -34,7 +34,7 @@ export default function RootLayout() {
           name="merchant/[slug]"
           options={{
             headerShown: true,
-            headerTitle: '',
+            headerTitle: "",
             headerTransparent: true,
           }}
         />
@@ -42,22 +42,22 @@ export default function RootLayout() {
           name="cart"
           options={{
             headerShown: true,
-            title: 'Cart',
-            presentation: 'modal',
+            title: "Cart",
+            presentation: "modal",
           }}
         />
         <Stack.Screen
           name="checkout"
           options={{
             headerShown: true,
-            title: 'Checkout',
+            title: "Checkout",
           }}
         />
         <Stack.Screen
           name="order/[id]"
           options={{
             headerShown: true,
-            title: 'Order Details',
+            title: "Order Details",
           }}
         />
       </Stack>

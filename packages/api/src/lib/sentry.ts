@@ -1,19 +1,19 @@
-import * as Sentry from '@sentry/node';
-import { env } from '../config/env.js';
+import * as Sentry from "@sentry/node";
+import { env } from "../config/env.js";
 
 /**
  * Initialize Sentry for error tracking
  */
 export function initSentry() {
   if (!process.env.SENTRY_DSN) {
-    console.log('Sentry DSN not configured, skipping initialization');
+    console.log("Sentry DSN not configured, skipping initialization");
     return;
   }
 
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: env.nodeEnv,
-    release: process.env.npm_package_version || '0.1.0',
+    release: process.env.npm_package_version || "0.1.0",
 
     // Performance monitoring
     tracesSampleRate: env.isProd ? 0.1 : 1.0,
@@ -25,16 +25,25 @@ export function initSentry() {
     beforeSend(event) {
       // Remove sensitive headers
       if (event.request?.headers) {
-        delete event.request.headers['authorization'];
-        delete event.request.headers['cookie'];
-        delete event.request.headers['x-api-key'];
+        delete event.request.headers["authorization"];
+        delete event.request.headers["cookie"];
+        delete event.request.headers["x-api-key"];
       }
 
       // Remove sensitive body data
       if (event.request?.data) {
-        const sensitiveFields = ['password', 'token', 'secret', 'key', 'credit_card'];
-        sensitiveFields.forEach(field => {
-          if (typeof event.request!.data === 'object' && event.request!.data !== null) {
+        const sensitiveFields = [
+          "password",
+          "token",
+          "secret",
+          "key",
+          "credit_card",
+        ];
+        sensitiveFields.forEach((field) => {
+          if (
+            typeof event.request!.data === "object" &&
+            event.request!.data !== null
+          ) {
             delete (event.request!.data as Record<string, unknown>)[field];
           }
         });
@@ -45,10 +54,10 @@ export function initSentry() {
 
     // Ignore certain errors
     ignoreErrors: [
-      'ResizeObserver loop limit exceeded',
-      'Network request failed',
-      'Load failed',
-      'cancelled',
+      "ResizeObserver loop limit exceeded",
+      "Network request failed",
+      "Load failed",
+      "cancelled",
     ],
 
     // Integration options
@@ -58,7 +67,7 @@ export function initSentry() {
     ],
   });
 
-  console.log('Sentry initialized for environment:', env.nodeEnv);
+  console.log("Sentry initialized for environment:", env.nodeEnv);
 }
 
 /**
@@ -70,7 +79,7 @@ export function captureException(
     user?: { id: string; email?: string };
     tags?: Record<string, string>;
     extra?: Record<string, unknown>;
-  }
+  },
 ) {
   Sentry.withScope((scope) => {
     if (context?.user) {
@@ -95,7 +104,7 @@ export function captureException(
  */
 export function captureMessage(
   message: string,
-  level: 'fatal' | 'error' | 'warning' | 'info' | 'debug' = 'info'
+  level: "fatal" | "error" | "warning" | "info" | "debug" = "info",
 ) {
   Sentry.captureMessage(message, level);
 }
@@ -103,7 +112,9 @@ export function captureMessage(
 /**
  * Set user context for error tracking
  */
-export function setUser(user: { id: string; email?: string; role?: string } | null) {
+export function setUser(
+  user: { id: string; email?: string; role?: string } | null,
+) {
   Sentry.setUser(user);
 }
 
@@ -113,7 +124,7 @@ export function setUser(user: { id: string; email?: string; role?: string } | nu
 export function addBreadcrumb(breadcrumb: {
   category: string;
   message: string;
-  level?: 'fatal' | 'error' | 'warning' | 'info' | 'debug';
+  level?: "fatal" | "error" | "warning" | "info" | "debug";
   data?: Record<string, unknown>;
 }) {
   Sentry.addBreadcrumb(breadcrumb);

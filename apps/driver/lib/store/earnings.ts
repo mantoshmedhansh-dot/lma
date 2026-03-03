@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { supabase } from '../supabase';
+import { create } from "zustand";
+import { supabase } from "../supabase";
 
 interface DailyEarning {
   date: string;
@@ -33,22 +33,30 @@ export const useEarningsStore = create<EarningsState>((set) => ({
     set({ loading: true });
     try {
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      const todayStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+      ).toISOString();
 
       const weekStart = new Date(now);
       weekStart.setDate(now.getDate() - 7);
       const weekStartStr = weekStart.toISOString();
 
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const monthStart = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        1,
+      ).toISOString();
 
       // Fetch delivered orders from delivery_orders table
       const { data: orders, error } = await supabase
-        .from('delivery_orders')
-        .select('cod_amount, is_cod, delivered_at, updated_at')
-        .eq('driver_id', driverId)
-        .eq('status', 'delivered')
-        .gte('updated_at', monthStart)
-        .order('updated_at', { ascending: false });
+        .from("delivery_orders")
+        .select("cod_amount, is_cod, delivered_at, updated_at")
+        .eq("driver_id", driverId)
+        .eq("status", "delivered")
+        .gte("updated_at", monthStart)
+        .order("updated_at", { ascending: false });
 
       if (error) throw error;
 
@@ -59,12 +67,15 @@ export const useEarningsStore = create<EarningsState>((set) => ({
       let monthEarnings = 0;
       let monthDeliveries = 0;
 
-      const dailyMap = new Map<string, { amount: number; deliveries: number }>();
+      const dailyMap = new Map<
+        string,
+        { amount: number; deliveries: number }
+      >();
 
       orders?.forEach((order) => {
         const completedAt = new Date(order.delivered_at || order.updated_at);
-        const dateStr = completedAt.toISOString().split('T')[0];
-        const amount = order.is_cod ? (order.cod_amount || 0) : 0;
+        const dateStr = completedAt.toISOString().split("T")[0];
+        const amount = order.is_cod ? order.cod_amount || 0 : 0;
 
         monthEarnings += amount;
         monthDeliveries++;
@@ -101,7 +112,7 @@ export const useEarningsStore = create<EarningsState>((set) => ({
         dailyEarnings,
       });
     } catch (error) {
-      console.error('Error fetching earnings:', error);
+      console.error("Error fetching earnings:", error);
     } finally {
       set({ loading: false });
     }

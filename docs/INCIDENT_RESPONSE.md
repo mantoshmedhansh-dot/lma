@@ -6,27 +6,30 @@ This document outlines the incident response procedure for LMA production system
 
 ## Incident Severity Levels
 
-| Level | Definition | Response Time | Examples |
-|-------|------------|---------------|----------|
-| **SEV1** | Complete service outage affecting all users | < 15 min | API down, database unreachable, payment processing failed |
-| **SEV2** | Major feature broken, significant user impact | < 30 min | Order creation failing, authentication issues, slow responses |
-| **SEV3** | Minor feature broken, limited user impact | < 2 hours | Non-critical UI bugs, specific edge cases |
-| **SEV4** | Cosmetic issues, no functional impact | Next business day | Typos, minor styling issues |
+| Level    | Definition                                    | Response Time     | Examples                                                      |
+| -------- | --------------------------------------------- | ----------------- | ------------------------------------------------------------- |
+| **SEV1** | Complete service outage affecting all users   | < 15 min          | API down, database unreachable, payment processing failed     |
+| **SEV2** | Major feature broken, significant user impact | < 30 min          | Order creation failing, authentication issues, slow responses |
+| **SEV3** | Minor feature broken, limited user impact     | < 2 hours         | Non-critical UI bugs, specific edge cases                     |
+| **SEV4** | Cosmetic issues, no functional impact         | Next business day | Typos, minor styling issues                                   |
 
 ## Roles and Responsibilities
 
 ### Incident Commander (IC)
+
 - Coordinates response efforts
 - Makes decisions on escalation and communication
 - Ensures timeline is documented
 - Runs post-incident review
 
 ### Technical Lead
+
 - Leads technical investigation
 - Coordinates with engineers on fixes
 - Validates fixes before deployment
 
 ### Communications Lead
+
 - Updates status page
 - Notifies stakeholders
 - Handles customer communication
@@ -36,11 +39,13 @@ This document outlines the incident response procedure for LMA production system
 ### 1. Detection & Alert
 
 **Automated Detection:**
+
 - Health check failures → GitHub Actions alert
 - Error rate spike → Sentry alert
 - Latency increase → Monitoring alert
 
 **Manual Detection:**
+
 - Customer reports
 - Team member observation
 
@@ -56,6 +61,7 @@ Actions:
 ```
 
 **Assessment Questions:**
+
 - How many users are affected?
 - What functionality is broken?
 - When did it start?
@@ -64,6 +70,7 @@ Actions:
 ### 3. Communicate
 
 **Internal Communication:**
+
 ```
 Template:
 🚨 INCIDENT: [Brief description]
@@ -75,12 +82,14 @@ Updates: #incident-[id]
 ```
 
 **External Communication (SEV1/SEV2):**
+
 - Update status page
 - Prepare customer notification if needed
 
 ### 4. Investigate
 
 **Initial Investigation Checklist:**
+
 - [ ] Check health endpoints
 - [ ] Review Sentry for new errors
 - [ ] Check recent deployments
@@ -88,6 +97,7 @@ Updates: #incident-[id]
 - [ ] Check external service status (Supabase, Stripe, etc.)
 
 **Commands for Investigation:**
+
 ```bash
 # Check API health
 curl -s https://api.lma.com/health | jq
@@ -102,6 +112,7 @@ gh run list --workflow=deploy-api.yml --limit=5
 ### 5. Mitigate
 
 **Quick Mitigation Options:**
+
 1. **Rollback** - Revert to last known good deployment
 2. **Feature Flag** - Disable problematic feature
 3. **Scale Up** - Increase resources
@@ -111,6 +122,7 @@ gh run list --workflow=deploy-api.yml --limit=5
 ### 6. Resolve
 
 **Resolution Steps:**
+
 1. Identify root cause
 2. Implement fix
 3. Test in staging
@@ -121,11 +133,13 @@ gh run list --workflow=deploy-api.yml --limit=5
 ### 7. Post-Incident
 
 **Immediate (within 24 hours):**
+
 - Document timeline
 - Notify stakeholders of resolution
 - Update status page
 
 **Post-Incident Review (within 1 week):**
+
 - Schedule review meeting
 - Complete post-mortem document
 - Identify action items
@@ -136,40 +150,49 @@ gh run list --workflow=deploy-api.yml --limit=5
 # Incident Post-Mortem: [Title]
 
 ## Summary
+
 - **Date:** YYYY-MM-DD
 - **Duration:** X hours Y minutes
 - **Severity:** SEV[1-4]
 - **Impact:** [Description of user impact]
 
 ## Timeline
-| Time (UTC) | Event |
-|------------|-------|
-| HH:MM | [Event description] |
+
+| Time (UTC) | Event               |
+| ---------- | ------------------- |
+| HH:MM      | [Event description] |
 
 ## Root Cause
+
 [Detailed explanation of what caused the incident]
 
 ## Resolution
+
 [What was done to resolve the incident]
 
 ## What Went Well
+
 - [List of things that worked]
 
 ## What Could Be Improved
+
 - [List of improvements]
 
 ## Action Items
-| Action | Owner | Due Date |
-|--------|-------|----------|
+
+| Action   | Owner | Due Date   |
+| -------- | ----- | ---------- |
 | [Action] | @name | YYYY-MM-DD |
 
 ## Lessons Learned
+
 [Key takeaways from this incident]
 ```
 
 ## Communication Templates
 
 ### Status Page - Investigating
+
 ```
 We are currently investigating reports of [issue description].
 Some users may experience [impact].
@@ -177,6 +200,7 @@ We will provide updates as we learn more.
 ```
 
 ### Status Page - Identified
+
 ```
 We have identified the cause of [issue].
 We are working on a fix and expect to resolve this within [timeframe].
@@ -184,6 +208,7 @@ We apologize for any inconvenience.
 ```
 
 ### Status Page - Resolved
+
 ```
 The issue affecting [service] has been resolved.
 All services are now operating normally.
@@ -191,6 +216,7 @@ We apologize for any inconvenience caused.
 ```
 
 ### Customer Email (Major Incident)
+
 ```
 Subject: [Service] Incident - [Date]
 
@@ -218,11 +244,11 @@ The LMA Team
 ## Escalation Matrix
 
 | Severity | Initial Response | Escalation 1 (30 min) | Escalation 2 (1 hour) |
-|----------|------------------|----------------------|----------------------|
-| SEV1 | On-call engineer | Team Lead + EM | CTO |
-| SEV2 | On-call engineer | Team Lead | EM |
-| SEV3 | On-call engineer | - | Team Lead |
-| SEV4 | Next available | - | - |
+| -------- | ---------------- | --------------------- | --------------------- |
+| SEV1     | On-call engineer | Team Lead + EM        | CTO                   |
+| SEV2     | On-call engineer | Team Lead             | EM                    |
+| SEV3     | On-call engineer | -                     | Team Lead             |
+| SEV4     | Next available   | -                     | -                     |
 
 ## On-Call Rotation
 
@@ -233,11 +259,11 @@ The LMA Team
 
 ## Emergency Contacts
 
-| Role | Contact |
-|------|---------|
-| On-call | PagerDuty: lma-production |
-| Engineering Manager | @em-handle |
-| CTO | @cto-handle |
-| Supabase Support | support@supabase.com |
-| Render Support | support@render.com |
-| Vercel Support | support@vercel.com |
+| Role                | Contact                   |
+| ------------------- | ------------------------- |
+| On-call             | PagerDuty: lma-production |
+| Engineering Manager | @em-handle                |
+| CTO                 | @cto-handle               |
+| Supabase Support    | support@supabase.com      |
+| Render Support      | support@render.com        |
+| Vercel Support      | support@vercel.com        |

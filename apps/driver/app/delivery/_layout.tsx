@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
-import { useThemeColors } from '@/hooks/useThemeColor';
+import { Stack } from "expo-router";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function DeliveryLayout() {
   const colors = useThemeColors();
@@ -12,7 +12,7 @@ export default function DeliveryLayout() {
         },
         headerTintColor: colors.text,
         headerTitleStyle: {
-          fontWeight: '600',
+          fontWeight: "600",
         },
         headerShadowVisible: false,
       }}
@@ -20,8 +20,8 @@ export default function DeliveryLayout() {
       <Stack.Screen
         name="[orderId]"
         options={{
-          title: 'Complete Delivery',
-          presentation: 'modal',
+          title: "Complete Delivery",
+          presentation: "modal",
         }}
       />
     </Stack>

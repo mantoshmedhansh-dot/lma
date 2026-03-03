@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { supabase } from '../supabase';
-import type { User, Session } from '@supabase/supabase-js';
+import { create } from "zustand";
+import { supabase } from "../supabase";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface Driver {
   id: string;
@@ -11,7 +11,7 @@ interface Driver {
   vehicle_type: string;
   vehicle_number: string;
   license_number: string;
-  status: 'pending' | 'approved' | 'suspended';
+  status: "pending" | "approved" | "suspended";
   is_online: boolean;
   current_location: { lat: number; lng: number } | null;
   rating: number;
@@ -62,7 +62,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (session) {
         set({ user: session.user, session });
@@ -80,7 +82,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       });
     } catch (error) {
-      console.error('Auth initialization error:', error);
+      console.error("Auth initialization error:", error);
     } finally {
       set({ loading: false, initialized: true });
     }
@@ -98,14 +100,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       // Check if user is a driver
       const { data: driver, error: driverError } = await supabase
-        .from('drivers')
-        .select('*')
-        .eq('user_id', data.user.id)
+        .from("drivers")
+        .select("*")
+        .eq("user_id", data.user.id)
         .single();
 
       if (driverError || !driver) {
         await supabase.auth.signOut();
-        throw new Error('No driver account found. Please register as a driver.');
+        throw new Error(
+          "No driver account found. Please register as a driver.",
+        );
       }
 
       set({ user: data.user, session: data.session, driver });
@@ -128,16 +132,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             full_name: data.fullName,
             phone: data.phone,
-            role: 'driver',
+            role: "driver",
           },
         },
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create account');
+      if (!authData.user) throw new Error("Failed to create account");
 
       // Create driver record
-      const { error: driverError } = await supabase.from('drivers').insert({
+      const { error: driverError } = await supabase.from("drivers").insert({
         user_id: authData.user.id,
         full_name: data.fullName,
         phone: data.phone,
@@ -145,7 +149,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         vehicle_type: data.vehicleType,
         vehicle_number: data.vehicleNumber,
         license_number: data.licenseNumber,
-        status: 'pending',
+        status: "pending",
         is_online: false,
         rating: 0,
         total_deliveries: 0,
@@ -168,9 +172,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const driver = get().driver;
       if (driver) {
         await supabase
-          .from('drivers')
+          .from("drivers")
           .update({ is_online: false })
-          .eq('id', driver.id);
+          .eq("id", driver.id);
       }
 
       await supabase.auth.signOut();
@@ -186,15 +190,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const { data, error } = await supabase
-        .from('drivers')
-        .select('*')
-        .eq('user_id', user.id)
+        .from("drivers")
+        .select("*")
+        .eq("user_id", user.id)
         .single();
 
       if (error) throw error;
       set({ driver: data });
     } catch (error) {
-      console.error('Error fetching driver:', error);
+      console.error("Error fetching driver:", error);
     }
   },
 
@@ -204,14 +208,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const { error } = await supabase
-        .from('drivers')
+        .from("drivers")
         .update({ is_online: isOnline })
-        .eq('id', driver.id);
+        .eq("id", driver.id);
 
       if (error) throw error;
       set({ driver: { ...driver, is_online: isOnline } });
     } catch (error) {
-      console.error('Error updating online status:', error);
+      console.error("Error updating online status:", error);
     }
   },
 
@@ -221,14 +225,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const { error } = await supabase
-        .from('drivers')
+        .from("drivers")
         .update({ current_location: { lat, lng } })
-        .eq('id', driver.id);
+        .eq("id", driver.id);
 
       if (error) throw error;
       set({ driver: { ...driver, current_location: { lat, lng } } });
     } catch (error) {
-      console.error('Error updating location:', error);
+      console.error("Error updating location:", error);
     }
   },
 }));

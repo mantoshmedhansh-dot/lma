@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodError } from 'zod';
-import { ApiError } from '../utils/errors.js';
-import { env } from '../config/env.js';
-import { ERROR_CODES, ApiResponse } from '@lma/shared';
+import { Request, Response, NextFunction } from "express";
+import { ZodError } from "zod";
+import { ApiError } from "../utils/errors.js";
+import { env } from "../config/env.js";
+import { ERROR_CODES, ApiResponse } from "@lma/shared";
 
 /**
  * Global error handling middleware
@@ -11,11 +11,11 @@ export function errorHandler(
   err: Error,
   req: Request,
   res: Response,
-  _next: NextFunction
+  _next: NextFunction,
 ) {
   // Log error in development
   if (env.isDev) {
-    console.error('Error:', err);
+    console.error("Error:", err);
   }
 
   // Handle API errors
@@ -37,9 +37,9 @@ export function errorHandler(
       success: false,
       error: {
         code: ERROR_CODES.VALIDATION_ERROR,
-        message: 'Validation failed',
+        message: "Validation failed",
         details: err.errors.map((e) => ({
-          field: e.path.join('.'),
+          field: e.path.join("."),
           message: e.message,
         })),
       },
@@ -52,7 +52,7 @@ export function errorHandler(
     success: false,
     error: {
       code: ERROR_CODES.INTERNAL_ERROR,
-      message: env.isDev ? err.message : 'An unexpected error occurred',
+      message: env.isDev ? err.message : "An unexpected error occurred",
     },
   };
   return res.status(500).json(response);

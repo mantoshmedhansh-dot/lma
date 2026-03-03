@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
-} from 'react-native';
-import SignatureCanvas from 'react-native-signature-canvas';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import SignatureCanvas from "react-native-signature-canvas";
+import { Ionicons } from "@expo/vector-icons";
 
 interface SignatureCaptureProps {
   visible: boolean;
@@ -30,7 +30,8 @@ export function SignatureCapture({
   onSave,
   colors,
 }: SignatureCaptureProps) {
-  const signatureRef = useRef<SignatureCanvas>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const signatureRef = useRef<any>(null);
   const [isEmpty, setIsEmpty] = useState(true);
 
   const handleClear = () => {
@@ -84,7 +85,9 @@ export function SignatureCapture({
             Customer Signature
           </Text>
           <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-            <Text style={[styles.clearText, { color: colors.tint }]}>Clear</Text>
+            <Text style={[styles.clearText, { color: colors.tint }]}>
+              Clear
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -94,7 +97,9 @@ export function SignatureCapture({
             size={20}
             color={colors.textSecondary}
           />
-          <Text style={[styles.instructionText, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.instructionText, { color: colors.textSecondary }]}
+          >
             Ask the customer to sign below to confirm delivery
           </Text>
         </View>
@@ -127,7 +132,9 @@ export function SignatureCapture({
               size={32}
               color={colors.textSecondary}
             />
-            <Text style={[styles.placeholderText, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.placeholderText, { color: colors.textSecondary }]}
+            >
               Sign here
             </Text>
           </View>
@@ -151,16 +158,16 @@ export function SignatureCapture({
   );
 }
 
-const { height } = Dimensions.get('window');
+const { height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
@@ -170,18 +177,18 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   clearButton: {
     padding: 8,
   },
   clearText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   instructions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     gap: 8,
   },
@@ -194,21 +201,21 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 12,
     borderWidth: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   signature: {
     flex: 1,
-    width: '100%',
+    width: "100%",
     height: height * 0.4,
   },
   placeholderContainer: {
-    position: 'absolute',
-    top: '50%',
+    position: "absolute",
+    top: "50%",
     left: 0,
     right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-    pointerEvents: 'none',
+    alignItems: "center",
+    justifyContent: "center",
+    pointerEvents: "none",
   },
   placeholderText: {
     fontSize: 16,
@@ -219,16 +226,16 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

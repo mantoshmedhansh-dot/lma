@@ -8,8 +8,8 @@
  * - Resource allocation
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
 
 // Forecasting model types
 interface ForecastInput {
@@ -59,20 +59,22 @@ interface HistoricalDataPoint {
 
 // Known holidays (India-focused, can be extended)
 const HOLIDAYS_2024: string[] = [
-  '2024-01-26', // Republic Day
-  '2024-03-25', // Holi
-  '2024-04-14', // Ambedkar Jayanti
-  '2024-08-15', // Independence Day
-  '2024-10-02', // Gandhi Jayanti
-  '2024-10-31', // Diwali
-  '2024-11-01', // Diwali
-  '2024-12-25', // Christmas
+  "2024-01-26", // Republic Day
+  "2024-03-25", // Holi
+  "2024-04-14", // Ambedkar Jayanti
+  "2024-08-15", // Independence Day
+  "2024-10-02", // Gandhi Jayanti
+  "2024-10-31", // Diwali
+  "2024-11-01", // Diwali
+  "2024-12-25", // Christmas
 ];
 
 /**
  * Generate demand forecast for a specific time
  */
-export async function forecastDemand(input: ForecastInput): Promise<ForecastResult> {
+export async function forecastDemand(
+  input: ForecastInput,
+): Promise<ForecastResult> {
   const { zoneId, merchantId, targetDate, targetHour } = input;
 
   // Get historical data
@@ -114,11 +116,11 @@ export async function forecastDemand(input: ForecastInput): Promise<ForecastResu
   // Calculate prediction
   let predictedOrders = Math.round(
     pattern.avgOrdersPerHour *
-    hourlyFactor *
-    weeklyFactor *
-    trend *
-    seasonalityFactor *
-    holidayMultiplier
+      hourlyFactor *
+      weeklyFactor *
+      trend *
+      seasonalityFactor *
+      holidayMultiplier,
   );
 
   // Ensure non-negative
@@ -126,7 +128,9 @@ export async function forecastDemand(input: ForecastInput): Promise<ForecastResu
 
   // Calculate drivers needed (assuming 3 orders per driver per hour)
   const ordersPerDriverPerHour = 3;
-  const predictedDriversNeeded = Math.ceil(predictedOrders / ordersPerDriverPerHour);
+  const predictedDriversNeeded = Math.ceil(
+    predictedOrders / ordersPerDriverPerHour,
+  );
 
   // Calculate confidence based on data quality
   let confidence = 0.6; // Base confidence
@@ -167,7 +171,7 @@ export async function forecastDay(
   options: {
     zoneId?: string;
     merchantId?: string;
-  } = {}
+  } = {},
 ): Promise<ForecastResult[]> {
   const forecasts: ForecastResult[] = [];
 
@@ -186,11 +190,13 @@ export async function forecastDay(
 /**
  * Generate forecasts for the next 7 days
  */
-export async function forecastWeek(options: {
-  zoneId?: string;
-  merchantId?: string;
-  startDate?: Date;
-} = {}): Promise<Map<string, ForecastResult[]>> {
+export async function forecastWeek(
+  options: {
+    zoneId?: string;
+    merchantId?: string;
+    startDate?: Date;
+  } = {},
+): Promise<Map<string, ForecastResult[]>> {
   const results = new Map<string, ForecastResult[]>();
   const startDate = options.startDate || new Date();
 
@@ -198,7 +204,7 @@ export async function forecastWeek(options: {
     const targetDate = new Date(startDate);
     targetDate.setDate(targetDate.getDate() + day);
 
-    const dayKey = targetDate.toISOString().split('T')[0];
+    const dayKey = targetDate.toISOString().split("T")[0];
     const dayForecasts = await forecastDay(targetDate, {
       zoneId: options.zoneId,
       merchantId: options.merchantId,
@@ -215,31 +221,36 @@ export async function forecastWeek(options: {
  */
 export async function saveForecast(
   forecast: ForecastResult,
-  input: ForecastInput
+  input: ForecastInput,
 ): Promise<void> {
   const { zoneId, merchantId, targetDate, targetHour } = input;
 
-  await supabaseAdmin.from('demand_forecasts').upsert({
-    zone_id: zoneId,
-    merchant_id: merchantId,
-    forecast_date: targetDate.toISOString().split('T')[0],
-    hour: targetHour,
-    predicted_orders: forecast.predictedOrders,
-    predicted_drivers_needed: forecast.predictedDriversNeeded,
-    confidence: forecast.confidence,
-    model_version: 'v1.0',
-  }, {
-    onConflict: 'zone_id,merchant_id,forecast_date,hour',
-  });
+  await supabaseAdmin.from("demand_forecasts").upsert(
+    {
+      zone_id: zoneId,
+      merchant_id: merchantId,
+      forecast_date: targetDate.toISOString().split("T")[0],
+      hour: targetHour,
+      predicted_orders: forecast.predictedOrders,
+      predicted_drivers_needed: forecast.predictedDriversNeeded,
+      confidence: forecast.confidence,
+      model_version: "v1.0",
+    },
+    {
+      onConflict: "zone_id,merchant_id,forecast_date,hour",
+    },
+  );
 }
 
 /**
  * Generate and save forecasts for the next week
  */
-export async function generateWeeklyForecasts(options: {
-  zoneId?: string;
-  merchantId?: string;
-} = {}): Promise<{
+export async function generateWeeklyForecasts(
+  options: {
+    zoneId?: string;
+    merchantId?: string;
+  } = {},
+): Promise<{
   totalForecasts: number;
   avgDailyOrders: number;
   peakDay: string;
@@ -250,7 +261,7 @@ export async function generateWeeklyForecasts(options: {
   let totalForecasts = 0;
   let totalOrders = 0;
   let peakOrders = 0;
-  let peakDay = '';
+  let peakDay = "";
   let peakHour = 0;
 
   for (const [day, dayForecasts] of weekForecasts) {
@@ -279,7 +290,7 @@ export async function generateWeeklyForecasts(options: {
     totalOrders += dayTotal;
   }
 
-  logger.info('Weekly forecasts generated', {
+  logger.info("Weekly forecasts generated", {
     totalForecasts,
     avgDailyOrders: Math.round(totalOrders / 7),
     peakDay,
@@ -303,7 +314,7 @@ export async function evaluateForecastAccuracy(
     zoneId?: string;
     merchantId?: string;
     daysBack?: number;
-  } = {}
+  } = {},
 ): Promise<{
   meanAbsoluteError: number;
   meanPercentageError: number;
@@ -317,16 +328,16 @@ export async function evaluateForecastAccuracy(
 
   // Get forecasts with actual data
   let query = supabaseAdmin
-    .from('demand_forecasts')
-    .select('predicted_orders, actual_orders')
-    .gte('forecast_date', startDate.toISOString().split('T')[0])
-    .not('actual_orders', 'is', null);
+    .from("demand_forecasts")
+    .select("predicted_orders, actual_orders")
+    .gte("forecast_date", startDate.toISOString().split("T")[0])
+    .not("actual_orders", "is", null);
 
   if (zoneId) {
-    query = query.eq('zone_id', zoneId);
+    query = query.eq("zone_id", zoneId);
   }
   if (merchantId) {
-    query = query.eq('merchant_id', merchantId);
+    query = query.eq("merchant_id", merchantId);
   }
 
   const { data: forecasts } = await query;
@@ -361,9 +372,9 @@ export async function evaluateForecastAccuracy(
   const n = forecasts.length;
 
   return {
-    meanAbsoluteError: Math.round(totalAbsError / n * 10) / 10,
-    meanPercentageError: Math.round(totalPctError / n * 1000) / 10,
-    accuracy: Math.round(withinThreshold / n * 1000) / 10,
+    meanAbsoluteError: Math.round((totalAbsError / n) * 10) / 10,
+    meanPercentageError: Math.round((totalPctError / n) * 1000) / 10,
+    accuracy: Math.round((withinThreshold / n) * 1000) / 10,
     sampleSize: n,
   };
 }
@@ -374,14 +385,14 @@ export async function evaluateForecastAccuracy(
 export async function updateActualDemand(): Promise<number> {
   const now = new Date();
   const currentHour = now.getHours();
-  const today = now.toISOString().split('T')[0];
+  const today = now.toISOString().split("T")[0];
 
   // Get actual order counts for completed hours today
   const { data: hourlyOrders } = await supabaseAdmin
-    .from('orders')
-    .select('zone_id, merchant_id, created_at')
-    .gte('created_at', `${today}T00:00:00`)
-    .lt('created_at', `${today}T${String(currentHour).padStart(2, '0')}:00:00`);
+    .from("orders")
+    .select("zone_id, merchant_id, created_at")
+    .gte("created_at", `${today}T00:00:00`)
+    .lt("created_at", `${today}T${String(currentHour).padStart(2, "0")}:00:00`);
 
   if (!hourlyOrders) return 0;
 
@@ -390,22 +401,22 @@ export async function updateActualDemand(): Promise<number> {
 
   for (const order of hourlyOrders) {
     const hour = new Date(order.created_at).getHours();
-    const key = `${order.zone_id || 'null'}_${order.merchant_id || 'null'}_${hour}`;
+    const key = `${order.zone_id || "null"}_${order.merchant_id || "null"}_${hour}`;
     counts[key] = (counts[key] || 0) + 1;
   }
 
   // Update forecasts
   let updated = 0;
   for (const [key, count] of Object.entries(counts)) {
-    const [zoneId, merchantId, hourStr] = key.split('_');
+    const [zoneId, merchantId, hourStr] = key.split("_");
 
     await supabaseAdmin
-      .from('demand_forecasts')
+      .from("demand_forecasts")
       .update({ actual_orders: count })
-      .eq('forecast_date', today)
-      .eq('hour', parseInt(hourStr))
-      .eq('zone_id', zoneId === 'null' ? null : zoneId)
-      .eq('merchant_id', merchantId === 'null' ? null : merchantId);
+      .eq("forecast_date", today)
+      .eq("hour", parseInt(hourStr))
+      .eq("zone_id", zoneId === "null" ? null : zoneId)
+      .eq("merchant_id", merchantId === "null" ? null : merchantId);
 
     updated++;
   }
@@ -426,7 +437,9 @@ export async function getCapacityRecommendations(options: {
   alerts: string[];
 }> {
   const targetDate = options.targetDate || new Date();
-  const dayForecasts = await forecastDay(targetDate, { zoneId: options.zoneId });
+  const dayForecasts = await forecastDay(targetDate, {
+    zoneId: options.zoneId,
+  });
 
   const recommendedDrivers: Record<number, number> = {};
   const alerts: string[] = [];
@@ -440,14 +453,18 @@ export async function getCapacityRecommendations(options: {
 
     // Generate alerts for high demand periods
     if (forecast.predictedDriversNeeded > 10) {
-      alerts.push(`High demand expected at ${hour}:00 - ${forecast.predictedDriversNeeded} drivers needed`);
+      alerts.push(
+        `High demand expected at ${hour}:00 - ${forecast.predictedDriversNeeded} drivers needed`,
+      );
     }
   }
 
   // Identify peak periods (consecutive hours with above-average demand)
   const avgDrivers = totalDriverHours / 24;
-  const peakPeriods: Array<{ start: number; end: number; drivers: number }> = [];
-  let currentPeak: { start: number; end: number; drivers: number } | null = null;
+  const peakPeriods: Array<{ start: number; end: number; drivers: number }> =
+    [];
+  let currentPeak: { start: number; end: number; drivers: number } | null =
+    null;
 
   for (let hour = 0; hour < 24; hour++) {
     const drivers = recommendedDrivers[hour];
@@ -488,15 +505,15 @@ async function getHistoricalDemand(options: {
   startDate.setDate(startDate.getDate() - options.daysBack);
 
   let query = supabaseAdmin
-    .from('demand_history')
-    .select('*')
-    .gte('recorded_date', startDate.toISOString().split('T')[0]);
+    .from("demand_history")
+    .select("*")
+    .gte("recorded_date", startDate.toISOString().split("T")[0]);
 
   if (options.zoneId) {
-    query = query.eq('zone_id', options.zoneId);
+    query = query.eq("zone_id", options.zoneId);
   }
   if (options.merchantId) {
-    query = query.eq('merchant_id', options.merchantId);
+    query = query.eq("merchant_id", options.merchantId);
   }
 
   const { data } = await query;
@@ -538,7 +555,8 @@ function analyzePatterns(data: HistoricalDataPoint[]): DemandPattern {
   const weeklyPattern: Record<number, number> = {};
   const monthlyPattern: Record<number, number> = {};
 
-  const overallAvg = data.reduce((sum, p) => sum + p.orderCount, 0) / data.length;
+  const overallAvg =
+    data.reduce((sum, p) => sum + p.orderCount, 0) / data.length;
 
   for (let h = 0; h < 24; h++) {
     const vals = hourlyTotals[h] || [0];
@@ -554,7 +572,10 @@ function analyzePatterns(data: HistoricalDataPoint[]): DemandPattern {
 
   for (let m = 0; m < 12; m++) {
     const vals = monthlyTotals[m] || [0];
-    const avg = vals.length > 0 ? vals.reduce((a, b) => a + b, 0) / vals.length : overallAvg;
+    const avg =
+      vals.length > 0
+        ? vals.reduce((a, b) => a + b, 0) / vals.length
+        : overallAvg;
     monthlyPattern[m] = overallAvg > 0 ? avg / overallAvg : 1.0;
   }
 
@@ -579,7 +600,7 @@ function analyzePatterns(data: HistoricalDataPoint[]): DemandPattern {
 function calculateRecentAverage(
   data: HistoricalDataPoint[],
   days: number,
-  skipDays: number = 0
+  skipDays: number = 0,
 ): number {
   const now = new Date();
   const startDate = new Date();
@@ -587,50 +608,82 @@ function calculateRecentAverage(
   const endDate = new Date();
   endDate.setDate(now.getDate() - skipDays);
 
-  const recentData = data.filter((d) => d.date >= startDate && d.date < endDate);
+  const recentData = data.filter(
+    (d) => d.date >= startDate && d.date < endDate,
+  );
 
   if (recentData.length === 0) return 0;
 
-  return recentData.reduce((sum, p) => sum + p.orderCount, 0) / recentData.length;
+  return (
+    recentData.reduce((sum, p) => sum + p.orderCount, 0) / recentData.length
+  );
 }
 
 function calculateVariance(
   data: HistoricalDataPoint[],
   targetHour: number,
-  targetDayOfWeek: number
+  targetDayOfWeek: number,
 ): number {
   const relevantData = data.filter(
-    (d) => d.hour === targetHour && d.dayOfWeek === targetDayOfWeek
+    (d) => d.hour === targetHour && d.dayOfWeek === targetDayOfWeek,
   );
 
   if (relevantData.length < 2) return 5; // Default variance
 
-  const avg = relevantData.reduce((sum, p) => sum + p.orderCount, 0) / relevantData.length;
+  const avg =
+    relevantData.reduce((sum, p) => sum + p.orderCount, 0) /
+    relevantData.length;
   const squaredDiffs = relevantData.map((p) => Math.pow(p.orderCount - avg, 2));
-  const variance = squaredDiffs.reduce((a, b) => a + b, 0) / relevantData.length;
+  const variance =
+    squaredDiffs.reduce((a, b) => a + b, 0) / relevantData.length;
 
   return Math.sqrt(variance);
 }
 
 function checkHoliday(date: Date): boolean {
-  const dateStr = date.toISOString().split('T')[0];
+  const dateStr = date.toISOString().split("T")[0];
   // Replace year with current year for matching
   const currentYear = date.getFullYear();
-  const holidays = HOLIDAYS_2024.map((h) => h.replace('2024', String(currentYear)));
+  const holidays = HOLIDAYS_2024.map((h) =>
+    h.replace("2024", String(currentYear)),
+  );
   return holidays.includes(dateStr);
 }
 
-function getDefaultForecast(targetDate: Date, targetHour: number): ForecastResult {
+function getDefaultForecast(
+  targetDate: Date,
+  targetHour: number,
+): ForecastResult {
   const dayOfWeek = targetDate.getDay();
   const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
   const isHoliday = checkHoliday(targetDate);
 
   // Default hourly distribution
   const defaultHourlyOrders: Record<number, number> = {
-    0: 2, 1: 1, 2: 1, 3: 1, 4: 1, 5: 2,
-    6: 3, 7: 5, 8: 8, 9: 10, 10: 12, 11: 15,
-    12: 20, 13: 18, 14: 15, 15: 12, 16: 12, 17: 15,
-    18: 20, 19: 25, 20: 22, 21: 18, 22: 10, 23: 5,
+    0: 2,
+    1: 1,
+    2: 1,
+    3: 1,
+    4: 1,
+    5: 2,
+    6: 3,
+    7: 5,
+    8: 8,
+    9: 10,
+    10: 12,
+    11: 15,
+    12: 20,
+    13: 18,
+    14: 15,
+    15: 12,
+    16: 12,
+    17: 15,
+    18: 20,
+    19: 25,
+    20: 22,
+    21: 18,
+    22: 10,
+    23: 5,
   };
 
   let predictedOrders = defaultHourlyOrders[targetHour] || 10;
@@ -658,6 +711,14 @@ function getDefaultForecast(targetDate: Date, targetHour: number): ForecastResul
 }
 
 function getDayName(day: number): string {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
   return days[day];
 }

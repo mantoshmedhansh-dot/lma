@@ -5,11 +5,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/lib/store/auth';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/lib/store/auth";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function ProfileScreen() {
   const colors = useThemeColors();
@@ -17,58 +17,65 @@ export default function ProfileScreen() {
   const { user, profile, signOut, loading } = useAuthStore();
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/(auth)/login');
-          },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+          router.replace("/(auth)/login");
         },
-      ]
-    );
+      },
+    ]);
   };
 
   const menuItems = [
     {
-      icon: 'location-outline' as const,
-      label: 'Saved Addresses',
-      onPress: () => Alert.alert('Coming Soon', 'Address management will be available soon.'),
+      icon: "location-outline" as const,
+      label: "Saved Addresses",
+      onPress: () =>
+        Alert.alert(
+          "Coming Soon",
+          "Address management will be available soon.",
+        ),
     },
     {
-      icon: 'card-outline' as const,
-      label: 'Payment Methods',
-      onPress: () => Alert.alert('Coming Soon', 'Payment methods will be available soon.'),
+      icon: "card-outline" as const,
+      label: "Payment Methods",
+      onPress: () =>
+        Alert.alert("Coming Soon", "Payment methods will be available soon."),
     },
     {
-      icon: 'heart-outline' as const,
-      label: 'Favorites',
-      onPress: () => Alert.alert('Coming Soon', 'Favorites will be available soon.'),
+      icon: "heart-outline" as const,
+      label: "Favorites",
+      onPress: () =>
+        Alert.alert("Coming Soon", "Favorites will be available soon."),
     },
     {
-      icon: 'notifications-outline' as const,
-      label: 'Notifications',
-      onPress: () => Alert.alert('Coming Soon', 'Notification settings will be available soon.'),
+      icon: "notifications-outline" as const,
+      label: "Notifications",
+      onPress: () =>
+        Alert.alert(
+          "Coming Soon",
+          "Notification settings will be available soon.",
+        ),
     },
     {
-      icon: 'help-circle-outline' as const,
-      label: 'Help & Support',
-      onPress: () => Alert.alert('Coming Soon', 'Help center will be available soon.'),
+      icon: "help-circle-outline" as const,
+      label: "Help & Support",
+      onPress: () =>
+        Alert.alert("Coming Soon", "Help center will be available soon."),
     },
     {
-      icon: 'document-text-outline' as const,
-      label: 'Terms & Conditions',
-      onPress: () => Alert.alert('Terms', 'Terms and conditions apply.'),
+      icon: "document-text-outline" as const,
+      label: "Terms & Conditions",
+      onPress: () => Alert.alert("Terms", "Terms and conditions apply."),
     },
     {
-      icon: 'shield-checkmark-outline' as const,
-      label: 'Privacy Policy',
-      onPress: () => Alert.alert('Privacy', 'Your privacy is important to us.'),
+      icon: "shield-checkmark-outline" as const,
+      label: "Privacy Policy",
+      onPress: () => Alert.alert("Privacy", "Your privacy is important to us."),
     },
   ];
 
@@ -78,15 +85,27 @@ export default function ProfileScreen() {
       contentContainerStyle={styles.content}
     >
       {/* Profile Header */}
-      <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={[styles.avatarContainer, { backgroundColor: colors.tintLight }]}>
+      <View
+        style={[
+          styles.profileCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <View
+          style={[
+            styles.avatarContainer,
+            { backgroundColor: colors.tintLight },
+          ]}
+        >
           <Text style={[styles.avatarText, { color: colors.tint }]}>
-            {profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || 'U'}
+            {profile?.full_name?.charAt(0)?.toUpperCase() ||
+              user?.email?.charAt(0)?.toUpperCase() ||
+              "U"}
           </Text>
         </View>
         <View style={styles.profileInfo}>
           <Text style={[styles.profileName, { color: colors.text }]}>
-            {profile?.full_name || 'User'}
+            {profile?.full_name || "User"}
           </Text>
           <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>
             {user?.email}
@@ -94,7 +113,12 @@ export default function ProfileScreen() {
         </View>
         <TouchableOpacity
           style={[styles.editButton, { borderColor: colors.border }]}
-          onPress={() => Alert.alert('Coming Soon', 'Profile editing will be available soon.')}
+          onPress={() =>
+            Alert.alert(
+              "Coming Soon",
+              "Profile editing will be available soon.",
+            )
+          }
         >
           <Ionicons name="pencil" size={18} color={colors.text} />
         </TouchableOpacity>
@@ -102,22 +126,48 @@ export default function ProfileScreen() {
 
       {/* Quick Stats */}
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.statValue, { color: colors.tint }]}>0</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Orders</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            Orders
+          </Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.statValue, { color: colors.tint }]}>0</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Favorites</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            Favorites
+          </Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.statValue, { color: colors.tint }]}>0</Text>
-          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Reviews</Text>
+          <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+            Reviews
+          </Text>
         </View>
       </View>
 
       {/* Menu Items */}
-      <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.menuCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         {menuItems.map((item, index) => (
           <TouchableOpacity
             key={item.label}
@@ -131,12 +181,20 @@ export default function ProfileScreen() {
             onPress={item.onPress}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name={item.icon} size={22} color={colors.textSecondary} />
+              <Ionicons
+                name={item.icon}
+                size={22}
+                color={colors.textSecondary}
+              />
               <Text style={[styles.menuItemLabel, { color: colors.text }]}>
                 {item.label}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textSecondary}
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -149,7 +207,7 @@ export default function ProfileScreen() {
       >
         <Ionicons name="log-out-outline" size={22} color={colors.error} />
         <Text style={[styles.signOutText, { color: colors.error }]}>
-          {loading ? 'Signing out...' : 'Sign Out'}
+          {loading ? "Signing out..." : "Sign Out"}
         </Text>
       </TouchableOpacity>
 
@@ -170,8 +228,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   profileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
@@ -181,19 +239,19 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   profileEmail: {
     fontSize: 14,
@@ -204,23 +262,23 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   statCard: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
   },
   statValue: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   statLabel: {
     fontSize: 12,
@@ -229,26 +287,26 @@ const styles = StyleSheet.create({
   menuCard: {
     borderRadius: 16,
     borderWidth: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
   },
   menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   menuItemLabel: {
     fontSize: 15,
   },
   signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
@@ -256,10 +314,10 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   version: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 12,
     marginBottom: 16,
   },

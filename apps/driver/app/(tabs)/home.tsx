@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,13 +7,13 @@ import {
   RefreshControl,
   ScrollView,
   Linking,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/lib/store/auth';
-import { useRouteStore } from '@/lib/store/route';
-import { useThemeColors } from '@/hooks/useThemeColor';
-import type { RouteStop } from '@/lib/types/route';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/lib/store/auth";
+import { useRouteStore } from "@/lib/store/route";
+import { useThemeColors } from "@/hooks/useThemeColor";
+import type { RouteStop } from "@/lib/types/route";
 
 export default function HomeScreen() {
   const colors = useThemeColors();
@@ -31,7 +31,7 @@ export default function HomeScreen() {
 
   // Auto-refresh every 60s when route is in_progress
   useEffect(() => {
-    if (route?.status === 'in_progress') {
+    if (route?.status === "in_progress") {
       intervalRef.current = setInterval(() => {
         fetchRoute();
       }, 60000);
@@ -50,9 +50,15 @@ export default function HomeScreen() {
   const openMaps = (stop: RouteStop) => {
     const order = stop.order;
     if (!order) return;
-    const { delivery_latitude: lat, delivery_longitude: lng, delivery_address } = order;
+    const {
+      delivery_latitude: lat,
+      delivery_longitude: lng,
+      delivery_address,
+    } = order;
     if (lat && lng) {
-      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
+      Linking.openURL(
+        `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      );
     } else {
       Linking.openURL(
         `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(delivery_address)}`,
@@ -73,28 +79,36 @@ export default function HomeScreen() {
   }
 
   // Status banners
-  const isPending = driver.status === 'pending';
-  const isSuspended = driver.status === 'suspended';
+  const isPending = driver.status === "pending";
+  const isSuspended = driver.status === "suspended";
 
   // Route stats
-  const deliveredCount = route?.stops.filter((s) => s.status === 'delivered').length || 0;
-  const failedCount = route?.stops.filter((s) => s.status === 'failed').length || 0;
+  const deliveredCount =
+    route?.stops.filter((s) => s.status === "delivered").length || 0;
+  const failedCount =
+    route?.stops.filter((s) => s.status === "failed").length || 0;
   const totalStops = route?.stops.length || 0;
   const remainingCount = totalStops - deliveredCount - failedCount;
   const allDone = route && remainingCount === 0;
 
   // Upcoming stops (next 3 after current)
-  const upcomingStops = route?.stops
-    .filter((s) => s.status === 'pending' && s.id !== currentStop?.id)
-    .slice(0, 3) || [];
+  const upcomingStops =
+    route?.stops
+      .filter((s) => s.status === "pending" && s.id !== currentStop?.id)
+      .slice(0, 3) || [];
 
   const statusColor = (status: string) => {
     switch (status) {
-      case 'planned': return colors.textSecondary;
-      case 'assigned': return colors.warning;
-      case 'in_progress': return colors.tint;
-      case 'completed': return colors.success;
-      default: return colors.textSecondary;
+      case "planned":
+        return colors.textSecondary;
+      case "assigned":
+        return colors.warning;
+      case "in_progress":
+        return colors.tint;
+      case "completed":
+        return colors.success;
+      default:
+        return colors.textSecondary;
     }
   };
 
@@ -110,7 +124,9 @@ export default function HomeScreen() {
       {isPending && (
         <View style={[styles.banner, { backgroundColor: colors.warning }]}>
           <Ionicons name="time-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.bannerText}>Your account is pending approval</Text>
+          <Text style={styles.bannerText}>
+            Your account is pending approval
+          </Text>
         </View>
       )}
       {isSuspended && (
@@ -122,7 +138,12 @@ export default function HomeScreen() {
 
       {/* No Route State */}
       {!loading && !route && (
-        <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.emptyCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Ionicons name="car-outline" size={56} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
             No route assigned for today
@@ -135,23 +156,38 @@ export default function HomeScreen() {
 
       {/* Route Header Card */}
       {route && (
-        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.card,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View style={styles.routeHeaderRow}>
             <View style={{ flex: 1 }}>
               <Text style={[styles.routeName, { color: colors.text }]}>
-                {route.route_name || 'Today\'s Route'}
+                {route.route_name || "Today's Route"}
               </Text>
               <Text style={[styles.routeDate, { color: colors.textSecondary }]}>
-                {new Date(route.route_date).toLocaleDateString('en-IN', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'short',
+                {new Date(route.route_date).toLocaleDateString("en-IN", {
+                  weekday: "long",
+                  day: "numeric",
+                  month: "short",
                 })}
               </Text>
             </View>
-            <View style={[styles.statusBadge, { backgroundColor: statusColor(route.status) + '20' }]}>
-              <Text style={[styles.statusBadgeText, { color: statusColor(route.status) }]}>
-                {route.status.replace('_', ' ').toUpperCase()}
+            <View
+              style={[
+                styles.statusBadge,
+                { backgroundColor: statusColor(route.status) + "20" },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.statusBadgeText,
+                  { color: statusColor(route.status) },
+                ]}
+              >
+                {route.status.replace("_", " ").toUpperCase()}
               </Text>
             </View>
           </View>
@@ -159,8 +195,14 @@ export default function HomeScreen() {
           {/* Vehicle info */}
           {route.vehicle && (
             <View style={styles.vehicleRow}>
-              <Ionicons name="car-outline" size={16} color={colors.textSecondary} />
-              <Text style={[styles.vehicleText, { color: colors.textSecondary }]}>
+              <Ionicons
+                name="car-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text
+                style={[styles.vehicleText, { color: colors.textSecondary }]}
+              >
                 {route.vehicle.vehicle_type} - {route.vehicle.plate_number}
               </Text>
             </View>
@@ -168,7 +210,12 @@ export default function HomeScreen() {
 
           {/* Progress Bar */}
           <View style={styles.progressSection}>
-            <View style={[styles.progressBar, { backgroundColor: colors.backgroundSecondary }]}>
+            <View
+              style={[
+                styles.progressBar,
+                { backgroundColor: colors.backgroundSecondary },
+              ]}
+            >
               {totalStops > 0 && (
                 <>
                   <View
@@ -201,7 +248,9 @@ export default function HomeScreen() {
                   {failedCount} failed
                 </Text>
               )}
-              <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.progressText, { color: colors.textSecondary }]}
+              >
                 {remainingCount} remaining
               </Text>
             </View>
@@ -211,14 +260,27 @@ export default function HomeScreen() {
 
       {/* Current Stop Card */}
       {route && currentStop && !allDone && (
-        <View style={[styles.currentStopCard, { backgroundColor: colors.card, borderColor: colors.tint }]}>
+        <View
+          style={[
+            styles.currentStopCard,
+            { backgroundColor: colors.card, borderColor: colors.tint },
+          ]}
+        >
           <View style={styles.currentStopHeader}>
             <View style={[styles.stopBadge, { backgroundColor: colors.tint }]}>
-              <Text style={styles.stopBadgeText}>Stop #{currentStop.sequence}</Text>
+              <Text style={styles.stopBadgeText}>
+                Stop #{currentStop.sequence}
+              </Text>
             </View>
-            {currentStop.status === 'arrived' && (
-              <View style={[styles.arrivedBadge, { backgroundColor: '#3B82F620' }]}>
-                <Text style={{ color: '#3B82F6', fontSize: 12, fontWeight: '600' }}>ARRIVED</Text>
+            {currentStop.status === "arrived" && (
+              <View
+                style={[styles.arrivedBadge, { backgroundColor: "#3B82F620" }]}
+              >
+                <Text
+                  style={{ color: "#3B82F6", fontSize: 12, fontWeight: "600" }}
+                >
+                  ARRIVED
+                </Text>
               </View>
             )}
           </View>
@@ -226,33 +288,66 @@ export default function HomeScreen() {
           {currentStop.order && (
             <View style={styles.stopDetails}>
               <View style={styles.stopRow}>
-                <Ionicons name="person-outline" size={18} color={colors.textSecondary} />
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color={colors.textSecondary}
+                />
                 <Text style={[styles.stopCustomerName, { color: colors.text }]}>
                   {currentStop.order.customer_name}
                 </Text>
-                <TouchableOpacity onPress={() => callCustomer(currentStop.order!.customer_phone)}>
+                <TouchableOpacity
+                  onPress={() =>
+                    callCustomer(currentStop.order!.customer_phone)
+                  }
+                >
                   <Ionicons name="call-outline" size={20} color={colors.tint} />
                 </TouchableOpacity>
               </View>
 
-              <TouchableOpacity style={styles.stopRow} onPress={() => openMaps(currentStop)}>
-                <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
-                <Text style={[styles.stopAddress, { color: colors.text }]} numberOfLines={2}>
+              <TouchableOpacity
+                style={styles.stopRow}
+                onPress={() => openMaps(currentStop)}
+              >
+                <Ionicons
+                  name="location-outline"
+                  size={18}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[styles.stopAddress, { color: colors.text }]}
+                  numberOfLines={2}
+                >
                   {currentStop.order.delivery_address}
                 </Text>
                 <Ionicons name="open-outline" size={16} color={colors.tint} />
               </TouchableOpacity>
 
               <View style={styles.stopRow}>
-                <Ionicons name="cube-outline" size={18} color={colors.textSecondary} />
-                <Text style={[styles.stopText, { color: colors.textSecondary }]}>
+                <Ionicons
+                  name="cube-outline"
+                  size={18}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[styles.stopText, { color: colors.textSecondary }]}
+                >
                   {currentStop.order.product_description}
                 </Text>
               </View>
 
               {currentStop.order.is_cod && (
-                <View style={[styles.codTag, { backgroundColor: colors.warning + '20' }]}>
-                  <Ionicons name="cash-outline" size={16} color={colors.warning} />
+                <View
+                  style={[
+                    styles.codTag,
+                    { backgroundColor: colors.warning + "20" },
+                  ]}
+                >
+                  <Ionicons
+                    name="cash-outline"
+                    size={16}
+                    color={colors.warning}
+                  />
                   <Text style={[styles.codTagText, { color: colors.warning }]}>
                     COD: Rs. {currentStop.order.cod_amount}
                   </Text>
@@ -263,18 +358,28 @@ export default function HomeScreen() {
 
           <View style={styles.currentStopActions}>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}
+              style={[
+                styles.actionButton,
+                {
+                  backgroundColor: colors.backgroundSecondary,
+                  borderColor: colors.border,
+                },
+              ]}
               onPress={() => openMaps(currentStop)}
             >
               <Ionicons name="navigate" size={20} color={colors.tint} />
-              <Text style={[styles.actionButtonText, { color: colors.tint }]}>Navigate</Text>
+              <Text style={[styles.actionButtonText, { color: colors.tint }]}>
+                Navigate
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.actionButton, { backgroundColor: colors.tint }]}
               onPress={() => router.push(`/delivery/${currentStop.id}`)}
             >
               <Ionicons name="checkmark-circle" size={20} color="#FFFFFF" />
-              <Text style={[styles.actionButtonText, { color: '#FFFFFF' }]}>Start Delivery</Text>
+              <Text style={[styles.actionButtonText, { color: "#FFFFFF" }]}>
+                Start Delivery
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -283,28 +388,57 @@ export default function HomeScreen() {
       {/* Upcoming Stops */}
       {route && upcomingStops.length > 0 && !allDone && (
         <View>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Upcoming Stops</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>
+            Upcoming Stops
+          </Text>
           {upcomingStops.map((stop) => (
             <View
               key={stop.id}
-              style={[styles.upcomingCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+              style={[
+                styles.upcomingCard,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
             >
-              <View style={[styles.seqBadge, { backgroundColor: colors.backgroundSecondary }]}>
+              <View
+                style={[
+                  styles.seqBadge,
+                  { backgroundColor: colors.backgroundSecondary },
+                ]}
+              >
                 <Text style={[styles.seqText, { color: colors.textSecondary }]}>
                   {stop.sequence}
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.upcomingName, { color: colors.text }]}>
-                  {stop.order?.customer_name || 'Unknown'}
+                  {stop.order?.customer_name || "Unknown"}
                 </Text>
-                <Text style={[styles.upcomingAddress, { color: colors.textSecondary }]} numberOfLines={1}>
-                  {stop.order?.delivery_address || ''}
+                <Text
+                  style={[
+                    styles.upcomingAddress,
+                    { color: colors.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {stop.order?.delivery_address || ""}
                 </Text>
               </View>
               {stop.order?.is_cod && (
-                <View style={[styles.smallCodTag, { backgroundColor: colors.warning + '20' }]}>
-                  <Text style={{ color: colors.warning, fontSize: 10, fontWeight: '600' }}>COD</Text>
+                <View
+                  style={[
+                    styles.smallCodTag,
+                    { backgroundColor: colors.warning + "20" },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: colors.warning,
+                      fontSize: 10,
+                      fontWeight: "600",
+                    }}
+                  >
+                    COD
+                  </Text>
                 </View>
               )}
             </View>
@@ -314,15 +448,26 @@ export default function HomeScreen() {
 
       {/* Route Complete State */}
       {route && allDone && (
-        <View style={[styles.completeCard, { backgroundColor: colors.success + '15', borderColor: colors.success }]}>
+        <View
+          style={[
+            styles.completeCard,
+            {
+              backgroundColor: colors.success + "15",
+              borderColor: colors.success,
+            },
+          ]}
+        >
           <Ionicons name="checkmark-circle" size={48} color={colors.success} />
           <Text style={[styles.completeTitle, { color: colors.success }]}>
             All Stops Completed!
           </Text>
           <Text style={[styles.completeStats, { color: colors.text }]}>
-            {deliveredCount} delivered{failedCount > 0 ? ` / ${failedCount} failed` : ''}
+            {deliveredCount} delivered
+            {failedCount > 0 ? ` / ${failedCount} failed` : ""}
           </Text>
-          <Text style={[styles.completeSubtext, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.completeSubtext, { color: colors.textSecondary }]}
+          >
             Return to the hub to end your route
           </Text>
         </View>
@@ -340,27 +485,27 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     borderRadius: 12,
     gap: 8,
   },
   bannerText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: "#FFFFFF",
+    fontWeight: "600",
   },
   emptyCard: {
     padding: 48,
     borderRadius: 16,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 12,
     marginTop: 40,
   },
   emptyTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 8,
   },
   emptySubtext: {
@@ -373,13 +518,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   routeHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   routeName: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   routeDate: {
     fontSize: 13,
@@ -392,11 +537,11 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   vehicleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   vehicleText: {
@@ -408,19 +553,19 @@ const styles = StyleSheet.create({
   progressBar: {
     height: 8,
     borderRadius: 4,
-    flexDirection: 'row',
-    overflow: 'hidden',
+    flexDirection: "row",
+    overflow: "hidden",
   },
   progressFill: {
-    height: '100%',
+    height: "100%",
   },
   progressStats: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   progressText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   currentStopCard: {
     padding: 16,
@@ -429,9 +574,9 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   currentStopHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   stopBadge: {
     paddingHorizontal: 12,
@@ -439,9 +584,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   stopBadgeText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   arrivedBadge: {
     paddingHorizontal: 10,
@@ -452,13 +597,13 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   stopRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   stopCustomerName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
   },
   stopAddress: {
@@ -471,9 +616,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   codTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -481,17 +626,17 @@ const styles = StyleSheet.create({
   },
   codTagText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   currentStopActions: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 10,
   },
   actionButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
@@ -499,16 +644,16 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   upcomingCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
@@ -519,16 +664,16 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   seqText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   upcomingName: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   upcomingAddress: {
     fontSize: 12,
@@ -543,18 +688,18 @@ const styles = StyleSheet.create({
     padding: 32,
     borderRadius: 16,
     borderWidth: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 8,
     marginTop: 20,
   },
   completeTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 4,
   },
   completeStats: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   completeSubtext: {
     fontSize: 14,

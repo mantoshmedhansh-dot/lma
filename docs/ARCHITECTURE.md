@@ -58,6 +58,7 @@
 ### 1. Frontend Applications
 
 #### Customer Web App (Next.js on Vercel)
+
 ```
 Purpose: Desktop and mobile web experience for customers
 Features:
@@ -72,6 +73,7 @@ URL: https://lma.app
 ```
 
 #### Customer Mobile App (React Native + Expo)
+
 ```
 Purpose: Native mobile experience for customers
 Features:
@@ -86,6 +88,7 @@ Build: Expo EAS Build
 ```
 
 #### Driver Mobile App (React Native + Expo)
+
 ```
 Purpose: Delivery management for drivers
 Features:
@@ -100,6 +103,7 @@ Build: Expo EAS Build
 ```
 
 #### Admin Dashboard (Next.js on Vercel)
+
 ```
 Purpose: Platform administration
 Features:
@@ -179,6 +183,7 @@ Supabase Realtime Channels:
 ## Data Flow Diagrams
 
 ### Order Placement Flow
+
 ```
 Customer                Web/Mobile              API Server              Database
    │                        │                       │                      │
@@ -201,6 +206,7 @@ Customer                Web/Mobile              API Server              Database
 ```
 
 ### Real-time Order Tracking Flow
+
 ```
 Customer App            Supabase Realtime           Driver App            API Server
      │                        │                         │                      │
@@ -221,29 +227,32 @@ Customer App            Supabase Realtime           Driver App            API Se
 ## Deployment Configuration
 
 ### Vercel (Web Apps)
+
 ```yaml
 # vercel.json
 {
   "buildCommand": "pnpm turbo build --filter=web",
   "outputDirectory": "apps/web/.next",
   "framework": "nextjs",
-  "regions": ["bom1"],  # Mumbai for India
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "NEXT_PUBLIC_API_URL": "@api_url"
-  }
+  "regions": ["bom1"], # Mumbai for India
+  "env":
+    {
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+      "NEXT_PUBLIC_API_URL": "@api_url",
+    },
 }
 ```
 
 ### Render (API Server)
+
 ```yaml
 # render.yaml
 services:
   - type: web
     name: lma-api
     env: node
-    region: singapore  # Closest to India
+    region: singapore # Closest to India
     plan: standard
     buildCommand: pnpm install && pnpm build:api
     startCommand: pnpm start:api
@@ -262,6 +271,7 @@ services:
 ```
 
 ### Supabase Configuration
+
 ```
 Project Settings:
   - Region: ap-south-1 (Mumbai)
@@ -278,6 +288,7 @@ Features to Enable:
 ## Security Architecture
 
 ### Authentication Flow
+
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
 │   Client    │    │  Supabase   │    │  API Server │
@@ -304,6 +315,7 @@ Features to Enable:
 ```
 
 ### API Security Layers
+
 ```
 1. Rate Limiting (express-rate-limit)
    - 100 requests/minute for authenticated users
@@ -329,6 +341,7 @@ Features to Enable:
 ## Scaling Strategy
 
 ### Horizontal Scaling
+
 ```
 Phase 1 (0-10K orders/day):
   - Single Render instance
@@ -349,6 +362,7 @@ Phase 3 (50K+ orders/day):
 ```
 
 ### Caching Strategy
+
 ```
 Level 1: CDN (Vercel Edge)
   - Static assets
@@ -383,6 +397,7 @@ Level 3: Database
 ## Disaster Recovery
 
 ### Backup Strategy
+
 ```
 Database (Supabase):
   - Automatic daily backups
@@ -399,6 +414,7 @@ Configuration:
 ```
 
 ### Recovery Procedures
+
 ```
 1. Database failure:
    - Automatic failover to replica

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -9,17 +9,17 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/lib/store/auth';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { Link, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/lib/store/auth";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function SignUpScreen() {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const colors = useThemeColors();
@@ -27,24 +27,24 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!fullName || !email || !password) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      Alert.alert("Error", "Please fill in all required fields");
       return;
     }
 
     if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters');
+      Alert.alert("Error", "Password must be at least 8 characters");
       return;
     }
 
     const { error } = await signUp(email, password, fullName, phone);
 
     if (error) {
-      Alert.alert('Sign Up Failed', error.message);
+      Alert.alert("Sign Up Failed", error.message);
     } else {
       Alert.alert(
-        'Account Created',
-        'Please check your email to verify your account.',
-        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+        "Account Created",
+        "Please check your email to verify your account.",
+        [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
       );
     }
   };
@@ -52,17 +52,24 @@ export default function SignUpScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={[styles.iconContainer, { backgroundColor: colors.tintLight }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: colors.tintLight },
+            ]}
+          >
             <Ionicons name="person-add" size={40} color={colors.tint} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>Create Account</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Create Account
+          </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Sign up to get started with LMA
           </Text>
@@ -77,7 +84,10 @@ export default function SignUpScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border },
+              ]}
               placeholder="Full Name"
               placeholderTextColor={colors.textSecondary}
               value={fullName}
@@ -93,7 +103,10 @@ export default function SignUpScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border },
+              ]}
               placeholder="Email"
               placeholderTextColor={colors.textSecondary}
               value={email}
@@ -111,7 +124,10 @@ export default function SignUpScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border },
+              ]}
               placeholder="Phone (optional)"
               placeholderTextColor={colors.textSecondary}
               value={phone}
@@ -128,7 +144,10 @@ export default function SignUpScreen() {
               style={styles.inputIcon}
             />
             <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+              style={[
+                styles.input,
+                { color: colors.text, borderColor: colors.border },
+              ]}
               placeholder="Password"
               placeholderTextColor={colors.textSecondary}
               value={password}
@@ -140,7 +159,7 @@ export default function SignUpScreen() {
               style={styles.eyeIcon}
             >
               <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={20}
                 color={colors.textSecondary}
               />
@@ -148,8 +167,8 @@ export default function SignUpScreen() {
           </View>
 
           <Text style={[styles.terms, { color: colors.textSecondary }]}>
-            By signing up, you agree to our{' '}
-            <Text style={{ color: colors.tint }}>Terms of Service</Text> and{' '}
+            By signing up, you agree to our{" "}
+            <Text style={{ color: colors.tint }}>Terms of Service</Text> and{" "}
             <Text style={{ color: colors.tint }}>Privacy Policy</Text>
           </Text>
 
@@ -159,13 +178,13 @@ export default function SignUpScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Creating account...' : 'Create Account'}
+              {loading ? "Creating account..." : "Create Account"}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              Already have an account?{' '}
+              Already have an account?{" "}
             </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
@@ -187,24 +206,24 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   subtitle: {
@@ -214,10 +233,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   inputContainer: {
-    position: 'relative',
+    position: "relative",
   },
   inputIcon: {
-    position: 'absolute',
+    position: "absolute",
     left: 16,
     top: 14,
     zIndex: 1,
@@ -230,30 +249,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eyeIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
     top: 14,
   },
   terms: {
     fontSize: 12,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 18,
   },
   button: {
     height: 48,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 16,
   },
   footerText: {
@@ -261,6 +280,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
 import {
   Settings,
   Store,
@@ -17,7 +17,7 @@ import {
   Save,
   RefreshCw,
   AlertTriangle,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface MerchantSettings {
   id: string;
@@ -40,34 +40,39 @@ interface MerchantSettings {
   minimum_order: number;
   delivery_fee: number;
   is_open: boolean;
-  opening_hours: Record<string, { open: string; close: string; closed: boolean }>;
+  opening_hours: Record<
+    string,
+    { open: string; close: string; closed: boolean }
+  >;
 }
 
 const defaultOpeningHours = {
-  monday: { open: '09:00', close: '22:00', closed: false },
-  tuesday: { open: '09:00', close: '22:00', closed: false },
-  wednesday: { open: '09:00', close: '22:00', closed: false },
-  thursday: { open: '09:00', close: '22:00', closed: false },
-  friday: { open: '09:00', close: '22:00', closed: false },
-  saturday: { open: '10:00', close: '23:00', closed: false },
-  sunday: { open: '10:00', close: '22:00', closed: false },
+  monday: { open: "09:00", close: "22:00", closed: false },
+  tuesday: { open: "09:00", close: "22:00", closed: false },
+  wednesday: { open: "09:00", close: "22:00", closed: false },
+  thursday: { open: "09:00", close: "22:00", closed: false },
+  friday: { open: "09:00", close: "22:00", closed: false },
+  saturday: { open: "10:00", close: "23:00", closed: false },
+  sunday: { open: "10:00", close: "22:00", closed: false },
 };
 
 const businessTypes = [
-  { value: 'restaurant', label: 'Restaurant' },
-  { value: 'grocery', label: 'Grocery Store' },
-  { value: 'pharmacy', label: 'Pharmacy' },
-  { value: 'convenience', label: 'Convenience Store' },
-  { value: 'bakery', label: 'Bakery' },
-  { value: 'cafe', label: 'Cafe' },
-  { value: 'other', label: 'Other' },
+  { value: "restaurant", label: "Restaurant" },
+  { value: "grocery", label: "Grocery Store" },
+  { value: "pharmacy", label: "Pharmacy" },
+  { value: "convenience", label: "Convenience Store" },
+  { value: "bakery", label: "Bakery" },
+  { value: "cafe", label: "Cafe" },
+  { value: "other", label: "Other" },
 ];
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [merchant, setMerchant] = useState<MerchantSettings | null>(null);
-  const [activeTab, setActiveTab] = useState<'general' | 'hours' | 'delivery'>('general');
+  const [activeTab, setActiveTab] = useState<"general" | "hours" | "delivery">(
+    "general",
+  );
   const { toast } = useToast();
   const supabase = createClient();
 
@@ -77,13 +82,15 @@ export default function SettingsPage() {
 
   const fetchMerchant = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('owner_id', user.id)
+        .from("merchants")
+        .select("*")
+        .eq("owner_id", user.id)
         .single();
 
       if (error) throw error;
@@ -92,19 +99,19 @@ export default function SettingsPage() {
         ...data,
         opening_hours: data.opening_hours || defaultOpeningHours,
         address: data.address || {
-          street: '',
-          city: '',
-          state: '',
-          postal_code: '',
-          country: 'India',
+          street: "",
+          city: "",
+          state: "",
+          postal_code: "",
+          country: "India",
         },
       });
     } catch (error) {
-      console.error('Error fetching merchant:', error);
+      console.error("Error fetching merchant:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load settings',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load settings",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -117,7 +124,7 @@ export default function SettingsPage() {
 
     try {
       const { error } = await supabase
-        .from('merchants')
+        .from("merchants")
         .update({
           name: merchant.name,
           description: merchant.description,
@@ -133,19 +140,19 @@ export default function SettingsPage() {
           is_open: merchant.is_open,
           opening_hours: merchant.opening_hours,
         })
-        .eq('id', merchant.id);
+        .eq("id", merchant.id);
 
       if (error) throw error;
 
       toast({
-        title: 'Settings saved',
-        description: 'Your store settings have been updated',
+        title: "Settings saved",
+        description: "Your store settings have been updated",
       });
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to save settings',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save settings",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -165,7 +172,11 @@ export default function SettingsPage() {
     });
   };
 
-  const updateOpeningHours = (day: string, field: string, value: string | boolean) => {
+  const updateOpeningHours = (
+    day: string,
+    field: string,
+    value: string | boolean,
+  ) => {
     if (!merchant) return;
     setMerchant({
       ...merchant,
@@ -198,26 +209,24 @@ export default function SettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your store settings
-          </p>
+          <p className="text-muted-foreground">Manage your store settings</p>
         </div>
         <Button onClick={handleSave} disabled={saving}>
           <Save className="w-4 h-4 mr-2" />
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? "Saving..." : "Save Changes"}
         </Button>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-2 border-b">
-        {(['general', 'hours', 'delivery'] as const).map((tab) => (
+        {(["general", "hours", "delivery"] as const).map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               activeTab === tab
-                ? 'border-primary text-primary'
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -226,7 +235,7 @@ export default function SettingsPage() {
       </div>
 
       {/* General Settings */}
-      {activeTab === 'general' && (
+      {activeTab === "general" && (
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="bg-card rounded-lg border p-4 space-y-4">
@@ -239,7 +248,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Store Name</label>
                 <Input
                   value={merchant.name}
-                  onChange={(e) => updateField('name', e.target.value)}
+                  onChange={(e) => updateField("name", e.target.value)}
                   placeholder="Your store name"
                 />
               </div>
@@ -248,7 +257,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Business Type</label>
                 <select
                   value={merchant.type}
-                  onChange={(e) => updateField('type', e.target.value)}
+                  onChange={(e) => updateField("type", e.target.value)}
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 >
                   {businessTypes.map((type) => (
@@ -262,8 +271,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Description</label>
                 <textarea
-                  value={merchant.description || ''}
-                  onChange={(e) => updateField('description', e.target.value)}
+                  value={merchant.description || ""}
+                  onChange={(e) => updateField("description", e.target.value)}
                   placeholder="Describe your store..."
                   className="w-full min-h-[100px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none"
                 />
@@ -273,21 +282,21 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Store Status</label>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => updateField('is_open', true)}
+                    onClick={() => updateField("is_open", true)}
                     className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium ${
                       merchant.is_open
-                        ? 'bg-green-100 border-green-300 text-green-800'
-                        : 'bg-muted text-muted-foreground'
+                        ? "bg-green-100 border-green-300 text-green-800"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     Open
                   </button>
                   <button
-                    onClick={() => updateField('is_open', false)}
+                    onClick={() => updateField("is_open", false)}
                     className={`flex-1 py-2 px-4 rounded-lg border text-sm font-medium ${
                       !merchant.is_open
-                        ? 'bg-red-100 border-red-300 text-red-800'
-                        : 'bg-muted text-muted-foreground'
+                        ? "bg-red-100 border-red-300 text-red-800"
+                        : "bg-muted text-muted-foreground"
                     }`}
                   >
                     Closed
@@ -305,8 +314,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Logo URL</label>
                 <Input
-                  value={merchant.logo_url || ''}
-                  onChange={(e) => updateField('logo_url', e.target.value)}
+                  value={merchant.logo_url || ""}
+                  onChange={(e) => updateField("logo_url", e.target.value)}
                   placeholder="https://example.com/logo.png"
                 />
               </div>
@@ -314,8 +323,10 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Cover Image URL</label>
                 <Input
-                  value={merchant.cover_image_url || ''}
-                  onChange={(e) => updateField('cover_image_url', e.target.value)}
+                  value={merchant.cover_image_url || ""}
+                  onChange={(e) =>
+                    updateField("cover_image_url", e.target.value)
+                  }
                   placeholder="https://example.com/cover.jpg"
                 />
               </div>
@@ -332,8 +343,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Phone</label>
                 <Input
-                  value={merchant.contact_phone || ''}
-                  onChange={(e) => updateField('contact_phone', e.target.value)}
+                  value={merchant.contact_phone || ""}
+                  onChange={(e) => updateField("contact_phone", e.target.value)}
                   placeholder="+91 98765 43210"
                 />
               </div>
@@ -341,8 +352,8 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Email</label>
                 <Input
-                  value={merchant.contact_email || ''}
-                  onChange={(e) => updateField('contact_email', e.target.value)}
+                  value={merchant.contact_email || ""}
+                  onChange={(e) => updateField("contact_email", e.target.value)}
                   placeholder="store@example.com"
                 />
               </div>
@@ -358,7 +369,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Street Address</label>
                 <Input
                   value={merchant.address.street}
-                  onChange={(e) => updateAddress('street', e.target.value)}
+                  onChange={(e) => updateAddress("street", e.target.value)}
                   placeholder="123 Main Street"
                 />
               </div>
@@ -368,7 +379,7 @@ export default function SettingsPage() {
                   <label className="text-sm font-medium">City</label>
                   <Input
                     value={merchant.address.city}
-                    onChange={(e) => updateAddress('city', e.target.value)}
+                    onChange={(e) => updateAddress("city", e.target.value)}
                     placeholder="Mumbai"
                   />
                 </div>
@@ -376,7 +387,7 @@ export default function SettingsPage() {
                   <label className="text-sm font-medium">State</label>
                   <Input
                     value={merchant.address.state}
-                    onChange={(e) => updateAddress('state', e.target.value)}
+                    onChange={(e) => updateAddress("state", e.target.value)}
                     placeholder="Maharashtra"
                   />
                 </div>
@@ -386,7 +397,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Postal Code</label>
                 <Input
                   value={merchant.address.postal_code}
-                  onChange={(e) => updateAddress('postal_code', e.target.value)}
+                  onChange={(e) => updateAddress("postal_code", e.target.value)}
                   placeholder="400001"
                 />
               </div>
@@ -396,7 +407,7 @@ export default function SettingsPage() {
       )}
 
       {/* Opening Hours */}
-      {activeTab === 'hours' && (
+      {activeTab === "hours" && (
         <div className="bg-card rounded-lg border p-4">
           <h3 className="font-semibold flex items-center gap-2 mb-4">
             <Clock className="w-4 h-4" />
@@ -411,7 +422,9 @@ export default function SettingsPage() {
                   <input
                     type="checkbox"
                     checked={!hours.closed}
-                    onChange={(e) => updateOpeningHours(day, 'closed', !e.target.checked)}
+                    onChange={(e) =>
+                      updateOpeningHours(day, "closed", !e.target.checked)
+                    }
                     className="rounded border-input"
                   />
                   <span className="text-sm">Open</span>
@@ -421,14 +434,18 @@ export default function SettingsPage() {
                     <Input
                       type="time"
                       value={hours.open}
-                      onChange={(e) => updateOpeningHours(day, 'open', e.target.value)}
+                      onChange={(e) =>
+                        updateOpeningHours(day, "open", e.target.value)
+                      }
                       className="w-32"
                     />
                     <span className="text-muted-foreground">to</span>
                     <Input
                       type="time"
                       value={hours.close}
-                      onChange={(e) => updateOpeningHours(day, 'close', e.target.value)}
+                      onChange={(e) =>
+                        updateOpeningHours(day, "close", e.target.value)
+                      }
                       className="w-32"
                     />
                   </>
@@ -443,7 +460,7 @@ export default function SettingsPage() {
       )}
 
       {/* Delivery Settings */}
-      {activeTab === 'delivery' && (
+      {activeTab === "delivery" && (
         <div className="bg-card rounded-lg border p-4 space-y-4 max-w-lg">
           <h3 className="font-semibold flex items-center gap-2">
             <DollarSign className="w-4 h-4" />
@@ -451,11 +468,15 @@ export default function SettingsPage() {
           </h3>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Preparation Time (minutes)</label>
+            <label className="text-sm font-medium">
+              Preparation Time (minutes)
+            </label>
             <Input
               type="number"
               value={merchant.preparation_time}
-              onChange={(e) => updateField('preparation_time', parseInt(e.target.value) || 0)}
+              onChange={(e) =>
+                updateField("preparation_time", parseInt(e.target.value) || 0)
+              }
               placeholder="30"
             />
             <p className="text-xs text-muted-foreground">
@@ -464,11 +485,15 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium">Minimum Order Amount (₹)</label>
+            <label className="text-sm font-medium">
+              Minimum Order Amount (₹)
+            </label>
             <Input
               type="number"
               value={merchant.minimum_order}
-              onChange={(e) => updateField('minimum_order', parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                updateField("minimum_order", parseFloat(e.target.value) || 0)
+              }
               placeholder="0"
             />
             <p className="text-xs text-muted-foreground">
@@ -481,7 +506,9 @@ export default function SettingsPage() {
             <Input
               type="number"
               value={merchant.delivery_fee}
-              onChange={(e) => updateField('delivery_fee', parseFloat(e.target.value) || 0)}
+              onChange={(e) =>
+                updateField("delivery_fee", parseFloat(e.target.value) || 0)
+              }
               placeholder="0"
             />
             <p className="text-xs text-muted-foreground">

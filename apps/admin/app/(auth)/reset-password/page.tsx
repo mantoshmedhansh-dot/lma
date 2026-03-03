@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
-import { Store, Lock, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
+import { Store, Lock, Eye, EyeOff, CheckCircle } from "lucide-react";
 
 export default function ResetPasswordPage() {
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -23,18 +23,18 @@ export default function ResetPasswordPage() {
 
     if (password !== confirmPassword) {
       toast({
-        title: 'Password mismatch',
-        description: 'Passwords do not match',
-        variant: 'destructive',
+        title: "Password mismatch",
+        description: "Passwords do not match",
+        variant: "destructive",
       });
       return;
     }
 
     if (password.length < 8) {
       toast({
-        title: 'Weak password',
-        description: 'Password must be at least 8 characters',
-        variant: 'destructive',
+        title: "Weak password",
+        description: "Password must be at least 8 characters",
+        variant: "destructive",
       });
       return;
     }
@@ -48,9 +48,9 @@ export default function ResetPasswordPage() {
 
       if (error) {
         toast({
-          title: 'Error',
+          title: "Error",
           description: error.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
@@ -58,9 +58,9 @@ export default function ResetPasswordPage() {
       setSuccess(true);
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -83,10 +83,7 @@ export default function ResetPasswordPage() {
         </div>
 
         <div className="bg-card rounded-lg border p-6 shadow-sm">
-          <Button
-            className="w-full"
-            onClick={() => router.push('/login')}
-          >
+          <Button className="w-full" onClick={() => router.push("/login")}>
             Continue to Login
           </Button>
         </div>
@@ -103,9 +100,7 @@ export default function ResetPasswordPage() {
           </div>
         </div>
         <h1 className="text-2xl font-bold">Reset Password</h1>
-        <p className="text-muted-foreground">
-          Enter your new password below
-        </p>
+        <p className="text-muted-foreground">Enter your new password below</p>
       </div>
 
       <div className="bg-card rounded-lg border p-6 shadow-sm">
@@ -118,7 +113,7 @@ export default function ResetPasswordPage() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Min 8 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -147,7 +142,7 @@ export default function ResetPasswordPage() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="confirmPassword"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Confirm your password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -158,7 +153,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Updating...' : 'Update Password'}
+            {loading ? "Updating..." : "Update Password"}
           </Button>
         </form>
       </div>

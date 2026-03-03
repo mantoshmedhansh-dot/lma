@@ -1,4 +1,4 @@
-import { Page, Locator, expect } from '@playwright/test';
+import { Page, Locator, expect } from "@playwright/test";
 
 /**
  * Page Object Model for common pages
@@ -18,16 +18,16 @@ export class HomePage {
   }
 
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto("/");
   }
 
   async search(query: string) {
     await this.searchInput.fill(query);
-    await this.page.keyboard.press('Enter');
+    await this.page.keyboard.press("Enter");
   }
 
   async selectMerchant(name: string) {
-    await this.page.getByRole('link', { name: new RegExp(name, 'i') }).click();
+    await this.page.getByRole("link", { name: new RegExp(name, "i") }).click();
   }
 }
 
@@ -42,12 +42,12 @@ export class LoginPage {
     this.page = page;
     this.emailInput = page.getByLabel(/email/i);
     this.passwordInput = page.getByLabel(/password/i);
-    this.submitButton = page.getByRole('button', { name: /sign in|log in/i });
+    this.submitButton = page.getByRole("button", { name: /sign in|log in/i });
     this.errorMessage = page.locator('[data-testid="error-message"]');
   }
 
   async goto() {
-    await this.page.goto('/login');
+    await this.page.goto("/login");
   }
 
   async login(email: string, password: string) {
@@ -75,14 +75,19 @@ export class SignupPage {
     this.lastNameInput = page.getByLabel(/last name/i);
     this.emailInput = page.getByLabel(/email/i);
     this.passwordInput = page.getByLabel(/password/i);
-    this.submitButton = page.getByRole('button', { name: /sign up|register/i });
+    this.submitButton = page.getByRole("button", { name: /sign up|register/i });
   }
 
   async goto() {
-    await this.page.goto('/signup');
+    await this.page.goto("/signup");
   }
 
-  async signup(firstName: string, lastName: string, email: string, password: string) {
+  async signup(
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+  ) {
     await this.firstNameInput.fill(firstName);
     await this.lastNameInput.fill(lastName);
     await this.emailInput.fill(email);
@@ -101,16 +106,18 @@ export class MerchantPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.merchantName = page.locator('h1');
+    this.merchantName = page.locator("h1");
     this.menuCategories = page.locator('[data-testid="menu-category"]');
     this.productCards = page.locator('[data-testid="product-card"]');
-    this.addToCartButtons = page.getByRole('button', { name: /add/i });
-    this.viewCartButton = page.getByRole('button', { name: /view cart/i });
+    this.addToCartButtons = page.getByRole("button", { name: /add/i });
+    this.viewCartButton = page.getByRole("button", { name: /view cart/i });
   }
 
   async addProductToCart(productName: string) {
-    const productCard = this.page.locator(`[data-testid="product-card"]:has-text("${productName}")`);
-    await productCard.getByRole('button', { name: /add/i }).click();
+    const productCard = this.page.locator(
+      `[data-testid="product-card"]:has-text("${productName}")`,
+    );
+    await productCard.getByRole("button", { name: /add/i }).click();
   }
 
   async goToCart() {
@@ -129,22 +136,28 @@ export class CartPage {
     this.page = page;
     this.cartItems = page.locator('[data-testid="cart-item"]');
     this.subtotal = page.locator('[data-testid="subtotal"]');
-    this.checkoutButton = page.getByRole('button', { name: /checkout|proceed/i });
+    this.checkoutButton = page.getByRole("button", {
+      name: /checkout|proceed/i,
+    });
     this.emptyCartMessage = page.getByText(/cart is empty/i);
   }
 
   async goto() {
-    await this.page.goto('/cart');
+    await this.page.goto("/cart");
   }
 
   async updateQuantity(productName: string, quantity: number) {
-    const item = this.page.locator(`[data-testid="cart-item"]:has-text("${productName}")`);
+    const item = this.page.locator(
+      `[data-testid="cart-item"]:has-text("${productName}")`,
+    );
     await item.getByLabel(/quantity/i).fill(String(quantity));
   }
 
   async removeItem(productName: string) {
-    const item = this.page.locator(`[data-testid="cart-item"]:has-text("${productName}")`);
-    await item.getByRole('button', { name: /remove/i }).click();
+    const item = this.page.locator(
+      `[data-testid="cart-item"]:has-text("${productName}")`,
+    );
+    await item.getByRole("button", { name: /remove/i }).click();
   }
 
   async proceedToCheckout() {
@@ -163,12 +176,12 @@ export class CheckoutPage {
     this.page = page;
     this.addressSelector = page.locator('[data-testid="address-selector"]');
     this.paymentMethodSelector = page.locator('[data-testid="payment-method"]');
-    this.placeOrderButton = page.getByRole('button', { name: /place order/i });
+    this.placeOrderButton = page.getByRole("button", { name: /place order/i });
     this.orderSummary = page.locator('[data-testid="order-summary"]');
   }
 
   async goto() {
-    await this.page.goto('/checkout');
+    await this.page.goto("/checkout");
   }
 
   async selectAddress(label: string) {
@@ -176,7 +189,7 @@ export class CheckoutPage {
   }
 
   async selectPaymentMethod(method: string) {
-    await this.page.getByLabel(new RegExp(method, 'i')).click();
+    await this.page.getByLabel(new RegExp(method, "i")).click();
   }
 
   async placeOrder() {

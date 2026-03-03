@@ -5,43 +5,58 @@
 // =====================================================
 
 // Enums
-export type UserRole = 'customer' | 'driver' | 'merchant' | 'admin' | 'super_admin';
+export type UserRole =
+  | "customer"
+  | "driver"
+  | "merchant"
+  | "admin"
+  | "super_admin";
 
 export type OrderStatus =
-  | 'pending'
-  | 'confirmed'
-  | 'preparing'
-  | 'ready_for_pickup'
-  | 'driver_assigned'
-  | 'picked_up'
-  | 'in_transit'
-  | 'arrived'
-  | 'delivered'
-  | 'cancelled'
-  | 'refunded';
+  | "pending"
+  | "confirmed"
+  | "preparing"
+  | "ready_for_pickup"
+  | "driver_assigned"
+  | "picked_up"
+  | "in_transit"
+  | "arrived"
+  | "delivered"
+  | "cancelled"
+  | "refunded";
 
-export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded';
+export type PaymentStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "refunded";
 
-export type PaymentMethod = 'card' | 'wallet' | 'cash' | 'upi' | 'net_banking';
+export type PaymentMethod = "card" | "wallet" | "cash" | "upi" | "net_banking";
 
-export type VehicleType = 'bicycle' | 'motorcycle' | 'car' | 'van' | 'truck';
+export type VehicleType = "bicycle" | "motorcycle" | "car" | "van" | "truck";
 
-export type DriverStatus = 'offline' | 'online' | 'busy' | 'on_delivery';
+export type DriverStatus = "offline" | "online" | "busy" | "on_delivery";
 
-export type MerchantStatus = 'pending' | 'active' | 'suspended' | 'closed';
+export type MerchantStatus = "pending" | "active" | "suspended" | "closed";
 
-export type MerchantType = 'restaurant' | 'grocery' | 'pharmacy' | 'retail' | 'other';
+export type MerchantType =
+  | "restaurant"
+  | "grocery"
+  | "pharmacy"
+  | "retail"
+  | "other";
 
-export type NotificationType = 'order' | 'promotion' | 'system' | 'chat';
+export type NotificationType = "order" | "promotion" | "system" | "chat";
 
 export type DayOfWeek =
-  | 'monday'
-  | 'tuesday'
-  | 'wednesday'
-  | 'thursday'
-  | 'friday'
-  | 'saturday'
-  | 'sunday';
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday";
 
 // Base entity with common fields
 export interface BaseEntity {
@@ -326,7 +341,7 @@ export interface Payment extends BaseEntity {
 export interface Coupon extends BaseEntity {
   code: string;
   description: string | null;
-  discount_type: 'percentage' | 'fixed';
+  discount_type: "percentage" | "fixed";
   discount_value: number;
   max_discount_amount: number | null;
   min_order_amount: number;
@@ -381,7 +396,7 @@ export interface WalletTransaction {
   id: string;
   wallet_id: string;
   amount: number;
-  transaction_type: 'credit' | 'debit';
+  transaction_type: "credit" | "debit";
   reference_type: string | null;
   reference_id: string | null;
   description: string | null;
@@ -403,7 +418,7 @@ export interface Message {
   conversation_id: string;
   sender_id: string;
   content: string;
-  message_type: 'text' | 'image' | 'location';
+  message_type: "text" | "image" | "location";
   metadata: Record<string, unknown> | null;
   is_read: boolean;
   read_at: string | null;

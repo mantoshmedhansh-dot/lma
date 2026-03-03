@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,22 +7,41 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { useAuthStore } from '@/lib/store/auth';
-import { useOrdersStore } from '@/lib/store/orders';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useAuthStore } from "@/lib/store/auth";
+import { useOrdersStore } from "@/lib/store/orders";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
-const statusConfig: Record<string, { label: string; color: string; icon: string }> = {
-  pending: { label: 'Order Placed', color: '#F59E0B', icon: 'time-outline' },
-  confirmed: { label: 'Confirmed', color: '#3B82F6', icon: 'checkmark-circle-outline' },
-  preparing: { label: 'Preparing', color: '#8B5CF6', icon: 'restaurant-outline' },
-  ready: { label: 'Ready', color: '#10B981', icon: 'bag-check-outline' },
-  picked_up: { label: 'On the way', color: '#6366F1', icon: 'bicycle-outline' },
-  delivered: { label: 'Delivered', color: '#22C55E', icon: 'checkmark-done-outline' },
-  cancelled: { label: 'Cancelled', color: '#EF4444', icon: 'close-circle-outline' },
+const statusConfig: Record<
+  string,
+  { label: string; color: string; icon: string }
+> = {
+  pending: { label: "Order Placed", color: "#F59E0B", icon: "time-outline" },
+  confirmed: {
+    label: "Confirmed",
+    color: "#3B82F6",
+    icon: "checkmark-circle-outline",
+  },
+  preparing: {
+    label: "Preparing",
+    color: "#8B5CF6",
+    icon: "restaurant-outline",
+  },
+  ready: { label: "Ready", color: "#10B981", icon: "bag-check-outline" },
+  picked_up: { label: "On the way", color: "#6366F1", icon: "bicycle-outline" },
+  delivered: {
+    label: "Delivered",
+    color: "#22C55E",
+    icon: "checkmark-done-outline",
+  },
+  cancelled: {
+    label: "Cancelled",
+    color: "#EF4444",
+    icon: "close-circle-outline",
+  },
 };
 
 export default function OrdersScreen() {
@@ -50,7 +69,10 @@ export default function OrdersScreen() {
 
     return (
       <TouchableOpacity
-        style={[styles.orderCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+        style={[
+          styles.orderCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
         onPress={() => router.push(`/order/${item.id}`)}
       >
         <View style={styles.orderHeader}>
@@ -62,21 +84,37 @@ export default function OrdersScreen() {
                 contentFit="cover"
               />
             ) : (
-              <View style={[styles.merchantLogoPlaceholder, { backgroundColor: colors.tintLight }]}>
+              <View
+                style={[
+                  styles.merchantLogoPlaceholder,
+                  { backgroundColor: colors.tintLight },
+                ]}
+              >
                 <Ionicons name="storefront" size={20} color={colors.tint} />
               </View>
             )}
             <View>
               <Text style={[styles.merchantName, { color: colors.text }]}>
-                {item.merchant?.name || 'Restaurant'}
+                {item.merchant?.name || "Restaurant"}
               </Text>
-              <Text style={[styles.orderNumber, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.orderNumber, { color: colors.textSecondary }]}
+              >
                 Order #{item.order_number}
               </Text>
             </View>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: status.color + '20' }]}>
-            <Ionicons name={status.icon as any} size={14} color={status.color} />
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: status.color + "20" },
+            ]}
+          >
+            <Ionicons
+              name={status.icon as any}
+              size={14}
+              color={status.color}
+            />
             <Text style={[styles.statusText, { color: status.color }]}>
               {status.label}
             </Text>
@@ -98,7 +136,11 @@ export default function OrdersScreen() {
             <Text style={[styles.orderDate, { color: colors.textSecondary }]}>
               {new Date(item.created_at).toLocaleDateString()}
             </Text>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textSecondary}
+            />
           </View>
         </View>
       </TouchableOpacity>
@@ -107,7 +149,13 @@ export default function OrdersScreen() {
 
   if (loading && orders.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
@@ -125,7 +173,9 @@ export default function OrdersScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={[styles.emptyIcon, { backgroundColor: colors.tintLight }]}>
+            <View
+              style={[styles.emptyIcon, { backgroundColor: colors.tintLight }]}
+            >
               <Ionicons name="receipt-outline" size={48} color={colors.tint} />
             </View>
             <Text style={[styles.emptyTitle, { color: colors.text }]}>
@@ -136,7 +186,7 @@ export default function OrdersScreen() {
             </Text>
             <TouchableOpacity
               style={[styles.browseButton, { backgroundColor: colors.tint }]}
-              onPress={() => router.push('/(tabs)/home')}
+              onPress={() => router.push("/(tabs)/home")}
             >
               <Text style={styles.browseButtonText}>Browse Restaurants</Text>
             </TouchableOpacity>
@@ -152,8 +202,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   list: {
     padding: 16,
@@ -166,13 +216,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   merchantInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   merchantLogo: {
@@ -184,20 +234,20 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   merchantName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   orderNumber: {
     fontSize: 12,
     marginTop: 2,
   },
   statusBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -205,26 +255,26 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   divider: {
     height: 1,
   },
   orderFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   totalLabel: {
     fontSize: 12,
   },
   totalAmount: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   orderDate: {
@@ -232,26 +282,26 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 64,
   },
   emptyIcon: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   emptyText: {
     fontSize: 14,
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   browseButton: {
     marginTop: 24,
@@ -260,8 +310,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   browseButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

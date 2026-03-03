@@ -5,9 +5,9 @@
  * and delivery tracking.
  */
 
-import crypto from 'crypto';
-import { supabaseAdmin } from '../config/supabase.js';
-import { logger } from '../lib/logger.js';
+import crypto from "crypto";
+import { supabaseAdmin } from "../config/supabase.js";
+import { logger } from "../lib/logger.js";
 
 interface WebhookEndpoint {
   id: string;
@@ -41,7 +41,7 @@ const RETRY_DELAYS = [60000, 300000, 900000]; // 1 min, 5 min, 15 min
  * Generate HMAC signature for webhook payload
  */
 function generateSignature(payload: string, secret: string): string {
-  return crypto.createHmac('sha256', secret).update(payload).digest('hex');
+  return crypto.createHmac("sha256", secret).update(payload).digest("hex");
 }
 
 /**
@@ -49,7 +49,7 @@ function generateSignature(payload: string, secret: string): string {
  */
 async function deliverWebhook(
   endpoint: WebhookEndpoint,
-  payload: WebhookPayload
+  payload: WebhookPayload,
 ): Promise<DeliveryResult> {
   const payloadString = JSON.stringify(payload);
   const signature = generateSignature(payloadString, endpoint.secret_key);
@@ -58,17 +58,20 @@ async function deliverWebhook(
 
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), endpoint.timeout_ms || 30000);
+    const timeout = setTimeout(
+      () => controller.abort(),
+      endpoint.timeout_ms || 30000,
+    );
 
     const response = await fetch(endpoint.url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'X-LMA-Signature': signature,
-        'X-LMA-Event': payload.event,
-        'X-LMA-Event-ID': payload.event_id,
-        'X-LMA-Timestamp': payload.timestamp,
-        'User-Agent': 'LMA-Webhook/1.0',
+        "Content-Type": "application/json",
+        "X-LMA-Signature": signature,
+        "X-LMA-Event": payload.event,
+        "X-LMA-Event-ID": payload.event_id,
+        "X-LMA-Timestamp": payload.timestamp,
+        "User-Agent": "LMA-Webhook/1.0",
       },
       body: payloadString,
       signal: controller.signal,
@@ -89,7 +92,7 @@ async function deliverWebhook(
       success: false,
       status_code: 0,
       response_time_ms: responseTime,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }
@@ -100,7 +103,7 @@ async function deliverWebhook(
 export async function queueWebhook(
   merchantId: string,
   event: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): Promise<number> {
   const eventId = crypto.randomUUID();
   const timestamp = new Date().toISOString();
@@ -114,11 +117,11 @@ export async function queueWebhook(
 
   // Get all active endpoints subscribed to this event
   const { data: endpoints, error } = await supabaseAdmin
-    .from('webhook_endpoints')
-    .select('*')
-    .eq('merchant_id', merchantId)
-    .eq('is_active', true)
-    .contains('events', [event]);
+    .from("webhook_endpoints")
+    .select("*")
+    .eq("merchant_id", merchantId)
+    .eq("is_active", true)
+    .contains("events", [event]);
 
   if (error || !endpoints || endpoints.length === 0) {
     return 0;
@@ -133,9 +136,9 @@ export async function queueWebhook(
     max_attempts: endpoint.retry_count || MAX_RETRY_ATTEMPTS,
   }));
 
-  await supabaseAdmin.from('webhook_deliveries').insert(deliveries);
+  await supabaseAdmin.from("webhook_deliveries").insert(deliveries);
 
-  logger.info('Queued webhook deliveries', {
+  logger.info("Queued webhook deliveries", {
     merchantId,
     event,
     eventId,
@@ -154,18 +157,20 @@ export async function queueWebhook(
 async function processDeliveries(endpointIds?: string[]): Promise<void> {
   // Get pending deliveries
   let query = supabaseAdmin
-    .from('webhook_deliveries')
-    .select(`
+    .from("webhook_deliveries")
+    .select(
+      `
       *,
       endpoint:webhook_endpoints (*)
-    `)
-    .eq('status', 'pending')
-    .lt('attempts', MAX_RETRY_ATTEMPTS)
-    .order('scheduled_at', { ascending: true })
+    `,
+    )
+    .eq("status", "pending")
+    .lt("attempts", MAX_RETRY_ATTEMPTS)
+    .order("scheduled_at", { ascending: true })
     .limit(100);
 
   if (endpointIds?.length) {
-    query = query.in('endpoint_id', endpointIds);
+    query = query.in("endpoint_id", endpointIds);
   }
 
   const { data: deliveries, error } = await query;
@@ -178,19 +183,22 @@ async function processDeliveries(endpointIds?: string[]): Promise<void> {
     const endpoint = delivery.endpoint as unknown as WebhookEndpoint;
     if (!endpoint || !endpoint.is_active) continue;
 
-    const result = await deliverWebhook(endpoint, delivery.payload as WebhookPayload);
+    const result = await deliverWebhook(
+      endpoint,
+      delivery.payload as WebhookPayload,
+    );
 
     if (result.success) {
       // Mark as delivered
-      await supabaseAdmin.rpc('record_webhook_attempt', {
+      await supabaseAdmin.rpc("record_webhook_attempt", {
         p_delivery_id: delivery.id,
-        p_status: 'delivered',
+        p_status: "delivered",
         p_response_status: result.status_code,
         p_response_body: null,
         p_response_time_ms: result.response_time_ms,
       });
 
-      logger.info('Webhook delivered', {
+      logger.info("Webhook delivered", {
         deliveryId: delivery.id,
         endpoint: endpoint.url,
         event: delivery.event_type,
@@ -198,9 +206,10 @@ async function processDeliveries(endpointIds?: string[]): Promise<void> {
     } else {
       // Check if we should retry
       const attempts = delivery.attempts + 1;
-      const newStatus = attempts >= delivery.max_attempts ? 'failed' : 'retrying';
+      const newStatus =
+        attempts >= delivery.max_attempts ? "failed" : "retrying";
 
-      await supabaseAdmin.rpc('record_webhook_attempt', {
+      await supabaseAdmin.rpc("record_webhook_attempt", {
         p_delivery_id: delivery.id,
         p_status: newStatus,
         p_response_status: result.status_code,
@@ -209,18 +218,19 @@ async function processDeliveries(endpointIds?: string[]): Promise<void> {
         p_error: result.error,
       });
 
-      if (newStatus === 'retrying') {
+      if (newStatus === "retrying") {
         // Schedule retry
-        const retryDelay = RETRY_DELAYS[Math.min(attempts - 1, RETRY_DELAYS.length - 1)];
+        const retryDelay =
+          RETRY_DELAYS[Math.min(attempts - 1, RETRY_DELAYS.length - 1)];
         const scheduledAt = new Date(Date.now() + retryDelay).toISOString();
 
         await supabaseAdmin
-          .from('webhook_deliveries')
-          .update({ status: 'pending', scheduled_at: scheduledAt })
-          .eq('id', delivery.id);
+          .from("webhook_deliveries")
+          .update({ status: "pending", scheduled_at: scheduledAt })
+          .eq("id", delivery.id);
       }
 
-      logger.warn('Webhook delivery failed', {
+      logger.warn("Webhook delivery failed", {
         deliveryId: delivery.id,
         endpoint: endpoint.url,
         event: delivery.event_type,
@@ -236,12 +246,13 @@ async function processDeliveries(endpointIds?: string[]): Promise<void> {
  */
 export async function triggerOrderWebhook(
   orderId: string,
-  event: string
+  event: string,
 ): Promise<void> {
   // Get order with merchant
   const { data: order, error } = await supabaseAdmin
-    .from('orders')
-    .select(`
+    .from("orders")
+    .select(
+      `
       *,
       merchant:merchants (id, business_name),
       customer:users!orders_customer_id_fkey (id, first_name, last_name, email),
@@ -250,12 +261,13 @@ export async function triggerOrderWebhook(
         user:users (first_name, last_name)
       ),
       items:order_items (id, product_name, quantity, total_price)
-    `)
-    .eq('id', orderId)
+    `,
+    )
+    .eq("id", orderId)
     .single();
 
   if (error || !order) {
-    logger.error('Failed to get order for webhook', { orderId, error });
+    logger.error("Failed to get order for webhook", { orderId, error });
     return;
   }
 
@@ -294,11 +306,11 @@ export async function triggerOrderWebhook(
 export async function retryFailedWebhooks(): Promise<number> {
   // Get deliveries that need retry
   const { data: deliveries, error } = await supabaseAdmin
-    .from('webhook_deliveries')
-    .select('id')
-    .eq('status', 'pending')
-    .lte('scheduled_at', new Date().toISOString())
-    .lt('attempts', MAX_RETRY_ATTEMPTS)
+    .from("webhook_deliveries")
+    .select("id")
+    .eq("status", "pending")
+    .lte("scheduled_at", new Date().toISOString())
+    .lt("attempts", MAX_RETRY_ATTEMPTS)
     .limit(100);
 
   if (error || !deliveries) {
@@ -312,18 +324,20 @@ export async function retryFailedWebhooks(): Promise<number> {
 /**
  * Clean up old webhook deliveries
  */
-export async function cleanupOldDeliveries(daysToKeep: number = 30): Promise<number> {
+export async function cleanupOldDeliveries(
+  daysToKeep: number = 30,
+): Promise<number> {
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
   const { count, error } = await supabaseAdmin
-    .from('webhook_deliveries')
+    .from("webhook_deliveries")
     .delete()
-    .lt('created_at', cutoffDate.toISOString())
-    .in('status', ['delivered', 'failed']);
+    .lt("created_at", cutoffDate.toISOString())
+    .in("status", ["delivered", "failed"]);
 
   if (error) {
-    logger.error('Failed to cleanup webhook deliveries', { error });
+    logger.error("Failed to cleanup webhook deliveries", { error });
     return 0;
   }
 

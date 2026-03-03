@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from "react";
 import {
   ShoppingBagIcon,
   TruckIcon,
@@ -8,14 +8,14 @@ import {
   ClockIcon,
   UsersIcon,
   BuildingStorefrontIcon,
-} from '@heroicons/react/24/outline';
+} from "@heroicons/react/24/outline";
 import {
   MetricCard,
   OrdersChart,
   LiveStatusPanel,
   DataTable,
   AlertsPanel,
-} from '@/components/dashboard';
+} from "@/components/dashboard";
 
 interface DashboardData {
   kpis: {
@@ -57,7 +57,7 @@ interface DashboardData {
   alerts: Array<{
     id: string;
     type: string;
-    severity: 'info' | 'warning' | 'critical';
+    severity: "info" | "warning" | "critical";
     title: string;
     message: string;
     data?: Record<string, unknown>;
@@ -68,7 +68,7 @@ interface DashboardData {
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<'today' | 'week' | 'month'>('week');
+  const [period, setPeriod] = useState<"today" | "week" | "month">("week");
   const [data, setData] = useState<DashboardData | null>(null);
 
   const fetchDashboardData = useCallback(async () => {
@@ -112,29 +112,59 @@ export default function DashboardPage() {
           totalOffline: 12,
         },
         topMerchants: [
-          { id: '1', name: 'Biryani House', orders: 156, revenue: 78500, rating: 4.8 },
-          { id: '2', name: 'Pizza Palace', orders: 134, revenue: 65200, rating: 4.6 },
-          { id: '3', name: 'Burger King', orders: 128, revenue: 51200, rating: 4.5 },
-          { id: '4', name: 'Dosa Corner', orders: 112, revenue: 33600, rating: 4.7 },
-          { id: '5', name: 'Chinese Dragon', orders: 98, revenue: 58800, rating: 4.4 },
+          {
+            id: "1",
+            name: "Biryani House",
+            orders: 156,
+            revenue: 78500,
+            rating: 4.8,
+          },
+          {
+            id: "2",
+            name: "Pizza Palace",
+            orders: 134,
+            revenue: 65200,
+            rating: 4.6,
+          },
+          {
+            id: "3",
+            name: "Burger King",
+            orders: 128,
+            revenue: 51200,
+            rating: 4.5,
+          },
+          {
+            id: "4",
+            name: "Dosa Corner",
+            orders: 112,
+            revenue: 33600,
+            rating: 4.7,
+          },
+          {
+            id: "5",
+            name: "Chinese Dragon",
+            orders: 98,
+            revenue: 58800,
+            rating: 4.4,
+          },
         ],
         alerts: [
           {
-            id: '1',
-            type: 'driver_shortage',
-            severity: 'warning',
-            title: 'Driver Shortage',
-            message: '15 pending orders with only 8 available drivers',
+            id: "1",
+            type: "driver_shortage",
+            severity: "warning",
+            title: "Driver Shortage",
+            message: "15 pending orders with only 8 available drivers",
             data: { pendingOrders: 15, availableDrivers: 8 },
             timestamp: new Date(Date.now() - 5 * 60 * 1000),
             acknowledged: false,
           },
           {
-            id: '2',
-            type: 'high_cancellation',
-            severity: 'info',
-            title: 'Cancellation Rate Normal',
-            message: 'Cancellation rate has returned to normal levels',
+            id: "2",
+            type: "high_cancellation",
+            severity: "info",
+            title: "Cancellation Rate Normal",
+            message: "Cancellation rate has returned to normal levels",
             timestamp: new Date(Date.now() - 30 * 60 * 1000),
             acknowledged: true,
           },
@@ -143,7 +173,7 @@ export default function DashboardPage() {
 
       setData(mockData);
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      console.error("Failed to fetch dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -159,7 +189,7 @@ export default function DashboardPage() {
     setData({
       ...data,
       alerts: data.alerts.map((a) =>
-        a.id === alertId ? { ...a, acknowledged: true } : a
+        a.id === alertId ? { ...a, acknowledged: true } : a,
       ),
     });
 
@@ -168,7 +198,7 @@ export default function DashboardPage() {
 
   const refreshLiveData = useCallback(async () => {
     // In production: fetch live stats
-    console.log('Refreshing live data...');
+    console.log("Refreshing live data...");
   }, []);
 
   return (
@@ -177,12 +207,16 @@ export default function DashboardPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500">Welcome back! Here's what's happening.</p>
+          <p className="text-gray-500">
+            Welcome back! Here's what's happening.
+          </p>
         </div>
         <div className="flex items-center gap-4">
           <select
             value={period}
-            onChange={(e) => setPeriod(e.target.value as 'today' | 'week' | 'month')}
+            onChange={(e) =>
+              setPeriod(e.target.value as "today" | "week" | "month")
+            }
             className="px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="today">Today</option>
@@ -202,7 +236,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         <MetricCard
           title="Total Orders"
-          value={data?.kpis.totalOrders.toLocaleString() || '-'}
+          value={data?.kpis.totalOrders.toLocaleString() || "-"}
           change={data?.changes.orders}
           changeLabel="vs last period"
           icon={<ShoppingBagIcon className="h-6 w-6" />}
@@ -225,10 +259,10 @@ export default function DashboardPage() {
           icon={<TruckIcon className="h-6 w-6" />}
           variant={
             (data?.kpis.completionRate || 0) > 90
-              ? 'success'
+              ? "success"
               : (data?.kpis.completionRate || 0) > 80
-              ? 'warning'
-              : 'danger'
+                ? "warning"
+                : "danger"
           }
           loading={loading}
         />
@@ -289,22 +323,24 @@ export default function DashboardPage() {
           keyField="id"
           loading={loading}
           columns={[
-            { key: 'name', header: 'Merchant', sortable: true },
+            { key: "name", header: "Merchant", sortable: true },
             {
-              key: 'orders',
-              header: 'Orders',
+              key: "orders",
+              header: "Orders",
               sortable: true,
-              render: (value) => <span className="font-medium">{String(value)}</span>,
+              render: (value) => (
+                <span className="font-medium">{String(value)}</span>
+              ),
             },
             {
-              key: 'revenue',
-              header: 'Revenue',
+              key: "revenue",
+              header: "Revenue",
               sortable: true,
               render: (value) => `₹${(Number(value) / 1000).toFixed(1)}K`,
             },
             {
-              key: 'rating',
-              header: 'Rating',
+              key: "rating",
+              header: "Rating",
               render: (value) => (
                 <span className="inline-flex items-center">
                   <span className="text-yellow-500 mr-1">★</span>
@@ -327,16 +363,18 @@ export default function DashboardPage() {
   );
 }
 
-function generateMockChartData(period: string): Array<{ date: string; orders: number; revenue: number }> {
+function generateMockChartData(
+  period: string,
+): Array<{ date: string; orders: number; revenue: number }> {
   const data: Array<{ date: string; orders: number; revenue: number }> = [];
-  const days = period === 'today' ? 1 : period === 'week' ? 7 : 30;
+  const days = period === "today" ? 1 : period === "week" ? 7 : 30;
   const today = new Date();
 
   for (let i = days - 1; i >= 0; i--) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     data.push({
-      date: date.toISOString().split('T')[0],
+      date: date.toISOString().split("T")[0],
       orders: Math.floor(Math.random() * 100) + 100,
       revenue: Math.floor(Math.random() * 50000) + 30000,
     });

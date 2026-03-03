@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -9,52 +9,52 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/lib/store/auth';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { Link, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/lib/store/auth";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
-type Step = 'account' | 'vehicle';
+type Step = "account" | "vehicle";
 
 export default function RegisterScreen() {
-  const [step, setStep] = useState<Step>('account');
+  const [step, setStep] = useState<Step>("account");
   const router = useRouter();
   const colors = useThemeColors();
   const { signUp, loading } = useAuthStore();
 
   // Account info
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   // Vehicle info
-  const [vehicleType, setVehicleType] = useState('bike');
-  const [vehicleNumber, setVehicleNumber] = useState('');
-  const [licenseNumber, setLicenseNumber] = useState('');
+  const [vehicleType, setVehicleType] = useState("bike");
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [licenseNumber, setLicenseNumber] = useState("");
 
   const vehicleTypes = [
-    { value: 'bike', label: 'Bike', icon: 'bicycle' as const },
-    { value: 'scooter', label: 'Scooter', icon: 'bicycle' as const },
-    { value: 'car', label: 'Car', icon: 'car' as const },
+    { value: "bike", label: "Bike", icon: "bicycle" as const },
+    { value: "scooter", label: "Scooter", icon: "bicycle" as const },
+    { value: "car", label: "Car", icon: "car" as const },
   ];
 
   const validateStep = () => {
-    if (step === 'account') {
+    if (step === "account") {
       if (!fullName || !email || !phone || !password) {
-        Alert.alert('Error', 'Please fill in all fields');
+        Alert.alert("Error", "Please fill in all fields");
         return false;
       }
       if (password.length < 8) {
-        Alert.alert('Error', 'Password must be at least 8 characters');
+        Alert.alert("Error", "Password must be at least 8 characters");
         return false;
       }
       return true;
     } else {
       if (!vehicleNumber || !licenseNumber) {
-        Alert.alert('Error', 'Please fill in all vehicle details');
+        Alert.alert("Error", "Please fill in all vehicle details");
         return false;
       }
       return true;
@@ -63,7 +63,7 @@ export default function RegisterScreen() {
 
   const handleNext = () => {
     if (validateStep()) {
-      setStep('vehicle');
+      setStep("vehicle");
     }
   };
 
@@ -81,12 +81,12 @@ export default function RegisterScreen() {
     });
 
     if (error) {
-      Alert.alert('Registration Failed', error.message);
+      Alert.alert("Registration Failed", error.message);
     } else {
       Alert.alert(
-        'Registration Successful',
-        'Your account is pending approval. You will be notified once approved.',
-        [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+        "Registration Successful",
+        "Your account is pending approval. You will be notified once approved.",
+        [{ text: "OK", onPress: () => router.replace("/(auth)/login") }],
       );
     }
   };
@@ -94,43 +94,58 @@ export default function RegisterScreen() {
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={[styles.iconContainer, { backgroundColor: colors.tintLight }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: colors.tintLight },
+            ]}
+          >
             <Ionicons name="person-add" size={40} color={colors.tint} />
           </View>
           <Text style={[styles.title, { color: colors.text }]}>
             Become a Driver
           </Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-            {step === 'account' ? 'Step 1: Account Details' : 'Step 2: Vehicle Details'}
+            {step === "account"
+              ? "Step 1: Account Details"
+              : "Step 2: Vehicle Details"}
           </Text>
         </View>
 
         {/* Progress Indicator */}
         <View style={styles.progressContainer}>
-          <View style={[styles.progressDot, { backgroundColor: colors.tint }]} />
+          <View
+            style={[styles.progressDot, { backgroundColor: colors.tint }]}
+          />
           <View
             style={[
               styles.progressLine,
-              { backgroundColor: step === 'vehicle' ? colors.tint : colors.border },
+              {
+                backgroundColor:
+                  step === "vehicle" ? colors.tint : colors.border,
+              },
             ]}
           />
           <View
             style={[
               styles.progressDot,
-              { backgroundColor: step === 'vehicle' ? colors.tint : colors.border },
+              {
+                backgroundColor:
+                  step === "vehicle" ? colors.tint : colors.border,
+              },
             ]}
           />
         </View>
 
         <View style={styles.form}>
-          {step === 'account' ? (
+          {step === "account" ? (
             <>
               <View style={styles.inputContainer}>
                 <Ionicons
@@ -140,7 +155,10 @@ export default function RegisterScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border },
+                  ]}
                   placeholder="Full Name"
                   placeholderTextColor={colors.textSecondary}
                   value={fullName}
@@ -156,7 +174,10 @@ export default function RegisterScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border },
+                  ]}
                   placeholder="Email"
                   placeholderTextColor={colors.textSecondary}
                   value={email}
@@ -174,7 +195,10 @@ export default function RegisterScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border },
+                  ]}
                   placeholder="Phone Number"
                   placeholderTextColor={colors.textSecondary}
                   value={phone}
@@ -191,7 +215,10 @@ export default function RegisterScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border },
+                  ]}
                   placeholder="Password"
                   placeholderTextColor={colors.textSecondary}
                   value={password}
@@ -203,7 +230,7 @@ export default function RegisterScreen() {
                   style={styles.eyeIcon}
                 >
                   <Ionicons
-                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    name={showPassword ? "eye-off-outline" : "eye-outline"}
                     size={20}
                     color={colors.textSecondary}
                   />
@@ -231,9 +258,13 @@ export default function RegisterScreen() {
                       styles.vehicleType,
                       {
                         borderColor:
-                          vehicleType === type.value ? colors.tint : colors.border,
+                          vehicleType === type.value
+                            ? colors.tint
+                            : colors.border,
                         backgroundColor:
-                          vehicleType === type.value ? colors.tintLight : 'transparent',
+                          vehicleType === type.value
+                            ? colors.tintLight
+                            : "transparent",
                       },
                     ]}
                     onPress={() => setVehicleType(type.value)}
@@ -241,14 +272,20 @@ export default function RegisterScreen() {
                     <Ionicons
                       name={type.icon}
                       size={24}
-                      color={vehicleType === type.value ? colors.tint : colors.textSecondary}
+                      color={
+                        vehicleType === type.value
+                          ? colors.tint
+                          : colors.textSecondary
+                      }
                     />
                     <Text
                       style={[
                         styles.vehicleTypeText,
                         {
                           color:
-                            vehicleType === type.value ? colors.tint : colors.textSecondary,
+                            vehicleType === type.value
+                              ? colors.tint
+                              : colors.textSecondary,
                         },
                       ]}
                     >
@@ -266,7 +303,10 @@ export default function RegisterScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border },
+                  ]}
                   placeholder="Vehicle Number (e.g., MH 01 AB 1234)"
                   placeholderTextColor={colors.textSecondary}
                   value={vehicleNumber}
@@ -283,7 +323,10 @@ export default function RegisterScreen() {
                   style={styles.inputIcon}
                 />
                 <TextInput
-                  style={[styles.input, { color: colors.text, borderColor: colors.border }]}
+                  style={[
+                    styles.input,
+                    { color: colors.text, borderColor: colors.border },
+                  ]}
                   placeholder="Driving License Number"
                   placeholderTextColor={colors.textSecondary}
                   value={licenseNumber}
@@ -295,7 +338,7 @@ export default function RegisterScreen() {
               <View style={styles.buttonRow}>
                 <TouchableOpacity
                   style={[styles.backButton, { borderColor: colors.border }]}
-                  onPress={() => setStep('account')}
+                  onPress={() => setStep("account")}
                 >
                   <Ionicons name="arrow-back" size={20} color={colors.text} />
                   <Text style={[styles.backButtonText, { color: colors.text }]}>
@@ -304,12 +347,15 @@ export default function RegisterScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.submitButton, { backgroundColor: colors.tint }]}
+                  style={[
+                    styles.submitButton,
+                    { backgroundColor: colors.tint },
+                  ]}
                   onPress={handleRegister}
                   disabled={loading}
                 >
                   <Text style={styles.buttonText}>
-                    {loading ? 'Registering...' : 'Register'}
+                    {loading ? "Registering..." : "Register"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -318,7 +364,7 @@ export default function RegisterScreen() {
 
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              Already have an account?{' '}
+              Already have an account?{" "}
             </Text>
             <Link href="/(auth)/login" asChild>
               <TouchableOpacity>
@@ -344,29 +390,29 @@ const styles = StyleSheet.create({
     paddingTop: 60,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   iconContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
   },
   progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 32,
   },
   progressDot: {
@@ -384,14 +430,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: -8,
   },
   inputContainer: {
-    position: 'relative',
+    position: "relative",
   },
   inputIcon: {
-    position: 'absolute',
+    position: "absolute",
     left: 16,
     top: 14,
     zIndex: 1,
@@ -404,17 +450,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eyeIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
     top: 14,
   },
   vehicleTypes: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   vehicleType: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
@@ -422,24 +468,24 @@ const styles = StyleSheet.create({
   },
   vehicleTypeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   button: {
     height: 48,
     borderRadius: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     marginTop: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   buttonRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginTop: 8,
   },
@@ -448,25 +494,25 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 12,
     borderWidth: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
   },
   backButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   submitButton: {
     flex: 2,
     height: 48,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 16,
   },
   footerText: {
@@ -474,6 +520,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

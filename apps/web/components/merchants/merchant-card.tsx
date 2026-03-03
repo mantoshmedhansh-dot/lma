@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import Image from 'next/image';
-import { Star, Clock, MapPin } from 'lucide-react';
-import { formatCurrency } from '@lma/shared';
+import Link from "next/link";
+import Image from "next/image";
+import { Star, Clock, MapPin } from "lucide-react";
+import { formatCurrency } from "@lma/shared";
 
 interface MerchantCardProps {
   merchant: {
@@ -21,11 +21,11 @@ interface MerchantCardProps {
 
 export function MerchantCard({ merchant }: MerchantCardProps) {
   const merchantTypeLabels: Record<string, string> = {
-    restaurant: 'Restaurant',
-    grocery: 'Grocery',
-    pharmacy: 'Pharmacy',
-    retail: 'Retail',
-    other: 'Store',
+    restaurant: "Restaurant",
+    grocery: "Grocery",
+    pharmacy: "Pharmacy",
+    retail: "Retail",
+    other: "Store",
   };
 
   return (
@@ -43,9 +43,13 @@ export function MerchantCard({ merchant }: MerchantCardProps) {
           ) : (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/10">
               <span className="text-4xl">
-                {merchant.merchant_type === 'restaurant' ? '🍽️' :
-                 merchant.merchant_type === 'grocery' ? '🛒' :
-                 merchant.merchant_type === 'pharmacy' ? '💊' : '🏪'}
+                {merchant.merchant_type === "restaurant"
+                  ? "🍽️"
+                  : merchant.merchant_type === "grocery"
+                    ? "🛒"
+                    : merchant.merchant_type === "pharmacy"
+                      ? "💊"
+                      : "🏪"}
               </span>
             </div>
           )}
@@ -67,13 +71,13 @@ export function MerchantCard({ merchant }: MerchantCardProps) {
         </div>
 
         {/* Content */}
-        <div className={`p-4 ${merchant.logo_url ? 'pt-8' : ''}`}>
+        <div className={`p-4 ${merchant.logo_url ? "pt-8" : ""}`}>
           <h3 className="font-semibold truncate group-hover:text-primary transition-colors">
             {merchant.business_name}
           </h3>
 
           <p className="text-xs text-muted-foreground mt-1">
-            {merchantTypeLabels[merchant.merchant_type] || 'Store'}
+            {merchantTypeLabels[merchant.merchant_type] || "Store"}
             {merchant.city && ` • ${merchant.city}`}
           </p>
 
@@ -82,7 +86,9 @@ export function MerchantCard({ merchant }: MerchantCardProps) {
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
               <span className="font-medium">
-                {merchant.average_rating > 0 ? merchant.average_rating.toFixed(1) : 'New'}
+                {merchant.average_rating > 0
+                  ? merchant.average_rating.toFixed(1)
+                  : "New"}
               </span>
               {merchant.total_ratings > 0 && (
                 <span className="text-muted-foreground">

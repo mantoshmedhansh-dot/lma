@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { formatDate, formatCurrency } from '@/lib/utils';
+} from "@/components/ui/table";
+import { formatDate, formatCurrency } from "@/lib/utils";
 import {
   Search,
   Store,
@@ -25,7 +25,7 @@ import {
   RefreshCw,
   Star,
   Eye,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Merchant {
   id: string;
@@ -50,9 +50,11 @@ interface Merchant {
 export default function MerchantsPage() {
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedMerchant, setSelectedMerchant] = useState<Merchant | null>(
+    null,
+  );
   const supabase = createClient();
 
   useEffect(() => {
@@ -63,14 +65,14 @@ export default function MerchantsPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("merchants")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setMerchants(data || []);
     } catch (error) {
-      console.error('Error fetching merchants:', error);
+      console.error("Error fetching merchants:", error);
     } finally {
       setLoading(false);
     }
@@ -79,29 +81,29 @@ export default function MerchantsPage() {
   const updateMerchantStatus = async (merchantId: string, status: string) => {
     try {
       const { error } = await supabase
-        .from('merchants')
+        .from("merchants")
         .update({ status })
-        .eq('id', merchantId);
+        .eq("id", merchantId);
 
       if (error) throw error;
       fetchMerchants();
       setSelectedMerchant(null);
     } catch (error) {
-      console.error('Error updating merchant:', error);
+      console.error("Error updating merchant:", error);
     }
   };
 
   const toggleFeatured = async (merchantId: string, isFeatured: boolean) => {
     try {
       const { error } = await supabase
-        .from('merchants')
+        .from("merchants")
         .update({ is_featured: !isFeatured })
-        .eq('id', merchantId);
+        .eq("id", merchantId);
 
       if (error) throw error;
       fetchMerchants();
     } catch (error) {
-      console.error('Error updating merchant:', error);
+      console.error("Error updating merchant:", error);
     }
   };
 
@@ -109,22 +111,29 @@ export default function MerchantsPage() {
     const matchesSearch =
       merchant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       merchant.contact_email?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || merchant.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || merchant.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const statusColors: Record<string, 'success' | 'warning' | 'destructive' | 'secondary'> = {
-    active: 'success',
-    pending: 'warning',
-    suspended: 'destructive',
-    closed: 'secondary',
+  const statusColors: Record<
+    string,
+    "success" | "warning" | "destructive" | "secondary"
+  > = {
+    active: "success",
+    pending: "warning",
+    suspended: "destructive",
+    closed: "secondary",
   };
 
-  const pendingCount = merchants.filter((m) => m.status === 'pending').length;
+  const pendingCount = merchants.filter((m) => m.status === "pending").length;
 
   return (
     <div>
-      <Header title="Merchants" description="Manage merchant accounts and approvals" />
+      <Header
+        title="Merchants"
+        description="Manage merchant accounts and approvals"
+      />
 
       <div className="p-6 space-y-6">
         {/* Stats */}
@@ -140,7 +149,7 @@ export default function MerchantsPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className={pendingCount > 0 ? 'border-warning' : ''}>
+          <Card className={pendingCount > 0 ? "border-warning" : ""}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -157,7 +166,7 @@ export default function MerchantsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Active</p>
                   <p className="text-2xl font-bold">
-                    {merchants.filter((m) => m.status === 'active').length}
+                    {merchants.filter((m) => m.status === "active").length}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-success" />
@@ -230,7 +239,10 @@ export default function MerchantsPage() {
                 </TableRow>
               ) : filteredMerchants.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No merchants found
                   </TableCell>
                 </TableRow>
@@ -255,16 +267,20 @@ export default function MerchantsPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="capitalize">{merchant.type}</TableCell>
+                    <TableCell className="capitalize">
+                      {merchant.type}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant={statusColors[merchant.status] || 'secondary'}>
+                      <Badge
+                        variant={statusColors[merchant.status] || "secondary"}
+                      >
                         {merchant.status}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                        {merchant.rating?.toFixed(1) || '0.0'}
+                        {merchant.rating?.toFixed(1) || "0.0"}
                         <span className="text-muted-foreground text-xs">
                           ({merchant.total_reviews || 0})
                         </span>
@@ -274,19 +290,23 @@ export default function MerchantsPage() {
                     <TableCell>{formatDate(merchant.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {merchant.status === 'pending' && (
+                        {merchant.status === "pending" && (
                           <>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateMerchantStatus(merchant.id, 'active')}
+                              onClick={() =>
+                                updateMerchantStatus(merchant.id, "active")
+                              }
                             >
                               <CheckCircle className="w-4 h-4 text-success" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateMerchantStatus(merchant.id, 'suspended')}
+                              onClick={() =>
+                                updateMerchantStatus(merchant.id, "suspended")
+                              }
                             >
                               <XCircle className="w-4 h-4 text-destructive" />
                             </Button>
@@ -330,63 +350,87 @@ export default function MerchantsPage() {
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Type</p>
-                  <p className="font-medium capitalize">{selectedMerchant.type}</p>
+                  <p className="font-medium capitalize">
+                    {selectedMerchant.type}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Commission</p>
-                  <p className="font-medium">{selectedMerchant.commission_rate}%</p>
+                  <p className="font-medium">
+                    {selectedMerchant.commission_rate}%
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Email</p>
-                  <p className="font-medium">{selectedMerchant.contact_email}</p>
+                  <p className="font-medium">
+                    {selectedMerchant.contact_email}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Phone</p>
-                  <p className="font-medium">{selectedMerchant.contact_phone}</p>
+                  <p className="font-medium">
+                    {selectedMerchant.contact_phone}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Rating</p>
                   <p className="font-medium">
-                    {selectedMerchant.rating?.toFixed(1)} ({selectedMerchant.total_reviews} reviews)
+                    {selectedMerchant.rating?.toFixed(1)} (
+                    {selectedMerchant.total_reviews} reviews)
                   </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Featured</p>
-                  <p className="font-medium">{selectedMerchant.is_featured ? 'Yes' : 'No'}</p>
+                  <p className="font-medium">
+                    {selectedMerchant.is_featured ? "Yes" : "No"}
+                  </p>
                 </div>
               </div>
 
               <div className="flex gap-2 pt-4">
-                {selectedMerchant.status === 'pending' && (
+                {selectedMerchant.status === "pending" && (
                   <Button
                     className="flex-1"
-                    onClick={() => updateMerchantStatus(selectedMerchant.id, 'active')}
+                    onClick={() =>
+                      updateMerchantStatus(selectedMerchant.id, "active")
+                    }
                   >
                     Approve
                   </Button>
                 )}
-                {selectedMerchant.status === 'active' && (
+                {selectedMerchant.status === "active" && (
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => updateMerchantStatus(selectedMerchant.id, 'suspended')}
+                    onClick={() =>
+                      updateMerchantStatus(selectedMerchant.id, "suspended")
+                    }
                   >
                     Suspend
                   </Button>
                 )}
-                {selectedMerchant.status === 'suspended' && (
+                {selectedMerchant.status === "suspended" && (
                   <Button
                     className="flex-1"
-                    onClick={() => updateMerchantStatus(selectedMerchant.id, 'active')}
+                    onClick={() =>
+                      updateMerchantStatus(selectedMerchant.id, "active")
+                    }
                   >
                     Reactivate
                   </Button>
                 )}
                 <Button
                   variant="outline"
-                  onClick={() => toggleFeatured(selectedMerchant.id, selectedMerchant.is_featured)}
+                  onClick={() =>
+                    toggleFeatured(
+                      selectedMerchant.id,
+                      selectedMerchant.is_featured,
+                    )
+                  }
                 >
-                  {selectedMerchant.is_featured ? 'Remove Featured' : 'Make Featured'}
+                  {selectedMerchant.is_featured
+                    ? "Remove Featured"
+                    : "Make Featured"}
                 </Button>
               </div>
             </div>

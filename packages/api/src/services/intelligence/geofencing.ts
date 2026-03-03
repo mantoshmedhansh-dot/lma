@@ -9,8 +9,8 @@
  * - Auto-assignment based on driver location
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
 
 // Coordinate types
 interface Coordinate {
@@ -23,7 +23,7 @@ interface Polygon {
 }
 
 // Zone types
-type ZoneType = 'delivery' | 'pickup' | 'restricted' | 'surge' | 'warehouse';
+type ZoneType = "delivery" | "pickup" | "restricted" | "surge" | "warehouse";
 
 interface Zone {
   id: string;
@@ -62,7 +62,7 @@ interface SurgeRule {
 }
 
 interface SurgeCondition {
-  type: 'time' | 'demand' | 'weather' | 'event' | 'driver_shortage';
+  type: "time" | "demand" | "weather" | "event" | "driver_shortage";
   params: Record<string, unknown>;
 }
 
@@ -70,7 +70,7 @@ interface GeofenceEvent {
   id: string;
   driverId: string;
   zoneId: string;
-  eventType: 'enter' | 'exit' | 'dwell';
+  eventType: "enter" | "exit" | "dwell";
   timestamp: Date;
   location: Coordinate;
 }
@@ -138,9 +138,15 @@ export function calculatePolygonArea(polygon: Polygon): number {
     const j = (i + 1) % n;
     // Convert to approximate km (at equator)
     const lat1 = coords[i].latitude * 111;
-    const lng1 = coords[i].longitude * 111 * Math.cos((coords[i].latitude * Math.PI) / 180);
+    const lng1 =
+      coords[i].longitude *
+      111 *
+      Math.cos((coords[i].latitude * Math.PI) / 180);
     const lat2 = coords[j].latitude * 111;
-    const lng2 = coords[j].longitude * 111 * Math.cos((coords[j].latitude * Math.PI) / 180);
+    const lng2 =
+      coords[j].longitude *
+      111 *
+      Math.cos((coords[j].latitude * Math.PI) / 180);
 
     area += lat1 * lng2 - lat2 * lng1;
   }
@@ -152,10 +158,10 @@ export function calculatePolygonArea(polygon: Polygon): number {
  * Create a new zone
  */
 export async function createZone(
-  zone: Omit<Zone, 'id' | 'createdAt' | 'updatedAt'>
+  zone: Omit<Zone, "id" | "createdAt" | "updatedAt">,
 ): Promise<Zone> {
   const { data, error } = await supabaseAdmin
-    .from('geofence_zones')
+    .from("geofence_zones")
     .insert({
       name: zone.name,
       type: zone.type,
@@ -168,11 +174,11 @@ export async function createZone(
     .single();
 
   if (error) {
-    logger.error('Failed to create zone', { error, zone });
-    throw new Error('Failed to create zone');
+    logger.error("Failed to create zone", { error, zone });
+    throw new Error("Failed to create zone");
   }
 
-  logger.info('Zone created', { zoneId: data.id, name: zone.name });
+  logger.info("Zone created", { zoneId: data.id, name: zone.name });
 
   return mapZoneFromDb(data);
 }
@@ -182,27 +188,29 @@ export async function createZone(
  */
 export async function updateZone(
   zoneId: string,
-  updates: Partial<Omit<Zone, 'id' | 'createdAt' | 'updatedAt'>>
+  updates: Partial<Omit<Zone, "id" | "createdAt" | "updatedAt">>,
 ): Promise<Zone> {
   const updateData: Record<string, unknown> = {};
 
   if (updates.name !== undefined) updateData.name = updates.name;
   if (updates.type !== undefined) updateData.type = updates.type;
   if (updates.polygon !== undefined) updateData.polygon = updates.polygon;
-  if (updates.properties !== undefined) updateData.properties = updates.properties;
+  if (updates.properties !== undefined)
+    updateData.properties = updates.properties;
   if (updates.isActive !== undefined) updateData.is_active = updates.isActive;
-  if (updates.merchantId !== undefined) updateData.merchant_id = updates.merchantId;
+  if (updates.merchantId !== undefined)
+    updateData.merchant_id = updates.merchantId;
 
   const { data, error } = await supabaseAdmin
-    .from('geofence_zones')
+    .from("geofence_zones")
     .update(updateData)
-    .eq('id', zoneId)
+    .eq("id", zoneId)
     .select()
     .single();
 
   if (error) {
-    logger.error('Failed to update zone', { error, zoneId });
-    throw new Error('Failed to update zone');
+    logger.error("Failed to update zone", { error, zoneId });
+    throw new Error("Failed to update zone");
   }
 
   return mapZoneFromDb(data);
@@ -213,44 +221,46 @@ export async function updateZone(
  */
 export async function deleteZone(zoneId: string): Promise<void> {
   const { error } = await supabaseAdmin
-    .from('geofence_zones')
+    .from("geofence_zones")
     .delete()
-    .eq('id', zoneId);
+    .eq("id", zoneId);
 
   if (error) {
-    logger.error('Failed to delete zone', { error, zoneId });
-    throw new Error('Failed to delete zone');
+    logger.error("Failed to delete zone", { error, zoneId });
+    throw new Error("Failed to delete zone");
   }
 
-  logger.info('Zone deleted', { zoneId });
+  logger.info("Zone deleted", { zoneId });
 }
 
 /**
  * Get all zones
  */
-export async function getZones(options: {
-  type?: ZoneType;
-  merchantId?: string;
-  activeOnly?: boolean;
-} = {}): Promise<Zone[]> {
-  let query = supabaseAdmin.from('geofence_zones').select('*');
+export async function getZones(
+  options: {
+    type?: ZoneType;
+    merchantId?: string;
+    activeOnly?: boolean;
+  } = {},
+): Promise<Zone[]> {
+  let query = supabaseAdmin.from("geofence_zones").select("*");
 
   if (options.type) {
-    query = query.eq('type', options.type);
+    query = query.eq("type", options.type);
   }
 
   if (options.merchantId) {
-    query = query.eq('merchant_id', options.merchantId);
+    query = query.eq("merchant_id", options.merchantId);
   }
 
   if (options.activeOnly !== false) {
-    query = query.eq('is_active', true);
+    query = query.eq("is_active", true);
   }
 
   const { data, error } = await query;
 
   if (error) {
-    logger.error('Failed to get zones', { error, options });
+    logger.error("Failed to get zones", { error, options });
     return [];
   }
 
@@ -266,54 +276,66 @@ export async function checkServiceability(
     merchantId?: string;
     orderValue?: number;
     vehicleType?: string;
-  } = {}
+  } = {},
 ): Promise<ZoneCheckResult> {
   const zones = await getZones({
-    type: 'delivery',
+    type: "delivery",
     merchantId: options.merchantId,
     activeOnly: true,
   });
 
   // Find matching zones
   const matchingZones = zones.filter((zone) =>
-    isPointInPolygon(location, zone.polygon)
+    isPointInPolygon(location, zone.polygon),
   );
 
   if (matchingZones.length === 0) {
     return {
       isInZone: false,
-      restrictions: ['Location is outside delivery zones'],
+      restrictions: ["Location is outside delivery zones"],
     };
   }
 
   // Get the zone with highest priority
   const zone = matchingZones.sort(
-    (a, b) => (b.properties.priority || 0) - (a.properties.priority || 0)
+    (a, b) => (b.properties.priority || 0) - (a.properties.priority || 0),
   )[0];
 
   const restrictions: string[] = [];
 
   // Check order value limits
   if (options.orderValue !== undefined) {
-    if (zone.properties.minOrderValue && options.orderValue < zone.properties.minOrderValue) {
-      restrictions.push(`Minimum order value is ${zone.properties.minOrderValue}`);
+    if (
+      zone.properties.minOrderValue &&
+      options.orderValue < zone.properties.minOrderValue
+    ) {
+      restrictions.push(
+        `Minimum order value is ${zone.properties.minOrderValue}`,
+      );
     }
-    if (zone.properties.maxOrderValue && options.orderValue > zone.properties.maxOrderValue) {
-      restrictions.push(`Maximum order value is ${zone.properties.maxOrderValue}`);
+    if (
+      zone.properties.maxOrderValue &&
+      options.orderValue > zone.properties.maxOrderValue
+    ) {
+      restrictions.push(
+        `Maximum order value is ${zone.properties.maxOrderValue}`,
+      );
     }
   }
 
   // Check vehicle type
   if (options.vehicleType && zone.properties.vehicleTypes) {
     if (!zone.properties.vehicleTypes.includes(options.vehicleType)) {
-      restrictions.push(`Vehicle type ${options.vehicleType} not allowed in this zone`);
+      restrictions.push(
+        `Vehicle type ${options.vehicleType} not allowed in this zone`,
+      );
     }
   }
 
   // Check operating hours
   if (zone.properties.operatingHours) {
     const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
     const { start, end } = zone.properties.operatingHours;
 
     if (currentTime < start || currentTime > end) {
@@ -342,18 +364,20 @@ export async function checkServiceability(
  * Check for restricted zones
  */
 export async function checkRestrictedZones(
-  location: Coordinate
+  location: Coordinate,
 ): Promise<Zone[]> {
-  const zones = await getZones({ type: 'restricted', activeOnly: true });
+  const zones = await getZones({ type: "restricted", activeOnly: true });
   return zones.filter((zone) => isPointInPolygon(location, zone.polygon));
 }
 
 /**
  * Create surge pricing rule
  */
-export async function createSurgeRule(rule: Omit<SurgeRule, 'id'>): Promise<SurgeRule> {
+export async function createSurgeRule(
+  rule: Omit<SurgeRule, "id">,
+): Promise<SurgeRule> {
   const { data, error } = await supabaseAdmin
-    .from('surge_rules')
+    .from("surge_rules")
     .insert({
       zone_id: rule.zoneId,
       condition: rule.condition,
@@ -365,8 +389,8 @@ export async function createSurgeRule(rule: Omit<SurgeRule, 'id'>): Promise<Surg
     .single();
 
   if (error) {
-    logger.error('Failed to create surge rule', { error, rule });
-    throw new Error('Failed to create surge rule');
+    logger.error("Failed to create surge rule", { error, rule });
+    throw new Error("Failed to create surge rule");
   }
 
   return {
@@ -384,15 +408,15 @@ export async function createSurgeRule(rule: Omit<SurgeRule, 'id'>): Promise<Surg
  */
 export async function calculateSurgeMultiplier(
   zoneId: string,
-  location: Coordinate
+  location: Coordinate,
 ): Promise<number> {
   // Get active surge rules for this zone
   const { data: rules } = await supabaseAdmin
-    .from('surge_rules')
-    .select('*')
-    .eq('zone_id', zoneId)
-    .eq('is_active', true)
-    .order('priority', { ascending: false });
+    .from("surge_rules")
+    .select("*")
+    .eq("zone_id", zoneId)
+    .eq("is_active", true)
+    .order("priority", { ascending: false });
 
   if (!rules || rules.length === 0) {
     return 1.0;
@@ -406,19 +430,19 @@ export async function calculateSurgeMultiplier(
     let applies = false;
 
     switch (condition.type) {
-      case 'time':
+      case "time":
         applies = checkTimeCondition(now, condition.params);
         break;
-      case 'demand':
+      case "demand":
         applies = await checkDemandCondition(zoneId, condition.params);
         break;
-      case 'weather':
+      case "weather":
         applies = await checkWeatherCondition(location, condition.params);
         break;
-      case 'driver_shortage':
+      case "driver_shortage":
         applies = await checkDriverShortage(zoneId, condition.params);
         break;
-      case 'event':
+      case "event":
         applies = checkEventCondition(now, condition.params);
         break;
     }
@@ -434,7 +458,10 @@ export async function calculateSurgeMultiplier(
 /**
  * Check time-based surge condition
  */
-function checkTimeCondition(now: Date, params: Record<string, unknown>): boolean {
+function checkTimeCondition(
+  now: Date,
+  params: Record<string, unknown>,
+): boolean {
   const hour = now.getHours();
   const dayOfWeek = now.getDay();
 
@@ -465,7 +492,7 @@ function checkTimeCondition(now: Date, params: Record<string, unknown>): boolean
  */
 async function checkDemandCondition(
   zoneId: string,
-  params: Record<string, unknown>
+  params: Record<string, unknown>,
 ): Promise<boolean> {
   const threshold = (params.orderThreshold as number) || 10;
   const timeWindowMinutes = (params.timeWindowMinutes as number) || 30;
@@ -475,11 +502,11 @@ async function checkDemandCondition(
 
   // Count recent orders in the zone
   const { count } = await supabaseAdmin
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .eq('zone_id', zoneId)
-    .gte('created_at', windowStart.toISOString())
-    .in('status', ['pending', 'confirmed', 'preparing']);
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("zone_id", zoneId)
+    .gte("created_at", windowStart.toISOString())
+    .in("status", ["pending", "confirmed", "preparing"]);
 
   return (count || 0) >= threshold;
 }
@@ -489,20 +516,24 @@ async function checkDemandCondition(
  */
 async function checkWeatherCondition(
   _location: Coordinate,
-  params: Record<string, unknown>
+  params: Record<string, unknown>,
 ): Promise<boolean> {
   // In production, this would call a weather API
   // For now, we'll use a simple check based on stored weather data
   const { data: weather } = await supabaseAdmin
-    .from('weather_data')
-    .select('condition')
-    .order('recorded_at', { ascending: false })
+    .from("weather_data")
+    .select("condition")
+    .order("recorded_at", { ascending: false })
     .limit(1)
     .single();
 
   if (!weather) return false;
 
-  const badWeatherConditions = (params.conditions as string[]) || ['rain', 'storm', 'snow'];
+  const badWeatherConditions = (params.conditions as string[]) || [
+    "rain",
+    "storm",
+    "snow",
+  ];
   return badWeatherConditions.includes(weather.condition);
 }
 
@@ -511,62 +542,73 @@ async function checkWeatherCondition(
  */
 async function checkDriverShortage(
   zoneId: string,
-  params: Record<string, unknown>
+  params: Record<string, unknown>,
 ): Promise<boolean> {
   const minDrivers = (params.minDrivers as number) || 3;
   const maxOrdersPerDriver = (params.maxOrdersPerDriver as number) || 3;
 
   // Get zone to find its polygon
   const { data: zone } = await supabaseAdmin
-    .from('geofence_zones')
-    .select('polygon')
-    .eq('id', zoneId)
+    .from("geofence_zones")
+    .select("polygon")
+    .eq("id", zoneId)
     .single();
 
   if (!zone) return false;
 
   // Count active drivers in zone
   const { data: drivers } = await supabaseAdmin
-    .from('drivers')
-    .select('id, current_latitude, current_longitude')
-    .eq('status', 'online')
-    .eq('is_active', true);
+    .from("drivers")
+    .select("id, current_latitude, current_longitude")
+    .eq("status", "online")
+    .eq("is_active", true);
 
   if (!drivers) return true; // Assume shortage if can't get data
 
   const polygon = zone.polygon as Polygon;
-  const driversInZone = drivers.filter((driver) =>
-    driver.current_latitude &&
-    driver.current_longitude &&
-    isPointInPolygon(
-      { latitude: driver.current_latitude, longitude: driver.current_longitude },
-      polygon
-    )
+  const driversInZone = drivers.filter(
+    (driver) =>
+      driver.current_latitude &&
+      driver.current_longitude &&
+      isPointInPolygon(
+        {
+          latitude: driver.current_latitude,
+          longitude: driver.current_longitude,
+        },
+        polygon,
+      ),
   );
 
   // Count pending orders in zone
   const { count: pendingOrders } = await supabaseAdmin
-    .from('orders')
-    .select('*', { count: 'exact', head: true })
-    .eq('zone_id', zoneId)
-    .in('status', ['pending', 'confirmed', 'ready_for_pickup']);
+    .from("orders")
+    .select("*", { count: "exact", head: true })
+    .eq("zone_id", zoneId)
+    .in("status", ["pending", "confirmed", "ready_for_pickup"]);
 
   const orderCount = pendingOrders || 0;
   const driverCount = driversInZone.length;
 
   // Shortage if too few drivers or too many orders per driver
-  return driverCount < minDrivers || orderCount / Math.max(driverCount, 1) > maxOrdersPerDriver;
+  return (
+    driverCount < minDrivers ||
+    orderCount / Math.max(driverCount, 1) > maxOrdersPerDriver
+  );
 }
 
 /**
  * Check event-based surge condition
  */
-function checkEventCondition(now: Date, params: Record<string, unknown>): boolean {
-  const events = (params.events as Array<{
-    name: string;
-    startDate: string;
-    endDate: string;
-  }>) || [];
+function checkEventCondition(
+  now: Date,
+  params: Record<string, unknown>,
+): boolean {
+  const events =
+    (params.events as Array<{
+      name: string;
+      startDate: string;
+      endDate: string;
+    }>) || [];
 
   for (const event of events) {
     const start = new Date(event.startDate);
@@ -583,10 +625,10 @@ function checkEventCondition(now: Date, params: Record<string, unknown>): boolea
  * Record a geofence event (driver entering/exiting zone)
  */
 export async function recordGeofenceEvent(
-  event: Omit<GeofenceEvent, 'id'>
+  event: Omit<GeofenceEvent, "id">,
 ): Promise<GeofenceEvent> {
   const { data, error } = await supabaseAdmin
-    .from('geofence_events')
+    .from("geofence_events")
     .insert({
       driver_id: event.driverId,
       zone_id: event.zoneId,
@@ -598,11 +640,11 @@ export async function recordGeofenceEvent(
     .single();
 
   if (error) {
-    logger.error('Failed to record geofence event', { error, event });
-    throw new Error('Failed to record geofence event');
+    logger.error("Failed to record geofence event", { error, event });
+    throw new Error("Failed to record geofence event");
   }
 
-  logger.info('Geofence event recorded', {
+  logger.info("Geofence event recorded", {
     driverId: event.driverId,
     zoneId: event.zoneId,
     eventType: event.eventType,
@@ -623,16 +665,16 @@ export async function recordGeofenceEvent(
  */
 export async function checkDriverZoneTransitions(
   driverId: string,
-  currentLocation: Coordinate
+  currentLocation: Coordinate,
 ): Promise<GeofenceEvent[]> {
   const events: GeofenceEvent[] = [];
 
   // Get driver's previous location from last event
   const { data: lastEvent } = await supabaseAdmin
-    .from('geofence_events')
-    .select('zone_id, location')
-    .eq('driver_id', driverId)
-    .order('timestamp', { ascending: false })
+    .from("geofence_events")
+    .select("zone_id, location")
+    .eq("driver_id", driverId)
+    .order("timestamp", { ascending: false })
     .limit(1)
     .single();
 
@@ -665,7 +707,7 @@ export async function checkDriverZoneTransitions(
       const event = await recordGeofenceEvent({
         driverId,
         zoneId,
-        eventType: 'exit',
+        eventType: "exit",
         timestamp: now,
         location: currentLocation,
       });
@@ -679,7 +721,7 @@ export async function checkDriverZoneTransitions(
       const event = await recordGeofenceEvent({
         driverId,
         zoneId,
-        eventType: 'enter',
+        eventType: "enter",
         timestamp: now,
         location: currentLocation,
       });
@@ -693,16 +735,18 @@ export async function checkDriverZoneTransitions(
 /**
  * Get drivers in a specific zone
  */
-export async function getDriversInZone(zoneId: string): Promise<Array<{
-  driverId: string;
-  location: Coordinate;
-  status: string;
-}>> {
+export async function getDriversInZone(zoneId: string): Promise<
+  Array<{
+    driverId: string;
+    location: Coordinate;
+    status: string;
+  }>
+> {
   // Get zone polygon
   const { data: zone } = await supabaseAdmin
-    .from('geofence_zones')
-    .select('polygon')
-    .eq('id', zoneId)
+    .from("geofence_zones")
+    .select("polygon")
+    .eq("id", zoneId)
     .single();
 
   if (!zone) return [];
@@ -711,20 +755,23 @@ export async function getDriversInZone(zoneId: string): Promise<Array<{
 
   // Get all active drivers
   const { data: drivers } = await supabaseAdmin
-    .from('drivers')
-    .select('id, current_latitude, current_longitude, status')
-    .eq('is_active', true)
-    .not('current_latitude', 'is', null)
-    .not('current_longitude', 'is', null);
+    .from("drivers")
+    .select("id, current_latitude, current_longitude, status")
+    .eq("is_active", true)
+    .not("current_latitude", "is", null)
+    .not("current_longitude", "is", null);
 
   if (!drivers) return [];
 
   return drivers
     .filter((driver) =>
       isPointInPolygon(
-        { latitude: driver.current_latitude, longitude: driver.current_longitude },
-        polygon
-      )
+        {
+          latitude: driver.current_latitude,
+          longitude: driver.current_longitude,
+        },
+        polygon,
+      ),
     )
     .map((driver) => ({
       driverId: driver.id,
@@ -741,7 +788,7 @@ export async function getDriversInZone(zoneId: string): Promise<Array<{
  */
 export async function findNearestZone(
   location: Coordinate,
-  type?: ZoneType
+  type?: ZoneType,
 ): Promise<{ zone: Zone; distance: number } | null> {
   const zones = await getZones({ type, activeOnly: true });
 
@@ -768,7 +815,10 @@ export async function findNearestZone(
 /**
  * Calculate Haversine distance between two points (in km)
  */
-function calculateHaversineDistance(point1: Coordinate, point2: Coordinate): number {
+function calculateHaversineDistance(
+  point1: Coordinate,
+  point2: Coordinate,
+): number {
   const R = 6371; // Earth's radius in km
   const dLat = toRad(point2.latitude - point1.latitude);
   const dLng = toRad(point2.longitude - point1.longitude);
@@ -811,27 +861,30 @@ function mapZoneFromDb(data: Record<string, unknown>): Zone {
  */
 export async function assignZoneToOrder(
   orderId: string,
-  deliveryLocation: Coordinate
+  deliveryLocation: Coordinate,
 ): Promise<Zone | null> {
-  const zones = await getZones({ type: 'delivery', activeOnly: true });
+  const zones = await getZones({ type: "delivery", activeOnly: true });
 
   // Find matching zone
   const matchingZone = zones.find((zone) =>
-    isPointInPolygon(deliveryLocation, zone.polygon)
+    isPointInPolygon(deliveryLocation, zone.polygon),
   );
 
   if (!matchingZone) {
-    logger.warn('No zone found for order delivery location', { orderId, deliveryLocation });
+    logger.warn("No zone found for order delivery location", {
+      orderId,
+      deliveryLocation,
+    });
     return null;
   }
 
   // Update order with zone
   await supabaseAdmin
-    .from('orders')
+    .from("orders")
     .update({ zone_id: matchingZone.id })
-    .eq('id', orderId);
+    .eq("id", orderId);
 
-  logger.info('Zone assigned to order', { orderId, zoneId: matchingZone.id });
+  logger.info("Zone assigned to order", { orderId, zoneId: matchingZone.id });
 
   return matchingZone;
 }
@@ -839,7 +892,10 @@ export async function assignZoneToOrder(
 /**
  * Get zone statistics
  */
-export async function getZoneStats(zoneId: string, daysBack: number = 7): Promise<{
+export async function getZoneStats(
+  zoneId: string,
+  daysBack: number = 7,
+): Promise<{
   totalOrders: number;
   avgDeliveryTime: number;
   activeDrivers: number;
@@ -851,11 +907,11 @@ export async function getZoneStats(zoneId: string, daysBack: number = 7): Promis
 
   // Get orders in zone
   const { data: orders } = await supabaseAdmin
-    .from('orders')
-    .select('created_at, delivered_at')
-    .eq('zone_id', zoneId)
-    .eq('status', 'delivered')
-    .gte('created_at', startDate.toISOString());
+    .from("orders")
+    .select("created_at, delivered_at")
+    .eq("zone_id", zoneId)
+    .eq("status", "delivered")
+    .gte("created_at", startDate.toISOString());
 
   const totalOrders = orders?.length || 0;
 
@@ -865,7 +921,10 @@ export async function getZoneStats(zoneId: string, daysBack: number = 7): Promis
 
   orders?.forEach((order) => {
     if (order.delivered_at && order.created_at) {
-      const time = (new Date(order.delivered_at).getTime() - new Date(order.created_at).getTime()) / 60000;
+      const time =
+        (new Date(order.delivered_at).getTime() -
+          new Date(order.created_at).getTime()) /
+        60000;
       totalDeliveryTime += time;
     }
 
@@ -877,7 +936,9 @@ export async function getZoneStats(zoneId: string, daysBack: number = 7): Promis
 
   // Get active drivers in zone
   const driversInZone = await getDriversInZone(zoneId);
-  const activeDrivers = driversInZone.filter((d) => d.status === 'online').length;
+  const activeDrivers = driversInZone.filter(
+    (d) => d.status === "online",
+  ).length;
 
   // Find peak hours (top 3)
   const sortedHours = Object.entries(hourCounts)

@@ -2,7 +2,7 @@
 // LMA Utility Functions
 // =====================================================
 
-import { DELIVERY, PATTERNS } from '../constants';
+import { DELIVERY, PATTERNS } from "../constants";
 
 // =====================================================
 // Formatting
@@ -11,9 +11,9 @@ import { DELIVERY, PATTERNS } from '../constants';
 /**
  * Format currency amount
  */
-export function formatCurrency(amount: number, currency = 'INR'): string {
-  return new Intl.NumberFormat('en-IN', {
-    style: 'currency',
+export function formatCurrency(amount: number, currency = "INR"): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
     currency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
@@ -58,12 +58,15 @@ export function formatPhoneNumber(phone: string): string {
 /**
  * Format date for display
  */
-export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOptions): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
+export function formatDate(
+  date: string | Date,
+  options?: Intl.DateTimeFormatOptions,
+): string {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
     ...options,
   });
 }
@@ -72,10 +75,10 @@ export function formatDate(date: string | Date, options?: Intl.DateTimeFormatOpt
  * Format time for display
  */
 export function formatTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
-  return d.toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -90,7 +93,7 @@ export function formatDateTime(date: string | Date): string {
  * Get relative time (e.g., "2 hours ago")
  */
 export function getRelativeTime(date: string | Date): string {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffSeconds = Math.floor(diffMs / 1000);
@@ -99,7 +102,7 @@ export function getRelativeTime(date: string | Date): string {
   const diffDays = Math.floor(diffHours / 24);
 
   if (diffSeconds < 60) {
-    return 'Just now';
+    return "Just now";
   }
   if (diffMinutes < 60) {
     return `${diffMinutes} min ago`;
@@ -108,7 +111,7 @@ export function getRelativeTime(date: string | Date): string {
     return `${diffHours} hr ago`;
   }
   if (diffDays < 7) {
-    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
   }
   return formatDate(d);
 }
@@ -163,7 +166,7 @@ export function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371; // Earth's radius in km
   const dLat = toRadians(lat2 - lat1);
@@ -188,7 +191,7 @@ function toRadians(degrees: number): number {
 export function calculateDeliveryFee(
   distanceKm: number,
   baseRate = DELIVERY.BASE_DELIVERY_FEE,
-  perKmRate = DELIVERY.PER_KM_RATE
+  perKmRate = DELIVERY.PER_KM_RATE,
 ): number {
   if (distanceKm <= 2) {
     return baseRate;
@@ -202,7 +205,7 @@ export function calculateDeliveryFee(
 export function calculateEstimatedDeliveryTime(
   distanceKm: number,
   prepTimeMinutes: number,
-  avgSpeedKmh = 25
+  avgSpeedKmh = 25,
 ): number {
   const travelTime = Math.ceil((distanceKm / avgSpeedKmh) * 60);
   const bufferTime = 5; // Buffer for pickup/drop
@@ -216,7 +219,7 @@ export function calculateOrderTotals(
   subtotal: number,
   deliveryFee: number,
   discountAmount = 0,
-  tipAmount = 0
+  tipAmount = 0,
 ): {
   subtotal: number;
   deliveryFee: number;
@@ -226,12 +229,19 @@ export function calculateOrderTotals(
   tipAmount: number;
   total: number;
 } {
-  const serviceFee = Math.round(subtotal * (DELIVERY.SERVICE_FEE_PERCENTAGE / 100));
+  const serviceFee = Math.round(
+    subtotal * (DELIVERY.SERVICE_FEE_PERCENTAGE / 100),
+  );
   const taxableAmount = subtotal + serviceFee;
   const taxAmount = Math.round(taxableAmount * (DELIVERY.TAX_PERCENTAGE / 100));
 
   const total =
-    subtotal + deliveryFee + serviceFee + taxAmount - discountAmount + tipAmount;
+    subtotal +
+    deliveryFee +
+    serviceFee +
+    taxAmount -
+    discountAmount +
+    tipAmount;
 
   return {
     subtotal,
@@ -255,9 +265,9 @@ export function generateSlug(text: string): string {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/[\s_-]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/[^\w\s-]/g, "")
+    .replace(/[\s_-]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 /**
@@ -265,7 +275,7 @@ export function generateSlug(text: string): string {
  */
 export function truncate(text: string, maxLength: number): string {
   if (text.length <= maxLength) return text;
-  return text.slice(0, maxLength - 3) + '...';
+  return text.slice(0, maxLength - 3) + "...";
 }
 
 /**
@@ -280,7 +290,7 @@ export function capitalize(text: string): string {
  */
 export function getInitials(firstName: string, lastName?: string): string {
   const first = firstName.charAt(0).toUpperCase();
-  const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+  const last = lastName ? lastName.charAt(0).toUpperCase() : "";
   return first + last;
 }
 
@@ -289,17 +299,19 @@ export function getInitials(firstName: string, lastName?: string): string {
  */
 export function maskPhoneNumber(phone: string): string {
   if (phone.length < 4) return phone;
-  return phone.slice(0, 2) + '*'.repeat(phone.length - 4) + phone.slice(-2);
+  return phone.slice(0, 2) + "*".repeat(phone.length - 4) + phone.slice(-2);
 }
 
 /**
  * Mask email for privacy
  */
 export function maskEmail(email: string): string {
-  const [local, domain] = email.split('@');
+  const [local, domain] = email.split("@");
   if (!domain) return email;
   const maskedLocal =
-    local.length > 2 ? local.charAt(0) + '*'.repeat(local.length - 2) + local.slice(-1) : local;
+    local.length > 2
+      ? local.charAt(0) + "*".repeat(local.length - 2) + local.slice(-1)
+      : local;
   return `${maskedLocal}@${domain}`;
 }
 
@@ -320,7 +332,7 @@ export function groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
       result[groupKey].push(item);
       return result;
     },
-    {} as Record<string, T[]>
+    {} as Record<string, T[]>,
   );
 }
 
@@ -346,13 +358,13 @@ export function unique<T>(array: T[], key?: keyof T): T[] {
 export function sortBy<T>(
   array: T[],
   key: keyof T,
-  order: 'asc' | 'desc' = 'asc'
+  order: "asc" | "desc" = "asc",
 ): T[] {
   return [...array].sort((a, b) => {
     const aVal = a[key];
     const bVal = b[key];
-    if (aVal < bVal) return order === 'asc' ? -1 : 1;
-    if (aVal > bVal) return order === 'asc' ? 1 : -1;
+    if (aVal < bVal) return order === "asc" ? -1 : 1;
+    if (aVal > bVal) return order === "asc" ? 1 : -1;
     return 0;
   });
 }
@@ -366,7 +378,7 @@ export function sortBy<T>(
  */
 export function compact<T extends Record<string, unknown>>(obj: T): Partial<T> {
   return Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== undefined && v !== null)
+    Object.entries(obj).filter(([, v]) => v !== undefined && v !== null),
   ) as Partial<T>;
 }
 
@@ -392,8 +404,9 @@ export function isEmpty(obj: Record<string, unknown>): boolean {
  * Generate a random ID
  */
 export function generateId(length = 8): string {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
   for (let i = 0; i < length; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -426,7 +439,7 @@ export function sleep(ms: number): Promise<void> {
 export async function retry<T>(
   fn: () => Promise<T>,
   maxRetries = 3,
-  baseDelay = 1000
+  baseDelay = 1000,
 ): Promise<T> {
   let lastError: Error | undefined;
   for (let i = 0; i < maxRetries; i++) {
@@ -447,7 +460,7 @@ export async function retry<T>(
  */
 export function debounce<T extends (...args: Parameters<T>) => void>(
   fn: T,
-  delay: number
+  delay: number,
 ): (...args: Parameters<T>) => void {
   let timeoutId: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {
@@ -461,7 +474,7 @@ export function debounce<T extends (...args: Parameters<T>) => void>(
  */
 export function throttle<T extends (...args: Parameters<T>) => void>(
   fn: T,
-  limit: number
+  limit: number,
 ): (...args: Parameters<T>) => void {
   let inThrottle = false;
   return (...args: Parameters<T>) => {

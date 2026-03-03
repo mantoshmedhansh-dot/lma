@@ -25,12 +25,12 @@ This runbook contains procedures for common operational tasks and incident respo
 
 ### Service Endpoints
 
-| Service | Production URL | Staging URL |
-|---------|----------------|-------------|
-| Customer Web | https://www.lma.com | https://staging.lma.com |
+| Service        | Production URL           | Staging URL                      |
+| -------------- | ------------------------ | -------------------------------- |
+| Customer Web   | https://www.lma.com      | https://staging.lma.com          |
 | Merchant Admin | https://merchant.lma.com | https://merchant-staging.lma.com |
-| Super Admin | https://admin.lma.com | https://admin-staging.lma.com |
-| API | https://api.lma.com | https://api-staging.lma.com |
+| Super Admin    | https://admin.lma.com    | https://admin-staging.lma.com    |
+| API            | https://api.lma.com      | https://api-staging.lma.com      |
 
 ### Health Check URLs
 
@@ -119,12 +119,12 @@ pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
 
 ### Severity Levels
 
-| Level | Description | Response Time | Examples |
-|-------|-------------|---------------|----------|
-| SEV1 | Complete outage | 15 minutes | API down, database unreachable |
-| SEV2 | Major degradation | 30 minutes | Slow response times, partial outage |
-| SEV3 | Minor issue | 2 hours | Non-critical feature broken |
-| SEV4 | Cosmetic/Minor | Next business day | UI bugs, documentation |
+| Level | Description       | Response Time     | Examples                            |
+| ----- | ----------------- | ----------------- | ----------------------------------- |
+| SEV1  | Complete outage   | 15 minutes        | API down, database unreachable      |
+| SEV2  | Major degradation | 30 minutes        | Slow response times, partial outage |
+| SEV3  | Minor issue       | 2 hours           | Non-critical feature broken         |
+| SEV4  | Cosmetic/Minor    | Next business day | UI bugs, documentation              |
 
 ### Incident Response Procedure
 
@@ -214,6 +214,7 @@ pg_dump $DATABASE_URL > backup_$(date +%Y%m%d).sql
 **Symptoms:** API health check returns 503, users see "Service Unavailable"
 
 **Diagnosis:**
+
 ```bash
 # Check health details
 curl https://api.lma.com/health | jq
@@ -223,6 +224,7 @@ curl https://api.lma.com/health | jq
 ```
 
 **Common Causes:**
+
 1. Database connection issues → Check Supabase
 2. Memory exhaustion → Restart service
 3. Deployment in progress → Wait for completion
@@ -232,12 +234,14 @@ curl https://api.lma.com/health | jq
 **Symptoms:** Slow responses, eventual crashes
 
 **Diagnosis:**
+
 ```bash
 # Check memory metrics
 curl https://api.lma.com/health/metrics | jq '.memory'
 ```
 
 **Resolution:**
+
 1. Restart service if critical
 2. Check for memory leaks in recent code
 3. Consider increasing instance size
@@ -247,11 +251,13 @@ curl https://api.lma.com/health/metrics | jq '.memory'
 **Symptoms:** API responses > 2 seconds
 
 **Diagnosis:**
+
 1. Check Supabase Dashboard → Database → Query Performance
 2. Look for queries without indexes
 3. Check for N+1 query patterns
 
 **Resolution:**
+
 1. Add missing indexes
 2. Optimize queries
 3. Add caching layer if needed
@@ -261,11 +267,13 @@ curl https://api.lma.com/health/metrics | jq '.memory'
 **Symptoms:** Users can't login, 401 errors
 
 **Diagnosis:**
+
 1. Check Supabase Auth logs
 2. Verify JWT secrets match between API and apps
 3. Check for expired service role key
 
 **Resolution:**
+
 1. Verify environment variables
 2. Rotate keys if compromised
 3. Clear browser cookies for affected users
@@ -276,11 +284,11 @@ curl https://api.lma.com/health/metrics | jq '.memory'
 
 ### On-Call Rotation
 
-| Role | Primary | Secondary |
-|------|---------|-----------|
-| Backend | @backend-oncall | @backend-lead |
-| Frontend | @frontend-oncall | @frontend-lead |
-| Infrastructure | @infra-oncall | @infra-lead |
+| Role           | Primary          | Secondary      |
+| -------------- | ---------------- | -------------- |
+| Backend        | @backend-oncall  | @backend-lead  |
+| Frontend       | @frontend-oncall | @frontend-lead |
+| Infrastructure | @infra-oncall    | @infra-lead    |
 
 ### Escalation Path
 
@@ -297,12 +305,12 @@ curl https://api.lma.com/health/metrics | jq '.memory'
 
 ### External Support
 
-| Service | Support URL |
-|---------|-------------|
-| Render | https://render.com/support |
-| Vercel | https://vercel.com/support |
+| Service  | Support URL                  |
+| -------- | ---------------------------- |
+| Render   | https://render.com/support   |
+| Vercel   | https://vercel.com/support   |
 | Supabase | https://supabase.com/support |
-| Stripe | https://support.stripe.com |
+| Stripe   | https://support.stripe.com   |
 
 ---
 

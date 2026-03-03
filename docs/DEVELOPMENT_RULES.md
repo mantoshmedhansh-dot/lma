@@ -3,6 +3,7 @@
 ## 1. Code Organization Principles
 
 ### 1.1 Monorepo Structure
+
 - Use **Turborepo** for monorepo management
 - Use **PNPM** as package manager for efficient dependency management
 - All shared code goes in `packages/shared`
@@ -10,19 +11,20 @@
 
 ### 1.2 Naming Conventions
 
-| Type | Convention | Example |
-|------|------------|---------|
-| Files (components) | PascalCase | `OrderCard.tsx` |
-| Files (utilities) | camelCase | `formatDate.ts` |
-| Files (constants) | SCREAMING_SNAKE | `API_ENDPOINTS.ts` |
-| Folders | kebab-case | `order-tracking/` |
-| React Components | PascalCase | `OrderTracker` |
-| Functions | camelCase | `calculateDeliveryFee` |
-| Constants | SCREAMING_SNAKE | `MAX_DELIVERY_RADIUS` |
-| Database Tables | snake_case | `delivery_orders` |
-| API Endpoints | kebab-case | `/api/v1/delivery-orders` |
+| Type               | Convention      | Example                   |
+| ------------------ | --------------- | ------------------------- |
+| Files (components) | PascalCase      | `OrderCard.tsx`           |
+| Files (utilities)  | camelCase       | `formatDate.ts`           |
+| Files (constants)  | SCREAMING_SNAKE | `API_ENDPOINTS.ts`        |
+| Folders            | kebab-case      | `order-tracking/`         |
+| React Components   | PascalCase      | `OrderTracker`            |
+| Functions          | camelCase       | `calculateDeliveryFee`    |
+| Constants          | SCREAMING_SNAKE | `MAX_DELIVERY_RADIUS`     |
+| Database Tables    | snake_case      | `delivery_orders`         |
+| API Endpoints      | kebab-case      | `/api/v1/delivery-orders` |
 
 ### 1.3 File Structure within Components
+
 ```
 ComponentName/
 ├── index.ts              # Export barrel
@@ -36,6 +38,7 @@ ComponentName/
 ## 2. Technology Standards
 
 ### 2.1 Frontend (Web) - Next.js
+
 - Use **App Router** (not Pages Router)
 - Server Components by default, Client Components only when needed
 - Use `'use client'` directive sparingly
@@ -44,12 +47,14 @@ ComponentName/
 - Use **shadcn/ui** for component library
 
 ### 2.2 Frontend (Mobile) - React Native
+
 - Use **Expo** for easier development and deployment
 - Use **Expo Router** for navigation
 - Follow React Native best practices for performance
 - Use **NativeWind** (Tailwind for RN) for consistent styling
 
 ### 2.3 Backend - Express.js
+
 - RESTful API design
 - Versioned endpoints (`/api/v1/...`)
 - Controller-Service-Repository pattern
@@ -59,6 +64,7 @@ ComponentName/
 - Rate limiting on all endpoints
 
 ### 2.4 Database - Supabase
+
 - Use Supabase client for real-time features
 - Row Level Security (RLS) for all tables
 - Database functions for complex operations
@@ -68,6 +74,7 @@ ComponentName/
 ## 3. API Design Standards
 
 ### 3.1 REST Conventions
+
 ```
 GET    /api/v1/orders          # List orders
 GET    /api/v1/orders/:id      # Get single order
@@ -77,10 +84,11 @@ DELETE /api/v1/orders/:id      # Delete order
 ```
 
 ### 3.2 Response Format
+
 ```json
 {
   "success": true,
-  "data": { },
+  "data": {},
   "meta": {
     "page": 1,
     "limit": 20,
@@ -90,6 +98,7 @@ DELETE /api/v1/orders/:id      # Delete order
 ```
 
 ### 3.3 Error Format
+
 ```json
 {
   "success": false,
@@ -102,23 +111,25 @@ DELETE /api/v1/orders/:id      # Delete order
 ```
 
 ### 3.4 HTTP Status Codes
-| Code | Usage |
-|------|-------|
-| 200 | Success |
-| 201 | Created |
-| 204 | No Content (successful delete) |
-| 400 | Bad Request (validation error) |
-| 401 | Unauthorized |
-| 403 | Forbidden |
-| 404 | Not Found |
-| 409 | Conflict |
-| 422 | Unprocessable Entity |
-| 429 | Rate Limited |
-| 500 | Internal Server Error |
+
+| Code | Usage                          |
+| ---- | ------------------------------ |
+| 200  | Success                        |
+| 201  | Created                        |
+| 204  | No Content (successful delete) |
+| 400  | Bad Request (validation error) |
+| 401  | Unauthorized                   |
+| 403  | Forbidden                      |
+| 404  | Not Found                      |
+| 409  | Conflict                       |
+| 422  | Unprocessable Entity           |
+| 429  | Rate Limited                   |
+| 500  | Internal Server Error          |
 
 ## 4. Authentication & Authorization
 
 ### 4.1 Authentication Flow
+
 1. User signs up/logs in via Supabase Auth
 2. Supabase returns JWT token
 3. Token stored securely (httpOnly cookie for web, SecureStore for mobile)
@@ -126,6 +137,7 @@ DELETE /api/v1/orders/:id      # Delete order
 5. Backend validates token with Supabase
 
 ### 4.2 User Roles
+
 - `customer` - End users placing orders
 - `driver` - Delivery personnel
 - `merchant` - Restaurant/store owners
@@ -133,6 +145,7 @@ DELETE /api/v1/orders/:id      # Delete order
 - `super_admin` - Full system access
 
 ### 4.3 Authorization
+
 - Role-based access control (RBAC)
 - Row Level Security in Supabase
 - API middleware for route protection
@@ -140,26 +153,35 @@ DELETE /api/v1/orders/:id      # Delete order
 ## 5. Real-time Features
 
 ### 5.1 Supabase Realtime Usage
+
 - Order status updates
 - Driver location tracking
 - Chat between customer and driver
 - Merchant order notifications
 
 ### 5.2 Implementation Pattern
+
 ```typescript
 // Subscribe to order updates
 const channel = supabase
-  .channel('order-updates')
-  .on('postgres_changes',
-    { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
-    (payload) => handleOrderUpdate(payload)
+  .channel("order-updates")
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "public",
+      table: "orders",
+      filter: `id=eq.${orderId}`,
+    },
+    (payload) => handleOrderUpdate(payload),
   )
-  .subscribe()
+  .subscribe();
 ```
 
 ## 6. Environment Management
 
 ### 6.1 Environment Files
+
 ```
 .env.local          # Local development (not committed)
 .env.development    # Development defaults
@@ -168,6 +190,7 @@ const channel = supabase
 ```
 
 ### 6.2 Required Environment Variables
+
 ```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=
@@ -196,6 +219,7 @@ FIREBASE_CLIENT_EMAIL=
 ## 7. Git Workflow
 
 ### 7.1 Branch Naming
+
 ```
 main                    # Production-ready code
 develop                 # Integration branch
@@ -206,7 +230,9 @@ release/v1.0.0          # Release branches
 ```
 
 ### 7.2 Commit Messages
+
 Follow Conventional Commits:
+
 ```
 feat: add order tracking page
 fix: resolve payment processing error
@@ -218,6 +244,7 @@ chore: update dependencies
 ```
 
 ### 7.3 Pull Request Process
+
 1. Create feature branch from `develop`
 2. Make changes with proper commits
 3. Push and create PR to `develop`
@@ -228,20 +255,23 @@ chore: update dependencies
 ## 8. Testing Strategy
 
 ### 8.1 Testing Pyramid
+
 - **Unit Tests**: 70% - Individual functions and components
 - **Integration Tests**: 20% - API endpoints, database operations
 - **E2E Tests**: 10% - Critical user flows
 
 ### 8.2 Testing Tools
-| Type | Tool |
-|------|------|
-| Unit (JS) | Vitest |
+
+| Type             | Tool                  |
+| ---------------- | --------------------- |
+| Unit (JS)        | Vitest                |
 | React Components | React Testing Library |
-| E2E | Playwright |
-| API | Supertest |
-| Mobile | Detox |
+| E2E              | Playwright            |
+| API              | Supertest             |
+| Mobile           | Detox                 |
 
 ### 8.3 Test File Location
+
 - Co-located with source files
 - `ComponentName.test.tsx`
 - `service.test.ts`
@@ -249,20 +279,23 @@ chore: update dependencies
 ## 9. Performance Standards
 
 ### 9.1 Web Vitals Targets
-| Metric | Target |
-|--------|--------|
-| LCP | < 2.5s |
-| FID | < 100ms |
-| CLS | < 0.1 |
-| TTFB | < 600ms |
+
+| Metric | Target  |
+| ------ | ------- |
+| LCP    | < 2.5s  |
+| FID    | < 100ms |
+| CLS    | < 0.1   |
+| TTFB   | < 600ms |
 
 ### 9.2 API Performance
+
 - Response time < 200ms for simple queries
 - Response time < 500ms for complex queries
 - Implement caching where appropriate
 - Use database connection pooling
 
 ### 9.3 Mobile Performance
+
 - App launch < 2s
 - Screen transitions < 300ms
 - Smooth 60fps animations
@@ -270,6 +303,7 @@ chore: update dependencies
 ## 10. Security Standards
 
 ### 10.1 Must Implement
+
 - Input validation on all endpoints
 - SQL injection prevention (parameterized queries)
 - XSS prevention (sanitize outputs)
@@ -279,6 +313,7 @@ chore: update dependencies
 - Secure headers (HSTS, CSP, etc.)
 
 ### 10.2 Data Protection
+
 - Encrypt sensitive data at rest
 - Never log sensitive information
 - PCI compliance for payments
@@ -287,14 +322,16 @@ chore: update dependencies
 ## 11. Deployment Pipeline
 
 ### 11.1 Environments
-| Environment | Purpose | URL Pattern |
-|-------------|---------|-------------|
-| Local | Development | localhost:3000 |
-| Preview | PR previews | pr-123.lma.vercel.app |
-| Staging | Pre-production | staging.lma.app |
-| Production | Live | lma.app |
+
+| Environment | Purpose        | URL Pattern           |
+| ----------- | -------------- | --------------------- |
+| Local       | Development    | localhost:3000        |
+| Preview     | PR previews    | pr-123.lma.vercel.app |
+| Staging     | Pre-production | staging.lma.app       |
+| Production  | Live           | lma.app               |
 
 ### 11.2 CI/CD Flow
+
 ```
 Push to branch → Run Tests → Build → Deploy to Preview
 Merge to develop → Run Tests → Build → Deploy to Staging
@@ -302,22 +339,25 @@ Merge to main → Run Tests → Build → Deploy to Production
 ```
 
 ### 11.3 Deployment Targets
-| App | Platform | Trigger |
-|-----|----------|---------|
-| Web App | Vercel | Git push |
-| Admin Dashboard | Vercel | Git push |
-| API Server | Render | Git push |
-| Mobile App | EAS Build | Manual/CI |
+
+| App             | Platform  | Trigger   |
+| --------------- | --------- | --------- |
+| Web App         | Vercel    | Git push  |
+| Admin Dashboard | Vercel    | Git push  |
+| API Server      | Render    | Git push  |
+| Mobile App      | EAS Build | Manual/CI |
 
 ## 12. Monitoring & Logging
 
 ### 12.1 Tools
+
 - **Error Tracking**: Sentry
 - **Analytics**: Mixpanel / Amplitude
 - **Logs**: Render logs + Supabase logs
 - **Uptime**: Better Uptime
 
 ### 12.2 Log Levels
+
 - `error` - Errors requiring immediate attention
 - `warn` - Potential issues
 - `info` - General operational info
@@ -326,16 +366,19 @@ Merge to main → Run Tests → Build → Deploy to Production
 ## 13. Documentation Requirements
 
 ### 13.1 Code Documentation
+
 - JSDoc for public functions
 - README in each package
 - Inline comments for complex logic only
 
 ### 13.2 API Documentation
+
 - OpenAPI/Swagger specification
 - Postman collection
 - Example requests and responses
 
 ### 13.3 Architecture Documentation
+
 - System architecture diagrams
 - Database ERD
 - Sequence diagrams for complex flows

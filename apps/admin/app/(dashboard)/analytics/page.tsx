@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useToast } from '@/components/ui/toast';
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { useToast } from "@/components/ui/toast";
 import {
   BarChart3,
   TrendingUp,
@@ -13,7 +13,7 @@ import {
   Star,
   Calendar,
   RefreshCw,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -27,7 +27,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+} from "recharts";
 
 interface AnalyticsData {
   totalRevenue: number;
@@ -57,11 +57,18 @@ interface OrdersByStatus {
   count: number;
 }
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COLORS = [
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#8b5cf6",
+  "#ec4899",
+];
 
 export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
-  const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
+  const [period, setPeriod] = useState<"7d" | "30d" | "90d">("30d");
   const [analytics, setAnalytics] = useState<AnalyticsData>({
     totalRevenue: 0,
     totalOrders: 0,
@@ -85,18 +92,20 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: merchant } = await supabase
-        .from('merchants')
-        .select('id, rating, total_reviews')
-        .eq('owner_id', user.id)
+        .from("merchants")
+        .select("id, rating, total_reviews")
+        .eq("owner_id", user.id)
         .single();
 
       if (!merchant) return;
 
-      const daysAgo = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+      const daysAgo = period === "7d" ? 7 : period === "30d" ? 30 : 90;
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - daysAgo);
       const startDateStr = startDate.toISOString();
@@ -107,41 +116,53 @@ export default function AnalyticsPage() {
 
       // Fetch current period orders
       const { data: currentOrders, error: ordersError } = await supabase
-        .from('orders')
-        .select('id, total_amount, status, created_at, customer_id')
-        .eq('merchant_id', merchant.id)
-        .gte('created_at', startDateStr);
+        .from("orders")
+        .select("id, total_amount, status, created_at, customer_id")
+        .eq("merchant_id", merchant.id)
+        .gte("created_at", startDateStr);
 
       if (ordersError) throw ordersError;
 
       // Fetch previous period orders for comparison
       const { data: previousOrders } = await supabase
-        .from('orders')
-        .select('id, total_amount')
-        .eq('merchant_id', merchant.id)
-        .gte('created_at', previousStartDateStr)
-        .lt('created_at', startDateStr);
+        .from("orders")
+        .select("id, total_amount")
+        .eq("merchant_id", merchant.id)
+        .gte("created_at", previousStartDateStr)
+        .lt("created_at", startDateStr);
 
       // Calculate metrics
-      const completedOrders = currentOrders?.filter(o => o.status === 'delivered') || [];
-      const totalRevenue = completedOrders.reduce((sum, o) => sum + o.total_amount, 0);
+      const completedOrders =
+        currentOrders?.filter((o) => o.status === "delivered") || [];
+      const totalRevenue = completedOrders.reduce(
+        (sum, o) => sum + o.total_amount,
+        0,
+      );
       const totalOrders = currentOrders?.length || 0;
-      const averageOrderValue = completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
+      const averageOrderValue =
+        completedOrders.length > 0 ? totalRevenue / completedOrders.length : 0;
 
-      const uniqueCustomers = new Set(currentOrders?.map(o => o.customer_id) || []);
+      const uniqueCustomers = new Set(
+        currentOrders?.map((o) => o.customer_id) || [],
+      );
       const totalCustomers = uniqueCustomers.size;
 
       // Previous period metrics
-      const previousCompletedOrders = previousOrders?.filter(o => true) || [];
-      const previousRevenue = previousCompletedOrders.reduce((sum, o) => sum + o.total_amount, 0);
+      const previousCompletedOrders = previousOrders?.filter((o) => true) || [];
+      const previousRevenue = previousCompletedOrders.reduce(
+        (sum, o) => sum + o.total_amount,
+        0,
+      );
       const previousOrderCount = previousOrders?.length || 0;
 
-      const revenueChange = previousRevenue > 0
-        ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
-        : 0;
-      const ordersChange = previousOrderCount > 0
-        ? ((totalOrders - previousOrderCount) / previousOrderCount) * 100
-        : 0;
+      const revenueChange =
+        previousRevenue > 0
+          ? ((totalRevenue - previousRevenue) / previousRevenue) * 100
+          : 0;
+      const ordersChange =
+        previousOrderCount > 0
+          ? ((totalOrders - previousOrderCount) / previousOrderCount) * 100
+          : 0;
 
       setAnalytics({
         totalRevenue,
@@ -159,16 +180,18 @@ export default function AnalyticsPage() {
       for (let i = 0; i < daysAgo; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = date.toISOString().split("T")[0];
         dailyMap.set(dateStr, { revenue: 0, orders: 0 });
       }
 
-      currentOrders?.forEach(order => {
-        const dateStr = order.created_at.split('T')[0];
+      currentOrders?.forEach((order) => {
+        const dateStr = order.created_at.split("T")[0];
         if (dailyMap.has(dateStr)) {
           const current = dailyMap.get(dateStr)!;
           dailyMap.set(dateStr, {
-            revenue: current.revenue + (order.status === 'delivered' ? order.total_amount : 0),
+            revenue:
+              current.revenue +
+              (order.status === "delivered" ? order.total_amount : 0),
             orders: current.orders + 1,
           });
         }
@@ -176,7 +199,10 @@ export default function AnalyticsPage() {
 
       const sortedDailyData = Array.from(dailyMap.entries())
         .map(([date, data]) => ({
-          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          date: new Date(date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
           ...data,
         }))
         .reverse();
@@ -185,23 +211,31 @@ export default function AnalyticsPage() {
 
       // Fetch top products
       const { data: orderItems } = await supabase
-        .from('order_items')
-        .select(`
+        .from("order_items")
+        .select(
+          `
           quantity,
           unit_price,
           product:products(name),
           order:orders!inner(merchant_id, created_at, status)
-        `)
-        .eq('order.merchant_id', merchant.id)
-        .gte('order.created_at', startDateStr);
+        `,
+        )
+        .eq("order.merchant_id", merchant.id)
+        .gte("order.created_at", startDateStr);
 
-      const productMap = new Map<string, { quantity: number; revenue: number }>();
-      orderItems?.forEach(item => {
-        const productName = item.product?.name || 'Unknown';
-        const current = productMap.get(productName) || { quantity: 0, revenue: 0 };
+      const productMap = new Map<
+        string,
+        { quantity: number; revenue: number }
+      >();
+      orderItems?.forEach((item) => {
+        const productName = item.product?.name || "Unknown";
+        const current = productMap.get(productName) || {
+          quantity: 0,
+          revenue: 0,
+        };
         productMap.set(productName, {
           quantity: current.quantity + item.quantity,
-          revenue: current.revenue + (item.unit_price * item.quantity),
+          revenue: current.revenue + item.unit_price * item.quantity,
         });
       });
 
@@ -214,20 +248,22 @@ export default function AnalyticsPage() {
 
       // Orders by status
       const statusMap = new Map<string, number>();
-      currentOrders?.forEach(order => {
+      currentOrders?.forEach((order) => {
         statusMap.set(order.status, (statusMap.get(order.status) || 0) + 1);
       });
 
       setOrdersByStatus(
-        Array.from(statusMap.entries()).map(([status, count]) => ({ status, count }))
+        Array.from(statusMap.entries()).map(([status, count]) => ({
+          status,
+          count,
+        })),
       );
-
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error("Error fetching analytics:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load analytics',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load analytics",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -257,7 +293,7 @@ export default function AnalyticsPage() {
           <Calendar className="w-4 h-4 text-muted-foreground" />
           <select
             value={period}
-            onChange={(e) => setPeriod(e.target.value as '7d' | '30d' | '90d')}
+            onChange={(e) => setPeriod(e.target.value as "7d" | "30d" | "90d")}
             className="h-9 px-3 rounded-md border border-input bg-background text-sm"
           >
             <option value="7d">Last 7 days</option>
@@ -277,9 +313,11 @@ export default function AnalyticsPage() {
           <p className="text-2xl font-bold mt-2">
             ₹{analytics.totalRevenue.toLocaleString()}
           </p>
-          <div className={`flex items-center gap-1 text-xs mt-1 ${
-            analytics.revenueChange >= 0 ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <div
+            className={`flex items-center gap-1 text-xs mt-1 ${
+              analytics.revenueChange >= 0 ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {analytics.revenueChange >= 0 ? (
               <TrendingUp className="w-3 h-3" />
             ) : (
@@ -295,9 +333,11 @@ export default function AnalyticsPage() {
             <ShoppingBag className="w-4 h-4 text-muted-foreground" />
           </div>
           <p className="text-2xl font-bold mt-2">{analytics.totalOrders}</p>
-          <div className={`flex items-center gap-1 text-xs mt-1 ${
-            analytics.ordersChange >= 0 ? 'text-green-600' : 'text-red-600'
-          }`}>
+          <div
+            className={`flex items-center gap-1 text-xs mt-1 ${
+              analytics.ordersChange >= 0 ? "text-green-600" : "text-red-600"
+            }`}
+          >
             {analytics.ordersChange >= 0 ? (
               <TrendingUp className="w-3 h-3" />
             ) : (
@@ -309,7 +349,9 @@ export default function AnalyticsPage() {
 
         <div className="bg-card rounded-lg border p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Avg Order Value</span>
+            <span className="text-sm text-muted-foreground">
+              Avg Order Value
+            </span>
             <BarChart3 className="w-4 h-4 text-muted-foreground" />
           </div>
           <p className="text-2xl font-bold mt-2">
@@ -355,7 +397,10 @@ export default function AnalyticsPage() {
                   tickFormatter={formatCurrency}
                 />
                 <Tooltip
-                  formatter={(value: number) => [`₹${value.toFixed(2)}`, 'Revenue']}
+                  formatter={(value: number) => [
+                    `₹${value.toFixed(2)}`,
+                    "Revenue",
+                  ]}
                 />
                 <Line
                   type="monotone"

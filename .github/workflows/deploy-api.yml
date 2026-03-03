@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'packages/api/**'
-      - 'packages/shared/**'
+      - 'packages/api-python/**'
       - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
     inputs:

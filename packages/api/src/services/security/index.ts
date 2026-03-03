@@ -6,5 +6,5 @@
  * - Data encryption & privacy
  */
 
-export * from './auditLog.js';
-export * from './encryption.js';
+export * from "./auditLog.js";
+export * from "./encryption.js";

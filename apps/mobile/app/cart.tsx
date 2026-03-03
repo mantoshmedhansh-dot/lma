@@ -4,12 +4,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { useCartStore } from '@/lib/store/cart';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useCartStore } from "@/lib/store/cart";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function CartScreen() {
   const colors = useThemeColors();
@@ -30,7 +30,13 @@ export default function CartScreen() {
 
   if (items.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <View style={[styles.emptyIcon, { backgroundColor: colors.tintLight }]}>
           <Ionicons name="cart-outline" size={64} color={colors.tint} />
         </View>
@@ -56,7 +62,10 @@ export default function CartScreen() {
         {/* Restaurant Info */}
         {merchant && (
           <TouchableOpacity
-            style={[styles.merchantCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+            style={[
+              styles.merchantCard,
+              { backgroundColor: colors.card, borderColor: colors.border },
+            ]}
             onPress={() => router.push(`/merchant/${merchant.slug}`)}
           >
             <Ionicons name="storefront" size={24} color={colors.tint} />
@@ -68,12 +77,21 @@ export default function CartScreen() {
                 Add more items
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textSecondary}
+            />
           </TouchableOpacity>
         )}
 
         {/* Cart Items */}
-        <View style={[styles.itemsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.itemsCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           {items.map((item, index) => (
             <View
               key={item.id}
@@ -92,25 +110,41 @@ export default function CartScreen() {
                   contentFit="cover"
                 />
               ) : (
-                <View style={[styles.itemImagePlaceholder, { backgroundColor: colors.backgroundSecondary }]}>
-                  <Ionicons name="image-outline" size={20} color={colors.textSecondary} />
+                <View
+                  style={[
+                    styles.itemImagePlaceholder,
+                    { backgroundColor: colors.backgroundSecondary },
+                  ]}
+                >
+                  <Ionicons
+                    name="image-outline"
+                    size={20}
+                    color={colors.textSecondary}
+                  />
                 </View>
               )}
               <View style={styles.itemInfo}>
                 <Text style={[styles.itemName, { color: colors.text }]}>
                   {item.name}
                 </Text>
-                <Text style={[styles.itemPrice, { color: colors.textSecondary }]}>
+                <Text
+                  style={[styles.itemPrice, { color: colors.textSecondary }]}
+                >
                   ₹{item.price}
                 </Text>
               </View>
               <View style={styles.quantityControls}>
                 <TouchableOpacity
-                  style={[styles.quantityButton, { borderColor: colors.border }]}
-                  onPress={() => updateQuantity(item.productId, item.quantity - 1)}
+                  style={[
+                    styles.quantityButton,
+                    { borderColor: colors.border },
+                  ]}
+                  onPress={() =>
+                    updateQuantity(item.productId, item.quantity - 1)
+                  }
                 >
                   <Ionicons
-                    name={item.quantity === 1 ? 'trash-outline' : 'remove'}
+                    name={item.quantity === 1 ? "trash-outline" : "remove"}
                     size={16}
                     color={item.quantity === 1 ? colors.error : colors.text}
                   />
@@ -119,8 +153,13 @@ export default function CartScreen() {
                   {item.quantity}
                 </Text>
                 <TouchableOpacity
-                  style={[styles.quantityButton, { borderColor: colors.border }]}
-                  onPress={() => updateQuantity(item.productId, item.quantity + 1)}
+                  style={[
+                    styles.quantityButton,
+                    { borderColor: colors.border },
+                  ]}
+                  onPress={() =>
+                    updateQuantity(item.productId, item.quantity + 1)
+                  }
                 >
                   <Ionicons name="add" size={16} color={colors.text} />
                 </TouchableOpacity>
@@ -130,28 +169,46 @@ export default function CartScreen() {
         </View>
 
         {/* Bill Details */}
-        <View style={[styles.billCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <Text style={[styles.billTitle, { color: colors.text }]}>Bill Details</Text>
+        <View
+          style={[
+            styles.billCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.billTitle, { color: colors.text }]}>
+            Bill Details
+          </Text>
           <View style={styles.billRow}>
-            <Text style={[styles.billLabel, { color: colors.textSecondary }]}>Subtotal</Text>
-            <Text style={[styles.billValue, { color: colors.text }]}>₹{subtotal.toFixed(2)}</Text>
+            <Text style={[styles.billLabel, { color: colors.textSecondary }]}>
+              Subtotal
+            </Text>
+            <Text style={[styles.billValue, { color: colors.text }]}>
+              ₹{subtotal.toFixed(2)}
+            </Text>
           </View>
           <View style={styles.billRow}>
-            <Text style={[styles.billLabel, { color: colors.textSecondary }]}>Delivery Fee</Text>
-            <Text style={[styles.billValue, { color: colors.text }]}>₹{deliveryFee.toFixed(2)}</Text>
+            <Text style={[styles.billLabel, { color: colors.textSecondary }]}>
+              Delivery Fee
+            </Text>
+            <Text style={[styles.billValue, { color: colors.text }]}>
+              ₹{deliveryFee.toFixed(2)}
+            </Text>
           </View>
-          <View style={[styles.billDivider, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.billDivider, { backgroundColor: colors.border }]}
+          />
           <View style={styles.billRow}>
-            <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
-            <Text style={[styles.totalValue, { color: colors.text }]}>₹{total.toFixed(2)}</Text>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>
+              Total
+            </Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>
+              ₹{total.toFixed(2)}
+            </Text>
           </View>
         </View>
 
         {/* Clear Cart */}
-        <TouchableOpacity
-          style={styles.clearButton}
-          onPress={clearCart}
-        >
+        <TouchableOpacity style={styles.clearButton} onPress={clearCart}>
           <Ionicons name="trash-outline" size={18} color={colors.error} />
           <Text style={[styles.clearButtonText, { color: colors.error }]}>
             Clear Cart
@@ -160,14 +217,23 @@ export default function CartScreen() {
       </ScrollView>
 
       {/* Checkout Button */}
-      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: colors.background, borderTopColor: colors.border },
+        ]}
+      >
         <View style={styles.footerInfo}>
-          <Text style={[styles.footerLabel, { color: colors.textSecondary }]}>Total</Text>
-          <Text style={[styles.footerTotal, { color: colors.text }]}>₹{total.toFixed(2)}</Text>
+          <Text style={[styles.footerLabel, { color: colors.textSecondary }]}>
+            Total
+          </Text>
+          <Text style={[styles.footerTotal, { color: colors.text }]}>
+            ₹{total.toFixed(2)}
+          </Text>
         </View>
         <TouchableOpacity
           style={[styles.checkoutButton, { backgroundColor: colors.tint }]}
-          onPress={() => router.push('/checkout')}
+          onPress={() => router.push("/checkout")}
         >
           <Text style={styles.checkoutButtonText}>Proceed to Checkout</Text>
         </TouchableOpacity>
@@ -181,26 +247,26 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
   },
   emptyIcon: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   emptyText: {
     fontSize: 14,
     marginTop: 8,
-    textAlign: 'center',
+    textAlign: "center",
   },
   browseButton: {
     marginTop: 24,
@@ -209,17 +275,17 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   browseButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   content: {
     flex: 1,
     padding: 16,
   },
   merchantCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
@@ -231,7 +297,7 @@ const styles = StyleSheet.create({
   },
   merchantName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   addMoreText: {
     fontSize: 13,
@@ -243,8 +309,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   cartItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 12,
     gap: 12,
   },
@@ -257,23 +323,23 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   itemInfo: {
     flex: 1,
   },
   itemName: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   itemPrice: {
     fontSize: 13,
     marginTop: 4,
   },
   quantityControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   quantityButton: {
@@ -281,14 +347,14 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 6,
     borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   quantity: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     minWidth: 20,
-    textAlign: 'center',
+    textAlign: "center",
   },
   billCard: {
     padding: 16,
@@ -298,12 +364,12 @@ const styles = StyleSheet.create({
   },
   billTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 12,
   },
   billRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   billLabel: {
@@ -318,27 +384,27 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   totalValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   clearButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 8,
     paddingVertical: 12,
   },
   clearButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     borderTopWidth: 1,
   },
@@ -348,7 +414,7 @@ const styles = StyleSheet.create({
   },
   footerTotal: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   checkoutButton: {
     paddingHorizontal: 24,
@@ -356,8 +422,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   checkoutButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

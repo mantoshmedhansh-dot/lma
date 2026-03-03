@@ -9,12 +9,12 @@
  * - Status page data
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
-import os from 'os';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
+import os from "os";
 
 // Health check statuses
-type HealthStatus = 'healthy' | 'degraded' | 'unhealthy';
+type HealthStatus = "healthy" | "degraded" | "unhealthy";
 
 interface ServiceHealth {
   name: string;
@@ -43,21 +43,69 @@ interface SystemHealth {
 // Alert configuration
 interface AlertThreshold {
   metric: string;
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte';
+  operator: "gt" | "lt" | "eq" | "gte" | "lte";
   value: number;
-  severity: 'warning' | 'critical';
+  severity: "warning" | "critical";
   message: string;
 }
 
 const DEFAULT_THRESHOLDS: AlertThreshold[] = [
-  { metric: 'cpu_usage', operator: 'gt', value: 80, severity: 'warning', message: 'High CPU usage' },
-  { metric: 'cpu_usage', operator: 'gt', value: 95, severity: 'critical', message: 'Critical CPU usage' },
-  { metric: 'memory_usage', operator: 'gt', value: 85, severity: 'warning', message: 'High memory usage' },
-  { metric: 'memory_usage', operator: 'gt', value: 95, severity: 'critical', message: 'Critical memory usage' },
-  { metric: 'db_response_time', operator: 'gt', value: 500, severity: 'warning', message: 'Slow database response' },
-  { metric: 'db_response_time', operator: 'gt', value: 2000, severity: 'critical', message: 'Database timeout risk' },
-  { metric: 'error_rate', operator: 'gt', value: 5, severity: 'warning', message: 'Elevated error rate' },
-  { metric: 'error_rate', operator: 'gt', value: 10, severity: 'critical', message: 'High error rate' },
+  {
+    metric: "cpu_usage",
+    operator: "gt",
+    value: 80,
+    severity: "warning",
+    message: "High CPU usage",
+  },
+  {
+    metric: "cpu_usage",
+    operator: "gt",
+    value: 95,
+    severity: "critical",
+    message: "Critical CPU usage",
+  },
+  {
+    metric: "memory_usage",
+    operator: "gt",
+    value: 85,
+    severity: "warning",
+    message: "High memory usage",
+  },
+  {
+    metric: "memory_usage",
+    operator: "gt",
+    value: 95,
+    severity: "critical",
+    message: "Critical memory usage",
+  },
+  {
+    metric: "db_response_time",
+    operator: "gt",
+    value: 500,
+    severity: "warning",
+    message: "Slow database response",
+  },
+  {
+    metric: "db_response_time",
+    operator: "gt",
+    value: 2000,
+    severity: "critical",
+    message: "Database timeout risk",
+  },
+  {
+    metric: "error_rate",
+    operator: "gt",
+    value: 5,
+    severity: "warning",
+    message: "Elevated error rate",
+  },
+  {
+    metric: "error_rate",
+    operator: "gt",
+    value: 10,
+    severity: "critical",
+    message: "High error rate",
+  },
 ];
 
 // Metrics store
@@ -86,14 +134,17 @@ async function checkDatabase(): Promise<ServiceHealth> {
   const startTime = Date.now();
 
   try {
-    const { error } = await supabaseAdmin.from('users').select('count').limit(1);
+    const { error } = await supabaseAdmin
+      .from("users")
+      .select("count")
+      .limit(1);
 
     const responseTimeMs = Date.now() - startTime;
 
     if (error) {
       return {
-        name: 'database',
-        status: 'unhealthy',
+        name: "database",
+        status: "unhealthy",
         responseTimeMs,
         lastCheck: new Date(),
         message: error.message,
@@ -101,15 +152,15 @@ async function checkDatabase(): Promise<ServiceHealth> {
     }
 
     return {
-      name: 'database',
-      status: responseTimeMs > 500 ? 'degraded' : 'healthy',
+      name: "database",
+      status: responseTimeMs > 500 ? "degraded" : "healthy",
       responseTimeMs,
       lastCheck: new Date(),
     };
   } catch (error) {
     return {
-      name: 'database',
-      status: 'unhealthy',
+      name: "database",
+      status: "unhealthy",
       responseTimeMs: Date.now() - startTime,
       lastCheck: new Date(),
       message: (error as Error).message,
@@ -123,17 +174,20 @@ async function checkDatabase(): Promise<ServiceHealth> {
 async function checkRedis(): Promise<ServiceHealth> {
   // Placeholder - implement when Redis is added
   return {
-    name: 'redis',
-    status: 'healthy',
+    name: "redis",
+    status: "healthy",
     lastCheck: new Date(),
-    message: 'Not configured',
+    message: "Not configured",
   };
 }
 
 /**
  * Check external API health
  */
-async function checkExternalAPI(name: string, url: string): Promise<ServiceHealth> {
+async function checkExternalAPI(
+  name: string,
+  url: string,
+): Promise<ServiceHealth> {
   const startTime = Date.now();
 
   try {
@@ -141,7 +195,7 @@ async function checkExternalAPI(name: string, url: string): Promise<ServiceHealt
     const timeout = setTimeout(() => controller.abort(), 5000);
 
     const response = await fetch(url, {
-      method: 'HEAD',
+      method: "HEAD",
       signal: controller.signal,
     });
 
@@ -150,7 +204,7 @@ async function checkExternalAPI(name: string, url: string): Promise<ServiceHealt
 
     return {
       name,
-      status: response.ok ? 'healthy' : 'degraded',
+      status: response.ok ? "healthy" : "degraded",
       responseTimeMs,
       lastCheck: new Date(),
       details: { statusCode: response.status },
@@ -158,7 +212,7 @@ async function checkExternalAPI(name: string, url: string): Promise<ServiceHealt
   } catch (error) {
     return {
       name,
-      status: 'unhealthy',
+      status: "unhealthy",
       responseTimeMs: Date.now() - startTime,
       lastCheck: new Date(),
       message: (error as Error).message,
@@ -169,7 +223,7 @@ async function checkExternalAPI(name: string, url: string): Promise<ServiceHealt
 /**
  * Get system metrics
  */
-function getSystemMetrics(): SystemHealth['system'] {
+function getSystemMetrics(): SystemHealth["system"] {
   const cpus = os.cpus();
   const totalMemory = os.totalmem();
   const freeMemory = os.freemem();
@@ -185,11 +239,12 @@ function getSystemMetrics(): SystemHealth['system'] {
     totalIdle += cpu.times.idle;
   }
 
-  const cpuUsage = ((1 - totalIdle / totalTick) * 100);
+  const cpuUsage = (1 - totalIdle / totalTick) * 100;
 
   return {
     cpuUsage: Math.round(cpuUsage * 100) / 100,
-    memoryUsage: Math.round(((totalMemory - freeMemory) / totalMemory) * 100 * 100) / 100,
+    memoryUsage:
+      Math.round(((totalMemory - freeMemory) / totalMemory) * 100 * 100) / 100,
     memoryTotal: totalMemory,
     memoryFree: freeMemory,
     loadAverage: os.loadavg(),
@@ -212,21 +267,28 @@ export async function getSystemHealth(): Promise<SystemHealth> {
 
   // Check external APIs if configured
   if (process.env.GOOGLE_MAPS_API_KEY) {
-    const mapsHealth = await checkExternalAPI('google_maps', 'https://maps.googleapis.com/maps/api/js');
+    const mapsHealth = await checkExternalAPI(
+      "google_maps",
+      "https://maps.googleapis.com/maps/api/js",
+    );
     services.push(mapsHealth);
   }
 
   // Determine overall status
-  const hasUnhealthy = services.some((s) => s.status === 'unhealthy');
-  const hasDegraded = services.some((s) => s.status === 'degraded');
+  const hasUnhealthy = services.some((s) => s.status === "unhealthy");
+  const hasDegraded = services.some((s) => s.status === "degraded");
 
-  const status: HealthStatus = hasUnhealthy ? 'unhealthy' : hasDegraded ? 'degraded' : 'healthy';
+  const status: HealthStatus = hasUnhealthy
+    ? "unhealthy"
+    : hasDegraded
+      ? "degraded"
+      : "healthy";
 
   return {
     status,
     uptime: Math.floor((Date.now() - startTime) / 1000),
     timestamp: new Date(),
-    version: process.env.APP_VERSION || '1.0.0',
+    version: process.env.APP_VERSION || "1.0.0",
     services,
     system: getSystemMetrics(),
   };
@@ -235,29 +297,41 @@ export async function getSystemHealth(): Promise<SystemHealth> {
 /**
  * Quick health check (for load balancers)
  */
-export async function quickHealthCheck(): Promise<{ status: 'ok' | 'error'; message?: string }> {
+export async function quickHealthCheck(): Promise<{
+  status: "ok" | "error";
+  message?: string;
+}> {
   try {
-    const { error } = await supabaseAdmin.from('users').select('count').limit(1);
+    const { error } = await supabaseAdmin
+      .from("users")
+      .select("count")
+      .limit(1);
 
     if (error) {
-      return { status: 'error', message: 'Database unavailable' };
+      return { status: "error", message: "Database unavailable" };
     }
 
-    return { status: 'ok' };
+    return { status: "ok" };
   } catch (error) {
-    return { status: 'error', message: (error as Error).message };
+    return { status: "error", message: (error as Error).message };
   }
 }
 
 /**
  * Readiness check (for Kubernetes)
  */
-export async function readinessCheck(): Promise<{ ready: boolean; checks: Record<string, boolean> }> {
+export async function readinessCheck(): Promise<{
+  ready: boolean;
+  checks: Record<string, boolean>;
+}> {
   const checks: Record<string, boolean> = {};
 
   // Database check
   try {
-    const { error } = await supabaseAdmin.from('users').select('count').limit(1);
+    const { error } = await supabaseAdmin
+      .from("users")
+      .select("count")
+      .limit(1);
     checks.database = !error;
   } catch {
     checks.database = false;
@@ -265,8 +339,7 @@ export async function readinessCheck(): Promise<{ ready: boolean; checks: Record
 
   // Check if all required environment variables are set
   checks.config = Boolean(
-    process.env.SUPABASE_URL &&
-    process.env.SUPABASE_SERVICE_KEY
+    process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_KEY,
   );
 
   return {
@@ -296,7 +369,7 @@ export function recordMetric(
   name: string,
   value: number,
   unit?: string,
-  tags?: Record<string, string>
+  tags?: Record<string, string>,
 ): void {
   metricsBuffer.push({
     name,
@@ -308,29 +381,43 @@ export function recordMetric(
 
   // Flush if buffer is full
   if (metricsBuffer.length >= MAX_BUFFER_SIZE) {
-    flushMetrics().catch((err) => logger.error('Failed to flush metrics', { err }));
+    flushMetrics().catch((err) =>
+      logger.error("Failed to flush metrics", { err }),
+    );
   }
 }
 
 /**
  * Record response time
  */
-export function recordResponseTime(endpoint: string, method: string, durationMs: number): void {
-  recordMetric('response_time', durationMs, 'ms', { endpoint, method });
+export function recordResponseTime(
+  endpoint: string,
+  method: string,
+  durationMs: number,
+): void {
+  recordMetric("response_time", durationMs, "ms", { endpoint, method });
 }
 
 /**
  * Record error
  */
 export function recordError(endpoint: string, errorType: string): void {
-  recordMetric('error', 1, 'count', { endpoint, error_type: errorType });
+  recordMetric("error", 1, "count", { endpoint, error_type: errorType });
 }
 
 /**
  * Record request
  */
-export function recordRequest(endpoint: string, method: string, statusCode: number): void {
-  recordMetric('request', 1, 'count', { endpoint, method, status: String(statusCode) });
+export function recordRequest(
+  endpoint: string,
+  method: string,
+  statusCode: number,
+): void {
+  recordMetric("request", 1, "count", {
+    endpoint,
+    method,
+    status: String(statusCode),
+  });
 }
 
 /**
@@ -342,17 +429,17 @@ async function flushMetrics(): Promise<void> {
   const metrics = metricsBuffer.splice(0, metricsBuffer.length);
 
   try {
-    await supabaseAdmin.from('system_metrics').insert(
+    await supabaseAdmin.from("system_metrics").insert(
       metrics.map((m) => ({
         metric_name: m.name,
         metric_value: m.value,
         unit: m.unit,
         tags: m.tags,
         recorded_at: m.timestamp.toISOString(),
-      }))
+      })),
     );
   } catch (error) {
-    logger.error('Failed to flush metrics', { error, count: metrics.length });
+    logger.error("Failed to flush metrics", { error, count: metrics.length });
     // Re-add to buffer on failure (with limit)
     if (metricsBuffer.length < MAX_BUFFER_SIZE / 2) {
       metricsBuffer.unshift(...metrics);
@@ -370,10 +457,22 @@ setInterval(flushMetrics, METRICS_FLUSH_INTERVAL);
 /**
  * Check thresholds and trigger alerts
  */
-export async function checkAlerts(thresholds: AlertThreshold[] = DEFAULT_THRESHOLDS): Promise<{
-  alerts: Array<{ metric: string; severity: string; message: string; value: number }>;
+export async function checkAlerts(
+  thresholds: AlertThreshold[] = DEFAULT_THRESHOLDS,
+): Promise<{
+  alerts: Array<{
+    metric: string;
+    severity: string;
+    message: string;
+    value: number;
+  }>;
 }> {
-  const alerts: Array<{ metric: string; severity: string; message: string; value: number }> = [];
+  const alerts: Array<{
+    metric: string;
+    severity: string;
+    message: string;
+    value: number;
+  }> = [];
   const system = getSystemMetrics();
 
   const currentValues: Record<string, number> = {
@@ -389,19 +488,25 @@ export async function checkAlerts(thresholds: AlertThreshold[] = DEFAULT_THRESHO
 
   // Calculate error rate from recent metrics
   const { data: recentErrors } = await supabaseAdmin
-    .from('system_metrics')
-    .select('metric_value')
-    .eq('metric_name', 'error')
-    .gte('recorded_at', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+    .from("system_metrics")
+    .select("metric_value")
+    .eq("metric_name", "error")
+    .gte("recorded_at", new Date(Date.now() - 5 * 60 * 1000).toISOString());
 
   const { data: recentRequests } = await supabaseAdmin
-    .from('system_metrics')
-    .select('metric_value')
-    .eq('metric_name', 'request')
-    .gte('recorded_at', new Date(Date.now() - 5 * 60 * 1000).toISOString());
+    .from("system_metrics")
+    .select("metric_value")
+    .eq("metric_name", "request")
+    .gte("recorded_at", new Date(Date.now() - 5 * 60 * 1000).toISOString());
 
-  const errorCount = (recentErrors || []).reduce((sum, e) => sum + e.metric_value, 0);
-  const requestCount = (recentRequests || []).reduce((sum, r) => sum + r.metric_value, 0);
+  const errorCount = (recentErrors || []).reduce(
+    (sum, e) => sum + e.metric_value,
+    0,
+  );
+  const requestCount = (recentRequests || []).reduce(
+    (sum, r) => sum + r.metric_value,
+    0,
+  );
 
   if (requestCount > 0) {
     currentValues.error_rate = (errorCount / requestCount) * 100;
@@ -416,19 +521,19 @@ export async function checkAlerts(thresholds: AlertThreshold[] = DEFAULT_THRESHO
     let triggered = false;
 
     switch (threshold.operator) {
-      case 'gt':
+      case "gt":
         triggered = value > threshold.value;
         break;
-      case 'lt':
+      case "lt":
         triggered = value < threshold.value;
         break;
-      case 'eq':
+      case "eq":
         triggered = value === threshold.value;
         break;
-      case 'gte':
+      case "gte":
         triggered = value >= threshold.value;
         break;
-      case 'lte':
+      case "lte":
         triggered = value <= threshold.value;
         break;
     }
@@ -446,16 +551,16 @@ export async function checkAlerts(thresholds: AlertThreshold[] = DEFAULT_THRESHO
   // Log alerts
   if (alerts.length > 0) {
     for (const alert of alerts) {
-      if (alert.severity === 'critical') {
-        logger.error('Critical alert triggered', alert);
+      if (alert.severity === "critical") {
+        logger.error("Critical alert triggered", alert);
       } else {
-        logger.warn('Warning alert triggered', alert);
+        logger.warn("Warning alert triggered", alert);
       }
 
       // Store alert in database
-      await supabaseAdmin.from('security_events').insert({
-        event_type: 'system_alert',
-        severity: alert.severity === 'critical' ? 'high' : 'medium',
+      await supabaseAdmin.from("security_events").insert({
+        event_type: "system_alert",
+        severity: alert.severity === "critical" ? "high" : "medium",
         description: alert.message,
         details: { metric: alert.metric, value: alert.value, threshold: alert },
       });
@@ -475,7 +580,7 @@ export async function checkAlerts(thresholds: AlertThreshold[] = DEFAULT_THRESHO
 export async function logHealthCheck(health: SystemHealth): Promise<void> {
   for (const service of health.services) {
     try {
-      await supabaseAdmin.from('health_check_logs').insert({
+      await supabaseAdmin.from("health_check_logs").insert({
         service_name: service.name,
         status: service.status,
         response_time_ms: service.responseTimeMs,
@@ -484,7 +589,10 @@ export async function logHealthCheck(health: SystemHealth): Promise<void> {
         checked_at: service.lastCheck.toISOString(),
       });
     } catch (error) {
-      logger.warn('Failed to log health check', { service: service.name, error });
+      logger.warn("Failed to log health check", {
+        service: service.name,
+        error,
+      });
     }
   }
 }
@@ -494,14 +602,19 @@ export async function logHealthCheck(health: SystemHealth): Promise<void> {
  */
 export async function getHealthCheckHistory(
   serviceName: string,
-  hours: number = 24
-): Promise<Array<{ status: string; responseTimeMs?: number; checkedAt: Date }>> {
+  hours: number = 24,
+): Promise<
+  Array<{ status: string; responseTimeMs?: number; checkedAt: Date }>
+> {
   const { data } = await supabaseAdmin
-    .from('health_check_logs')
-    .select('status, response_time_ms, checked_at')
-    .eq('service_name', serviceName)
-    .gte('checked_at', new Date(Date.now() - hours * 60 * 60 * 1000).toISOString())
-    .order('checked_at', { ascending: false });
+    .from("health_check_logs")
+    .select("status, response_time_ms, checked_at")
+    .eq("service_name", serviceName)
+    .gte(
+      "checked_at",
+      new Date(Date.now() - hours * 60 * 60 * 1000).toISOString(),
+    )
+    .order("checked_at", { ascending: false });
 
   return (data || []).map((h) => ({
     status: h.status,
@@ -513,18 +626,24 @@ export async function getHealthCheckHistory(
 /**
  * Calculate uptime percentage
  */
-export async function calculateUptime(serviceName: string, days: number = 30): Promise<number> {
+export async function calculateUptime(
+  serviceName: string,
+  days: number = 30,
+): Promise<number> {
   const { data, count } = await supabaseAdmin
-    .from('health_check_logs')
-    .select('status', { count: 'exact' })
-    .eq('service_name', serviceName)
-    .gte('checked_at', new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString());
+    .from("health_check_logs")
+    .select("status", { count: "exact" })
+    .eq("service_name", serviceName)
+    .gte(
+      "checked_at",
+      new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString(),
+    );
 
   if (!data || !count || count === 0) {
     return 100;
   }
 
-  const healthyCount = data.filter((h) => h.status === 'healthy').length;
+  const healthyCount = data.filter((h) => h.status === "healthy").length;
   return Math.round((healthyCount / count) * 100 * 100) / 100;
 }
 
@@ -537,7 +656,7 @@ export async function calculateUptime(serviceName: string, days: number = 30): P
  */
 export async function getMetricsSummary(
   metricName: string,
-  hours: number = 24
+  hours: number = 24,
 ): Promise<{
   min: number;
   max: number;
@@ -546,11 +665,14 @@ export async function getMetricsSummary(
   latest: number;
 }> {
   const { data } = await supabaseAdmin
-    .from('system_metrics')
-    .select('metric_value')
-    .eq('metric_name', metricName)
-    .gte('recorded_at', new Date(Date.now() - hours * 60 * 60 * 1000).toISOString())
-    .order('recorded_at', { ascending: false });
+    .from("system_metrics")
+    .select("metric_value")
+    .eq("metric_name", metricName)
+    .gte(
+      "recorded_at",
+      new Date(Date.now() - hours * 60 * 60 * 1000).toISOString(),
+    )
+    .order("recorded_at", { ascending: false });
 
   if (!data || data.length === 0) {
     return { min: 0, max: 0, avg: 0, count: 0, latest: 0 };
@@ -572,10 +694,10 @@ export async function getMetricsSummary(
  */
 export async function getRequestRate(): Promise<number> {
   const { data } = await supabaseAdmin
-    .from('system_metrics')
-    .select('metric_value')
-    .eq('metric_name', 'request')
-    .gte('recorded_at', new Date(Date.now() - 60 * 1000).toISOString());
+    .from("system_metrics")
+    .select("metric_value")
+    .eq("metric_name", "request")
+    .gte("recorded_at", new Date(Date.now() - 60 * 1000).toISOString());
 
   if (!data) return 0;
 
@@ -587,19 +709,22 @@ export async function getRequestRate(): Promise<number> {
  */
 export async function getErrorRate(): Promise<number> {
   const { data: errors } = await supabaseAdmin
-    .from('system_metrics')
-    .select('metric_value')
-    .eq('metric_name', 'error')
-    .gte('recorded_at', new Date(Date.now() - 60 * 1000).toISOString());
+    .from("system_metrics")
+    .select("metric_value")
+    .eq("metric_name", "error")
+    .gte("recorded_at", new Date(Date.now() - 60 * 1000).toISOString());
 
   const { data: requests } = await supabaseAdmin
-    .from('system_metrics')
-    .select('metric_value')
-    .eq('metric_name', 'request')
-    .gte('recorded_at', new Date(Date.now() - 60 * 1000).toISOString());
+    .from("system_metrics")
+    .select("metric_value")
+    .eq("metric_name", "request")
+    .gte("recorded_at", new Date(Date.now() - 60 * 1000).toISOString());
 
   const errorCount = (errors || []).reduce((sum, d) => sum + d.metric_value, 0);
-  const requestCount = (requests || []).reduce((sum, d) => sum + d.metric_value, 0);
+  const requestCount = (requests || []).reduce(
+    (sum, d) => sum + d.metric_value,
+    0,
+  );
 
   if (requestCount === 0) return 0;
 
@@ -610,15 +735,19 @@ export async function getErrorRate(): Promise<number> {
 // EXPRESS MIDDLEWARE
 // ============================================
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
 /**
  * Metrics middleware
  */
-export function metricsMiddleware(req: Request, res: Response, next: NextFunction): void {
+export function metricsMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   const startTime = Date.now();
 
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - startTime;
     const endpoint = req.route?.path || req.path;
 
@@ -626,7 +755,10 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
     recordRequest(endpoint, req.method, res.statusCode);
 
     if (res.statusCode >= 400) {
-      recordError(endpoint, res.statusCode >= 500 ? 'server_error' : 'client_error');
+      recordError(
+        endpoint,
+        res.statusCode >= 500 ? "server_error" : "client_error",
+      );
     }
   });
 
@@ -636,21 +768,24 @@ export function metricsMiddleware(req: Request, res: Response, next: NextFunctio
 /**
  * Health check endpoint handler
  */
-export async function healthEndpoint(req: Request, res: Response): Promise<void> {
+export async function healthEndpoint(
+  req: Request,
+  res: Response,
+): Promise<void> {
   const type = req.query.type as string;
 
   switch (type) {
-    case 'quick':
+    case "quick":
       const quick = await quickHealthCheck();
-      res.status(quick.status === 'ok' ? 200 : 503).json(quick);
+      res.status(quick.status === "ok" ? 200 : 503).json(quick);
       break;
 
-    case 'ready':
+    case "ready":
       const ready = await readinessCheck();
       res.status(ready.ready ? 200 : 503).json(ready);
       break;
 
-    case 'live':
+    case "live":
       const live = livenessCheck();
       res.status(200).json(live);
       break;
@@ -658,7 +793,7 @@ export async function healthEndpoint(req: Request, res: Response): Promise<void>
     default:
       const health = await getSystemHealth();
       await logHealthCheck(health);
-      res.status(health.status === 'unhealthy' ? 503 : 200).json(health);
+      res.status(health.status === "unhealthy" ? 503 : 200).json(health);
   }
 }
 
@@ -684,15 +819,15 @@ export function startHealthChecker(intervalMs: number = 60000): void {
       // Check alerts
       await checkAlerts();
 
-      if (health.status !== 'healthy') {
-        logger.warn('System health degraded', { status: health.status });
+      if (health.status !== "healthy") {
+        logger.warn("System health degraded", { status: health.status });
       }
     } catch (error) {
-      logger.error('Health check failed', { error });
+      logger.error("Health check failed", { error });
     }
   }, intervalMs);
 
-  logger.info('Health checker started', { intervalMs });
+  logger.info("Health checker started", { intervalMs });
 }
 
 /**
@@ -702,7 +837,7 @@ export function stopHealthChecker(): void {
   if (healthCheckInterval) {
     clearInterval(healthCheckInterval);
     healthCheckInterval = null;
-    logger.info('Health checker stopped');
+    logger.info("Health checker stopped");
   }
 }
 

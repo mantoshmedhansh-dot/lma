@@ -1,21 +1,30 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Search, ShoppingCart, MapPin, User, LogOut, Package, Heart, Settings } from 'lucide-react';
-import { useCartStore } from '@/lib/store/cart';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Search,
+  ShoppingCart,
+  MapPin,
+  User,
+  LogOut,
+  Package,
+  Heart,
+  Settings,
+} from "lucide-react";
+import { useCartStore } from "@/lib/store/cart";
 
 interface HeaderProps {
   user?: {
@@ -29,7 +38,7 @@ interface HeaderProps {
 
 export function Header({ user }: HeaderProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const cartItems = useCartStore((state) => state.items);
   const itemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -43,7 +52,7 @@ export function Header({ user }: HeaderProps) {
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/');
+    router.push("/");
     router.refresh();
   };
 
@@ -97,7 +106,8 @@ export function Header({ user }: HeaderProps) {
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.avatar_url} />
                     <AvatarFallback>
-                      {user.first_name?.[0]}{user.last_name?.[0]}
+                      {user.first_name?.[0]}
+                      {user.last_name?.[0]}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden md:inline text-sm">
@@ -107,7 +117,9 @@ export function Header({ user }: HeaderProps) {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
+                  <p className="text-sm font-medium">
+                    {user.first_name} {user.last_name}
+                  </p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </div>
                 <DropdownMenuSeparator />
@@ -136,7 +148,10 @@ export function Header({ user }: HeaderProps) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  className="cursor-pointer text-red-600"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign out
                 </DropdownMenuItem>

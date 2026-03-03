@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,8 +14,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { formatDate } from '@/lib/utils';
+} from "@/components/ui/table";
+import { formatDate } from "@/lib/utils";
 import {
   Search,
   Truck,
@@ -26,7 +26,7 @@ import {
   Star,
   Eye,
   User,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Driver {
   id: string;
@@ -47,8 +47,8 @@ interface Driver {
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const supabase = createClient();
 
@@ -60,14 +60,14 @@ export default function DriversPage() {
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('drivers')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("drivers")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setDrivers(data || []);
     } catch (error) {
-      console.error('Error fetching drivers:', error);
+      console.error("Error fetching drivers:", error);
     } finally {
       setLoading(false);
     }
@@ -76,15 +76,15 @@ export default function DriversPage() {
   const updateDriverStatus = async (driverId: string, status: string) => {
     try {
       const { error } = await supabase
-        .from('drivers')
+        .from("drivers")
         .update({ status })
-        .eq('id', driverId);
+        .eq("id", driverId);
 
       if (error) throw error;
       fetchDrivers();
       setSelectedDriver(null);
     } catch (error) {
-      console.error('Error updating driver:', error);
+      console.error("Error updating driver:", error);
     }
   };
 
@@ -93,20 +93,24 @@ export default function DriversPage() {
       driver.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       driver.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       driver.vehicle_number?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || driver.status === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || driver.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
-  const statusColors: Record<string, 'success' | 'warning' | 'destructive' | 'info' | 'secondary'> = {
-    approved: 'success',
-    pending: 'warning',
-    suspended: 'destructive',
-    online: 'success',
-    offline: 'secondary',
-    busy: 'info',
+  const statusColors: Record<
+    string,
+    "success" | "warning" | "destructive" | "info" | "secondary"
+  > = {
+    approved: "success",
+    pending: "warning",
+    suspended: "destructive",
+    online: "success",
+    offline: "secondary",
+    busy: "info",
   };
 
-  const pendingCount = drivers.filter((d) => d.status === 'pending').length;
+  const pendingCount = drivers.filter((d) => d.status === "pending").length;
   const onlineCount = drivers.filter((d) => d.is_online).length;
 
   return (
@@ -127,7 +131,7 @@ export default function DriversPage() {
               </div>
             </CardContent>
           </Card>
-          <Card className={pendingCount > 0 ? 'border-warning' : ''}>
+          <Card className={pendingCount > 0 ? "border-warning" : ""}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -144,7 +148,7 @@ export default function DriversPage() {
                 <div>
                   <p className="text-sm text-muted-foreground">Approved</p>
                   <p className="text-2xl font-bold">
-                    {drivers.filter((d) => d.status === 'approved').length}
+                    {drivers.filter((d) => d.status === "approved").length}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-success" />
@@ -215,7 +219,10 @@ export default function DriversPage() {
                 </TableRow>
               ) : filteredDrivers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-8 text-muted-foreground"
+                  >
                     No drivers found
                   </TableCell>
                 </TableRow>
@@ -229,18 +236,24 @@ export default function DriversPage() {
                         </div>
                         <div>
                           <p className="font-medium">{driver.full_name}</p>
-                          <p className="text-sm text-muted-foreground">{driver.phone}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {driver.phone}
+                          </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
                         <p className="capitalize">{driver.vehicle_type}</p>
-                        <p className="text-sm text-muted-foreground">{driver.vehicle_number}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {driver.vehicle_number}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={statusColors[driver.status] || 'secondary'}>
+                      <Badge
+                        variant={statusColors[driver.status] || "secondary"}
+                      >
                         {driver.status}
                       </Badge>
                     </TableCell>
@@ -248,35 +261,39 @@ export default function DriversPage() {
                       <div className="flex items-center gap-2">
                         <div
                           className={`w-2 h-2 rounded-full ${
-                            driver.is_online ? 'bg-green-500' : 'bg-gray-400'
+                            driver.is_online ? "bg-green-500" : "bg-gray-400"
                           }`}
                         />
-                        {driver.is_online ? 'Online' : 'Offline'}
+                        {driver.is_online ? "Online" : "Offline"}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Star className="w-3 h-3 fill-yellow-500 text-yellow-500" />
-                        {driver.rating?.toFixed(1) || '0.0'}
+                        {driver.rating?.toFixed(1) || "0.0"}
                       </div>
                     </TableCell>
                     <TableCell>{driver.total_deliveries || 0}</TableCell>
                     <TableCell>{formatDate(driver.created_at)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {driver.status === 'pending' && (
+                        {driver.status === "pending" && (
                           <>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateDriverStatus(driver.id, 'approved')}
+                              onClick={() =>
+                                updateDriverStatus(driver.id, "approved")
+                              }
                             >
                               <CheckCircle className="w-4 h-4 text-success" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => updateDriverStatus(driver.id, 'suspended')}
+                              onClick={() =>
+                                updateDriverStatus(driver.id, "suspended")
+                              }
                             >
                               <XCircle className="w-4 h-4 text-destructive" />
                             </Button>
@@ -328,7 +345,9 @@ export default function DriversPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Vehicle Type</p>
-                  <p className="font-medium capitalize">{selectedDriver.vehicle_type}</p>
+                  <p className="font-medium capitalize">
+                    {selectedDriver.vehicle_type}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Vehicle Number</p>
@@ -340,45 +359,60 @@ export default function DriversPage() {
                 </div>
                 <div>
                   <p className="text-muted-foreground">Rating</p>
-                  <p className="font-medium">{selectedDriver.rating?.toFixed(1) || '0.0'}</p>
+                  <p className="font-medium">
+                    {selectedDriver.rating?.toFixed(1) || "0.0"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Total Deliveries</p>
-                  <p className="font-medium">{selectedDriver.total_deliveries || 0}</p>
+                  <p className="font-medium">
+                    {selectedDriver.total_deliveries || 0}
+                  </p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Currently Online</p>
-                  <p className="font-medium">{selectedDriver.is_online ? 'Yes' : 'No'}</p>
+                  <p className="font-medium">
+                    {selectedDriver.is_online ? "Yes" : "No"}
+                  </p>
                 </div>
               </div>
 
               <div className="flex gap-2 pt-4">
-                {selectedDriver.status === 'pending' && (
+                {selectedDriver.status === "pending" && (
                   <Button
                     className="flex-1"
-                    onClick={() => updateDriverStatus(selectedDriver.id, 'approved')}
+                    onClick={() =>
+                      updateDriverStatus(selectedDriver.id, "approved")
+                    }
                   >
                     Approve
                   </Button>
                 )}
-                {selectedDriver.status === 'approved' && (
+                {selectedDriver.status === "approved" && (
                   <Button
                     variant="destructive"
                     className="flex-1"
-                    onClick={() => updateDriverStatus(selectedDriver.id, 'suspended')}
+                    onClick={() =>
+                      updateDriverStatus(selectedDriver.id, "suspended")
+                    }
                   >
                     Suspend
                   </Button>
                 )}
-                {selectedDriver.status === 'suspended' && (
+                {selectedDriver.status === "suspended" && (
                   <Button
                     className="flex-1"
-                    onClick={() => updateDriverStatus(selectedDriver.id, 'approved')}
+                    onClick={() =>
+                      updateDriverStatus(selectedDriver.id, "approved")
+                    }
                   >
                     Reactivate
                   </Button>
                 )}
-                <Button variant="outline" onClick={() => setSelectedDriver(null)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedDriver(null)}
+                >
                   Close
                 </Button>
               </div>

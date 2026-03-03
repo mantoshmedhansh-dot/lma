@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Bell, LogOut, User, Store, ChevronDown } from 'lucide-react';
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Bell, LogOut, User, Store, ChevronDown } from "lucide-react";
 
 interface HeaderProps {
   user: {
@@ -32,7 +32,7 @@ export function Header({ user, merchant }: HeaderProps) {
   const handleSignOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/login");
     router.refresh();
   };
 
@@ -40,11 +40,13 @@ export function Header({ user, merchant }: HeaderProps) {
     <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6">
       {/* Status Badge */}
       <div className="flex items-center gap-2">
-        <div className={`h-2 w-2 rounded-full ${
-          merchant.status === 'active' ? 'bg-green-500' : 'bg-yellow-500'
-        }`} />
+        <div
+          className={`h-2 w-2 rounded-full ${
+            merchant.status === "active" ? "bg-green-500" : "bg-yellow-500"
+          }`}
+        />
         <span className="text-sm text-muted-foreground">
-          {merchant.status === 'active' ? 'Store Open' : 'Store Closed'}
+          {merchant.status === "active" ? "Store Open" : "Store Closed"}
         </span>
       </div>
 
@@ -65,11 +67,14 @@ export function Header({ user, merchant }: HeaderProps) {
             <Avatar className="h-8 w-8">
               <AvatarImage src={user.avatar_url} />
               <AvatarFallback>
-                {user.first_name?.[0]}{user.last_name?.[0]}
+                {user.first_name?.[0]}
+                {user.last_name?.[0]}
               </AvatarFallback>
             </Avatar>
             <div className="hidden md:block text-left">
-              <p className="text-sm font-medium">{user.first_name} {user.last_name}</p>
+              <p className="text-sm font-medium">
+                {user.first_name} {user.last_name}
+              </p>
               <p className="text-xs text-muted-foreground">{user.email}</p>
             </div>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
@@ -89,7 +94,10 @@ export function Header({ user, merchant }: HeaderProps) {
             </a>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600">
+          <DropdownMenuItem
+            onClick={handleSignOut}
+            className="cursor-pointer text-red-600"
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Sign Out
           </DropdownMenuItem>

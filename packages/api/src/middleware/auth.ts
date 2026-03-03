@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { supabaseAdmin } from '../config/supabase.js';
-import { ApiError } from '../utils/errors.js';
-import { ERROR_CODES, UserRole } from '@lma/shared';
+import { Request, Response, NextFunction } from "express";
+import { supabaseAdmin } from "../config/supabase.js";
+import { ApiError } from "../utils/errors.js";
+import { ERROR_CODES, UserRole } from "@lma/shared";
 
 // Extend Express Request type
 declare global {
@@ -20,12 +20,20 @@ declare global {
 /**
  * Middleware to authenticate requests using Supabase JWT
  */
-export async function authenticate(req: Request, res: Response, next: NextFunction) {
+export async function authenticate(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader?.startsWith('Bearer ')) {
-      throw new ApiError(401, ERROR_CODES.UNAUTHORIZED, 'Missing or invalid authorization header');
+    if (!authHeader?.startsWith("Bearer ")) {
+      throw new ApiError(
+        401,
+        ERROR_CODES.UNAUTHORIZED,
+        "Missing or invalid authorization header",
+      );
     }
 
     const token = authHeader.substring(7);
@@ -37,18 +45,26 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
     } = await supabaseAdmin.auth.getUser(token);
 
     if (error || !user) {
-      throw new ApiError(401, ERROR_CODES.UNAUTHORIZED, 'Invalid or expired token');
+      throw new ApiError(
+        401,
+        ERROR_CODES.UNAUTHORIZED,
+        "Invalid or expired token",
+      );
     }
 
     // Get user profile from database
     const { data: profile, error: profileError } = await supabaseAdmin
-      .from('users')
-      .select('id, email, role')
-      .eq('id', user.id)
+      .from("users")
+      .select("id, email, role")
+      .eq("id", user.id)
       .single();
 
     if (profileError || !profile) {
-      throw new ApiError(401, ERROR_CODES.UNAUTHORIZED, 'User profile not found');
+      throw new ApiError(
+        401,
+        ERROR_CODES.UNAUTHORIZED,
+        "User profile not found",
+      );
     }
 
     // Attach user to request
@@ -68,10 +84,14 @@ export async function authenticate(req: Request, res: Response, next: NextFuncti
 /**
  * Optional authentication - doesn't fail if no token provided
  */
-export async function optionalAuth(req: Request, res: Response, next: NextFunction) {
+export async function optionalAuth(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader?.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith("Bearer ")) {
     return next();
   }
 
@@ -84,11 +104,15 @@ export async function optionalAuth(req: Request, res: Response, next: NextFuncti
 export function requireRole(...allowedRoles: UserRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return next(new ApiError(401, ERROR_CODES.UNAUTHORIZED, 'Authentication required'));
+      return next(
+        new ApiError(401, ERROR_CODES.UNAUTHORIZED, "Authentication required"),
+      );
     }
 
     if (!allowedRoles.includes(req.user.role)) {
-      return next(new ApiError(403, ERROR_CODES.FORBIDDEN, 'Insufficient permissions'));
+      return next(
+        new ApiError(403, ERROR_CODES.FORBIDDEN, "Insufficient permissions"),
+      );
     }
 
     next();
@@ -98,24 +122,24 @@ export function requireRole(...allowedRoles: UserRole[]) {
 /**
  * Middleware to require customer role
  */
-export const requireCustomer = requireRole('customer', 'admin', 'super_admin');
+export const requireCustomer = requireRole("customer", "admin", "super_admin");
 
 /**
  * Middleware to require driver role
  */
-export const requireDriver = requireRole('driver', 'admin', 'super_admin');
+export const requireDriver = requireRole("driver", "admin", "super_admin");
 
 /**
  * Middleware to require merchant role
  */
-export const requireMerchant = requireRole('merchant', 'admin', 'super_admin');
+export const requireMerchant = requireRole("merchant", "admin", "super_admin");
 
 /**
  * Middleware to require admin role
  */
-export const requireAdmin = requireRole('admin', 'super_admin');
+export const requireAdmin = requireRole("admin", "super_admin");
 
 /**
  * Middleware to require super admin role
  */
-export const requireSuperAdmin = requireRole('super_admin');
+export const requireSuperAdmin = requireRole("super_admin");

@@ -1,34 +1,41 @@
-import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-sans',
+  subsets: ["latin"],
+  variable: "--font-sans",
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'Delivery Hub Operations',
-    template: '%s | Delivery Hub',
+    default: "Delivery Hub Operations",
+    template: "%s | Delivery Hub",
   },
-  description: 'Delivery Hub Operations System for consumer durable brands. Route planning, driver management, and delivery tracking.',
-  keywords: ['delivery', 'hub operations', 'last mile', 'route planning', 'fleet management'],
-  authors: [{ name: 'Delivery Hub' }],
-  manifest: '/manifest.json',
+  description:
+    "Delivery Hub Operations System for consumer durable brands. Route planning, driver management, and delivery tracking.",
+  keywords: [
+    "delivery",
+    "hub operations",
+    "last mile",
+    "route planning",
+    "fleet management",
+  ],
+  authors: [{ name: "Delivery Hub" }],
+  manifest: "/manifest.json",
   icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
 };

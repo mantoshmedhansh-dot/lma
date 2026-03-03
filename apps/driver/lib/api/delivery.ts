@@ -1,12 +1,12 @@
-import { apiClient } from './client';
-import { supabase } from '../supabase';
-import type { DeliveryRoute, FailureReason } from '../types/route';
+import { apiClient } from "./client";
+import { supabase } from "../supabase";
+import type { DeliveryRoute, FailureReason } from "../types/route";
 
 export async function fetchMyRoute(): Promise<DeliveryRoute | null> {
   try {
-    return await apiClient<DeliveryRoute>('/api/v1/delivery/my-route');
+    return await apiClient<DeliveryRoute>("/api/v1/delivery/my-route");
   } catch (error: any) {
-    if (error.message?.includes('404') || error.message?.includes('No route')) {
+    if (error.message?.includes("404") || error.message?.includes("No route")) {
       return null;
     }
     throw error;
@@ -15,26 +15,26 @@ export async function fetchMyRoute(): Promise<DeliveryRoute | null> {
 
 export async function arriveAtStop(stopId: string): Promise<void> {
   await apiClient(`/api/v1/delivery/stop/${stopId}/arrive`, {
-    method: 'POST',
+    method: "POST",
   });
 }
 
 export async function completeStop(
   stopId: string,
-  statusValue: 'delivered' | 'failed',
+  statusValue: "delivered" | "failed",
 ): Promise<void> {
   await apiClient(
     `/api/v1/delivery/stop/${stopId}/complete?status_value=${statusValue}`,
-    { method: 'POST' },
+    { method: "POST" },
   );
 }
 
 export async function sendOtp(
   orderId: string,
-  type: 'delivery' | 'return',
+  type: "delivery" | "return",
 ): Promise<{ message: string }> {
-  return apiClient('/api/v1/delivery/otp/send', {
-    method: 'POST',
+  return apiClient("/api/v1/delivery/otp/send", {
+    method: "POST",
     body: JSON.stringify({ order_id: orderId, type }),
   });
 }
@@ -42,17 +42,17 @@ export async function sendOtp(
 export async function verifyOtp(
   orderId: string,
   code: string,
-  type: 'delivery' | 'return',
+  type: "delivery" | "return",
 ): Promise<{ verified: boolean }> {
-  return apiClient('/api/v1/delivery/otp/verify', {
-    method: 'POST',
+  return apiClient("/api/v1/delivery/otp/verify", {
+    method: "POST",
     body: JSON.stringify({ order_id: orderId, code, type }),
   });
 }
 
 export interface RecordAttemptData {
   order_id: string;
-  status: 'delivered' | 'failed';
+  status: "delivered" | "failed";
   photo_urls?: string[];
   signature_url?: string | null;
   failure_reason?: FailureReason | null;
@@ -63,15 +63,15 @@ export interface RecordAttemptData {
 }
 
 export async function recordAttempt(data: RecordAttemptData): Promise<void> {
-  await apiClient('/api/v1/delivery/attempt', {
-    method: 'POST',
+  await apiClient("/api/v1/delivery/attempt", {
+    method: "POST",
     body: JSON.stringify(data),
   });
 }
 
 export async function returnToHub(orderId: string): Promise<void> {
   await apiClient(`/api/v1/delivery/return-to-hub?order_id=${orderId}`, {
-    method: 'POST',
+    method: "POST",
   });
 }
 
@@ -86,11 +86,11 @@ export async function uploadPhoto(
   const blob = await response.blob();
 
   const { error } = await supabase.storage
-    .from('deliveries')
-    .upload(filePath, blob, { contentType: 'image/jpeg' });
+    .from("deliveries")
+    .upload(filePath, blob, { contentType: "image/jpeg" });
 
   if (error) throw error;
 
-  const { data } = supabase.storage.from('deliveries').getPublicUrl(filePath);
+  const { data } = supabase.storage.from("deliveries").getPublicUrl(filePath);
   return data.publicUrl;
 }

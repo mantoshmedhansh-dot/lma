@@ -40,14 +40,14 @@ This guide explains how to deploy the LMA (Last Mile Delivery Application) platf
 
 ## Deployment Targets
 
-| Application | Platform | URL Pattern |
-|-------------|----------|-------------|
-| API | Render | api.yourdomain.com |
-| Customer Web | Vercel | www.yourdomain.com |
-| Merchant Admin | Vercel | merchant.yourdomain.com |
-| Super Admin | Vercel | admin.yourdomain.com |
-| Driver App | Expo/App Store | - |
-| Customer App | Expo/App Store | - |
+| Application    | Platform       | URL Pattern             |
+| -------------- | -------------- | ----------------------- |
+| API            | Render         | api.yourdomain.com      |
+| Customer Web   | Vercel         | www.yourdomain.com      |
+| Merchant Admin | Vercel         | merchant.yourdomain.com |
+| Super Admin    | Vercel         | admin.yourdomain.com    |
+| Driver App     | Expo/App Store | -                       |
+| Customer App   | Expo/App Store | -                       |
 
 ## Prerequisites
 

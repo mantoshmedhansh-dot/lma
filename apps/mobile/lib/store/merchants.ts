@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { supabase } from '../supabase';
+import { create } from "zustand";
+import { supabase } from "../supabase";
 
 interface Merchant {
   id: string;
@@ -67,22 +67,22 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
   currentMerchant: null,
   currentProducts: [],
   loading: false,
-  searchQuery: '',
+  searchQuery: "",
   searchResults: [],
 
   fetchMerchants: async () => {
     set({ loading: true });
     try {
       const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('status', 'active')
-        .order('rating', { ascending: false });
+        .from("merchants")
+        .select("*")
+        .eq("status", "active")
+        .order("rating", { ascending: false });
 
       if (error) throw error;
       set({ merchants: data || [] });
     } catch (error) {
-      console.error('Error fetching merchants:', error);
+      console.error("Error fetching merchants:", error);
     } finally {
       set({ loading: false });
     }
@@ -91,17 +91,17 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
   fetchFeaturedMerchants: async () => {
     try {
       const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('status', 'active')
-        .eq('is_featured', true)
-        .order('rating', { ascending: false })
+        .from("merchants")
+        .select("*")
+        .eq("status", "active")
+        .eq("is_featured", true)
+        .order("rating", { ascending: false })
         .limit(10);
 
       if (error) throw error;
       set({ featuredMerchants: data || [] });
     } catch (error) {
-      console.error('Error fetching featured merchants:', error);
+      console.error("Error fetching featured merchants:", error);
     }
   },
 
@@ -109,16 +109,16 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
     try {
       // Merchant types as categories
       const categories = [
-        { id: 'restaurant', name: 'Restaurants', image_url: null },
-        { id: 'grocery', name: 'Grocery', image_url: null },
-        { id: 'pharmacy', name: 'Pharmacy', image_url: null },
-        { id: 'bakery', name: 'Bakery', image_url: null },
-        { id: 'cafe', name: 'Cafe', image_url: null },
-        { id: 'convenience', name: 'Convenience', image_url: null },
+        { id: "restaurant", name: "Restaurants", image_url: null },
+        { id: "grocery", name: "Grocery", image_url: null },
+        { id: "pharmacy", name: "Pharmacy", image_url: null },
+        { id: "bakery", name: "Bakery", image_url: null },
+        { id: "cafe", name: "Cafe", image_url: null },
+        { id: "convenience", name: "Convenience", image_url: null },
       ];
       set({ categories });
     } catch (error) {
-      console.error('Error fetching categories:', error);
+      console.error("Error fetching categories:", error);
     }
   },
 
@@ -126,9 +126,9 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
     set({ loading: true });
     try {
       const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('slug', slug)
+        .from("merchants")
+        .select("*")
+        .eq("slug", slug)
         .single();
 
       if (error) throw error;
@@ -138,7 +138,7 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
         await get().fetchProducts(data.id);
       }
     } catch (error) {
-      console.error('Error fetching merchant:', error);
+      console.error("Error fetching merchant:", error);
     } finally {
       set({ loading: false });
     }
@@ -147,16 +147,16 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
   fetchProducts: async (merchantId) => {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('merchant_id', merchantId)
-        .eq('is_available', true)
-        .order('name');
+        .from("products")
+        .select("*")
+        .eq("merchant_id", merchantId)
+        .eq("is_available", true)
+        .order("name");
 
       if (error) throw error;
       set({ currentProducts: data || [] });
     } catch (error) {
-      console.error('Error fetching products:', error);
+      console.error("Error fetching products:", error);
     }
   },
 
@@ -169,17 +169,17 @@ export const useMerchantsStore = create<MerchantsState>((set, get) => ({
     set({ loading: true });
     try {
       const { data, error } = await supabase
-        .from('merchants')
-        .select('*')
-        .eq('status', 'active')
-        .ilike('name', `%${query}%`)
-        .order('rating', { ascending: false })
+        .from("merchants")
+        .select("*")
+        .eq("status", "active")
+        .ilike("name", `%${query}%`)
+        .order("rating", { ascending: false })
         .limit(20);
 
       if (error) throw error;
       set({ searchResults: data || [] });
     } catch (error) {
-      console.error('Error searching merchants:', error);
+      console.error("Error searching merchants:", error);
     } finally {
       set({ loading: false });
     }

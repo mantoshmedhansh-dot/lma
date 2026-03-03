@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
-import { Store, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
+import { Store, Mail, Lock, Eye, EyeOff } from "lucide-react";
 
 export default function MerchantLoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -30,45 +30,46 @@ export default function MerchantLoginPage() {
 
       if (error) {
         toast({
-          title: 'Login failed',
+          title: "Login failed",
           description: error.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
 
       // Check if user has a merchant account
       const { data: merchant, error: merchantError } = await supabase
-        .from('merchants')
-        .select('id, status')
-        .eq('owner_id', data.user.id)
+        .from("merchants")
+        .select("id, status")
+        .eq("owner_id", data.user.id)
         .single();
 
       if (merchantError || !merchant) {
         toast({
-          title: 'Access denied',
-          description: 'No merchant account found. Please register your business first.',
-          variant: 'destructive',
+          title: "Access denied",
+          description:
+            "No merchant account found. Please register your business first.",
+          variant: "destructive",
         });
         await supabase.auth.signOut();
         return;
       }
 
-      if (merchant.status === 'pending') {
+      if (merchant.status === "pending") {
         toast({
-          title: 'Account pending',
-          description: 'Your merchant account is awaiting approval.',
-          variant: 'warning',
+          title: "Account pending",
+          description: "Your merchant account is awaiting approval.",
+          variant: "warning",
         });
       }
 
-      router.push('/orders');
+      router.push("/orders");
       router.refresh();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -84,9 +85,7 @@ export default function MerchantLoginPage() {
           </div>
         </div>
         <h1 className="text-2xl font-bold">Merchant Portal</h1>
-        <p className="text-muted-foreground">
-          Sign in to manage your store
-        </p>
+        <p className="text-muted-foreground">Sign in to manage your store</p>
       </div>
 
       <div className="bg-card rounded-lg border p-6 shadow-sm">
@@ -117,7 +116,7 @@ export default function MerchantLoginPage() {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -152,14 +151,17 @@ export default function MerchantLoginPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
         </form>
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        Don't have a merchant account?{' '}
-        <Link href="/register" className="text-primary hover:underline font-medium">
+        Don't have a merchant account?{" "}
+        <Link
+          href="/register"
+          className="text-primary hover:underline font-medium"
+        >
           Register your business
         </Link>
       </p>

@@ -4,23 +4,24 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 
 ## Phase Overview
 
-| Phase | Focus | Duration Target |
-|-------|-------|-----------------|
-| 1 | Foundation & Core Setup | - |
-| 2 | Customer Web App | - |
-| 3 | Merchant Dashboard | - |
-| 4 | Driver Mobile App | - |
-| 5 | Customer Mobile App | - |
-| 6 | Admin Dashboard | - |
-| 7 | Advanced Features | - |
-| 8 | Testing & Polish | - |
-| 9 | Launch Preparation | - |
+| Phase | Focus                   | Duration Target |
+| ----- | ----------------------- | --------------- |
+| 1     | Foundation & Core Setup | -               |
+| 2     | Customer Web App        | -               |
+| 3     | Merchant Dashboard      | -               |
+| 4     | Driver Mobile App       | -               |
+| 5     | Customer Mobile App     | -               |
+| 6     | Admin Dashboard         | -               |
+| 7     | Advanced Features       | -               |
+| 8     | Testing & Polish        | -               |
+| 9     | Launch Preparation      | -               |
 
 ---
 
 ## Phase 1: Foundation & Core Setup
 
 ### 1.1 Project Initialization
+
 - [x] Create project structure
 - [x] Set up monorepo with Turborepo
 - [x] Configure PNPM workspace
@@ -29,6 +30,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [x] Document architecture
 
 ### 1.2 Supabase Setup
+
 - [ ] Create Supabase project
 - [ ] Apply database schema
 - [ ] Configure Row Level Security
@@ -38,6 +40,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Test database functions and triggers
 
 ### 1.3 Backend API Setup
+
 - [ ] Initialize Express.js project
 - [ ] Set up TypeScript configuration
 - [ ] Configure middleware (CORS, rate limiting, logging)
@@ -49,12 +52,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Deploy to Render (staging)
 
 ### 1.4 Shared Package Setup
+
 - [ ] Create shared types (TypeScript)
 - [ ] Create shared constants
 - [ ] Create shared utilities
 - [ ] Generate types from Supabase schema
 
 ### 1.5 CI/CD Pipeline
+
 - [ ] Set up GitHub repository
 - [ ] Configure GitHub Actions for testing
 - [ ] Configure Vercel deployment (web apps)
@@ -66,6 +71,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 2: Customer Web App (Next.js)
 
 ### 2.1 Project Setup
+
 - [ ] Initialize Next.js 14 with App Router
 - [ ] Configure Tailwind CSS
 - [ ] Set up shadcn/ui components
@@ -73,6 +79,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Set up API client
 
 ### 2.2 Authentication
+
 - [ ] Sign up page (email, phone, social)
 - [ ] Login page
 - [ ] Password reset flow
@@ -81,6 +88,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] User session management
 
 ### 2.3 Core Pages
+
 - [ ] Home page with featured merchants
 - [ ] Category browsing
 - [ ] Search functionality
@@ -89,6 +97,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Product detail modal/page
 
 ### 2.4 Shopping Cart
+
 - [ ] Cart state management
 - [ ] Add/remove items
 - [ ] Quantity updates
@@ -96,6 +105,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Cart sidebar/page
 
 ### 2.5 Checkout Flow
+
 - [ ] Address selection/input
 - [ ] Delivery instructions
 - [ ] Payment method selection
@@ -104,12 +114,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Order confirmation
 
 ### 2.6 Payment Integration
+
 - [ ] Stripe Elements integration
 - [ ] Card payment processing
 - [ ] Payment error handling
 - [ ] Save cards for future use
 
 ### 2.7 Order Management
+
 - [ ] Order history page
 - [ ] Order detail page
 - [ ] Real-time order tracking
@@ -117,6 +129,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Order status notifications
 
 ### 2.8 User Profile
+
 - [ ] Profile settings
 - [ ] Address management
 - [ ] Payment methods management
@@ -125,6 +138,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Review & rating submission
 
 ### 2.9 Responsive Design
+
 - [ ] Mobile-first approach
 - [ ] Tablet optimization
 - [ ] Desktop optimization
@@ -135,6 +149,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 3: Merchant Dashboard (Next.js)
 
 ### 3.1 Merchant Onboarding
+
 - [ ] Registration flow
 - [ ] Business details form
 - [ ] Document upload
@@ -142,6 +157,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Verification status tracking
 
 ### 3.2 Menu/Product Management
+
 - [ ] Product listing
 - [ ] Add/Edit products
 - [ ] Product variants
@@ -151,6 +167,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Bulk import/export
 
 ### 3.3 Order Management
+
 - [ ] Live orders dashboard
 - [ ] Order acceptance/rejection
 - [ ] Preparation status updates
@@ -159,11 +176,13 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Print order receipts
 
 ### 3.4 Real-time Features
+
 - [ ] New order notifications (audio + visual)
 - [ ] Real-time order updates
 - [ ] Low stock alerts
 
 ### 3.5 Business Settings
+
 - [ ] Operating hours
 - [ ] Delivery settings
 - [ ] Minimum order value
@@ -171,6 +190,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Auto-accept settings
 
 ### 3.6 Analytics & Reports
+
 - [ ] Sales dashboard
 - [ ] Popular items
 - [ ] Revenue reports
@@ -178,6 +198,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Export reports
 
 ### 3.7 Payouts
+
 - [ ] Earnings overview
 - [ ] Settlement history
 - [ ] Bank account management
@@ -187,24 +208,28 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 4: Driver Mobile App (React Native)
 
 ### 4.1 Project Setup
+
 - [ ] Initialize Expo project
 - [ ] Configure navigation
 - [ ] Set up NativeWind (Tailwind)
 - [ ] Configure push notifications
 
 ### 4.2 Authentication
+
 - [ ] Login screen
 - [ ] Document upload (license, ID)
 - [ ] Vehicle details
 - [ ] Verification status
 
 ### 4.3 Home/Dashboard
+
 - [ ] Online/Offline toggle
 - [ ] Current location display
 - [ ] Daily earnings summary
 - [ ] Incoming order alerts
 
 ### 4.4 Delivery Management
+
 - [ ] Incoming delivery request screen
 - [ ] Accept/Reject delivery
 - [ ] Order details view
@@ -214,23 +239,27 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Delivery confirmation (with photo)
 
 ### 4.5 Navigation
+
 - [ ] Integrated maps (Mapbox/Google)
 - [ ] Turn-by-turn directions
 - [ ] Distance and ETA
 - [ ] Route optimization
 
 ### 4.6 Communication
+
 - [ ] In-app chat with customer
 - [ ] Call customer (masked number)
 - [ ] Chat with support
 
 ### 4.7 Earnings
+
 - [ ] Daily/Weekly/Monthly earnings
 - [ ] Earnings breakdown
 - [ ] Delivery history
 - [ ] Withdrawal to bank
 
 ### 4.8 Profile & Settings
+
 - [ ] Profile management
 - [ ] Vehicle details update
 - [ ] Bank account management
@@ -238,6 +267,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Help & Support
 
 ### 4.9 Background Features
+
 - [ ] Background location tracking
 - [ ] Location updates to server
 - [ ] Push notifications
@@ -248,12 +278,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 5: Customer Mobile App (React Native)
 
 ### 5.1 Project Setup
+
 - [ ] Initialize Expo project
 - [ ] Configure navigation
 - [ ] Set up NativeWind
 - [ ] Configure push notifications
 
 ### 5.2 Authentication
+
 - [ ] Splash screen
 - [ ] Onboarding screens
 - [ ] Sign up / Login
@@ -262,6 +294,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] OTP verification
 
 ### 5.3 Home & Discovery
+
 - [ ] Location permission
 - [ ] Current location detection
 - [ ] Featured merchants
@@ -270,6 +303,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Nearby merchants
 
 ### 5.4 Merchant & Products
+
 - [ ] Merchant profile
 - [ ] Menu/Product listing
 - [ ] Product details
@@ -277,6 +311,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Customization options
 
 ### 5.5 Cart & Checkout
+
 - [ ] Cart management
 - [ ] Address selection
 - [ ] Payment selection
@@ -284,6 +319,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Order confirmation
 
 ### 5.6 Order Tracking
+
 - [ ] Real-time status updates
 - [ ] Live driver location
 - [ ] ETA updates
@@ -291,6 +327,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Contact driver
 
 ### 5.7 User Features
+
 - [ ] Profile management
 - [ ] Address book
 - [ ] Payment methods
@@ -299,6 +336,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Reviews & ratings
 
 ### 5.8 Notifications
+
 - [ ] Push notification setup
 - [ ] Order status alerts
 - [ ] Promotional notifications
@@ -309,12 +347,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 6: Admin Dashboard (Next.js)
 
 ### 6.1 Dashboard Overview
+
 - [ ] Key metrics (orders, revenue, users)
 - [ ] Real-time statistics
 - [ ] Charts and graphs
 - [ ] Alert notifications
 
 ### 6.2 User Management
+
 - [ ] Customer list and details
 - [ ] Driver list and details
 - [ ] Merchant list and details
@@ -322,6 +362,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Account actions (suspend, delete)
 
 ### 6.3 Merchant Management
+
 - [ ] Pending approvals
 - [ ] Merchant verification
 - [ ] Document review
@@ -329,6 +370,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Featured merchants
 
 ### 6.4 Driver Management
+
 - [ ] Pending approvals
 - [ ] Document verification
 - [ ] Driver tracking
@@ -336,6 +378,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Payout management
 
 ### 6.5 Order Management
+
 - [ ] All orders view
 - [ ] Order details
 - [ ] Issue resolution
@@ -343,6 +386,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Order reassignment
 
 ### 6.6 Financial Management
+
 - [ ] Revenue reports
 - [ ] Commission tracking
 - [ ] Merchant settlements
@@ -350,12 +394,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Refund tracking
 
 ### 6.7 Promotions
+
 - [ ] Coupon management
 - [ ] Create/Edit coupons
 - [ ] Usage tracking
 - [ ] Banner management
 
 ### 6.8 System Configuration
+
 - [ ] Service zones
 - [ ] Delivery fee settings
 - [ ] Surge pricing
@@ -363,6 +409,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Notification templates
 
 ### 6.9 Support Tools
+
 - [ ] Customer support tickets
 - [ ] Chat/Message history
 - [ ] Issue tracking
@@ -373,6 +420,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 7: Advanced Features
 
 ### 7.1 Smart Features
+
 - [ ] Intelligent driver assignment algorithm
 - [ ] ETA prediction with ML
 - [ ] Demand forecasting
@@ -380,22 +428,26 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Surge pricing automation
 
 ### 7.2 Loyalty & Rewards
+
 - [ ] Points system
 - [ ] Tier-based rewards
 - [ ] Referral program
 - [ ] Cashback offers
 
 ### 7.3 Scheduled Orders
+
 - [ ] Schedule for later
 - [ ] Recurring orders
 - [ ] Pre-orders
 
 ### 7.4 Multi-language Support
+
 - [ ] i18n setup
 - [ ] Translation management
 - [ ] RTL support
 
 ### 7.5 Accessibility
+
 - [ ] Screen reader support
 - [ ] Keyboard navigation
 - [ ] High contrast mode
@@ -406,36 +458,42 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 8: Testing & Polish
 
 ### 8.1 Unit Testing
+
 - [ ] API endpoint tests
 - [ ] Component tests
 - [ ] Utility function tests
 - [ ] Hook tests
 
 ### 8.2 Integration Testing
+
 - [ ] Database operations
 - [ ] API integrations
 - [ ] Payment flow
 - [ ] Real-time features
 
 ### 8.3 E2E Testing
+
 - [ ] Customer journey
 - [ ] Merchant journey
 - [ ] Driver journey
 - [ ] Admin operations
 
 ### 8.4 Performance Testing
+
 - [ ] Load testing
 - [ ] Stress testing
 - [ ] API response times
 - [ ] Database query optimization
 
 ### 8.5 Security Testing
+
 - [ ] Penetration testing
 - [ ] Security audit
 - [ ] OWASP compliance
 - [ ] Data encryption verification
 
 ### 8.6 User Testing
+
 - [ ] Beta testing program
 - [ ] Feedback collection
 - [ ] Bug tracking
@@ -446,6 +504,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Phase 9: Launch Preparation
 
 ### 9.1 Infrastructure
+
 - [ ] Production environment setup
 - [ ] SSL certificates
 - [ ] Domain configuration
@@ -453,12 +512,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Database scaling
 
 ### 9.2 Monitoring
+
 - [ ] Error tracking (Sentry)
 - [ ] Performance monitoring
 - [ ] Uptime monitoring
 - [ ] Log aggregation
 
 ### 9.3 Documentation
+
 - [ ] API documentation
 - [ ] User guides
 - [ ] FAQ
@@ -466,12 +527,14 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 - [ ] Privacy policy
 
 ### 9.4 App Store
+
 - [ ] iOS App Store submission
 - [ ] Google Play Store submission
 - [ ] Store listing optimization
 - [ ] Screenshots and previews
 
 ### 9.5 Go-Live
+
 - [ ] Final testing
 - [ ] Data migration (if any)
 - [ ] DNS cutover
@@ -483,6 +546,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 ## Development Approach
 
 ### For Each Feature:
+
 1. **Design** - UI/UX mockups and flow
 2. **Database** - Schema changes if needed
 3. **API** - Backend endpoints
@@ -493,6 +557,7 @@ This document outlines the phased approach to building the Last Mile Delivery Ap
 8. **Deploy** - Ship to staging, then production
 
 ### Quality Gates:
+
 - All tests must pass
 - Code review approval required
 - No critical security issues

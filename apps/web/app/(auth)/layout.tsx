@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function AuthLayout({
   children,
@@ -11,7 +11,9 @@ export default function AuthLayout({
       <header className="border-b">
         <div className="container flex h-16 items-center">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">DH</div>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground text-sm font-bold">
+              DH
+            </div>
             <span className="text-xl font-bold">Delivery Hub</span>
           </Link>
         </div>
@@ -19,9 +21,7 @@ export default function AuthLayout({
 
       {/* Main content */}
       <main className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-md">
-          {children}
-        </div>
+        <div className="w-full max-w-md">{children}</div>
       </main>
 
       {/* Footer */}

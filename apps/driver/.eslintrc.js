@@ -1,4 +1,4 @@
 module.exports = {
-  extends: 'expo',
+  extends: "expo",
   root: true,
 };

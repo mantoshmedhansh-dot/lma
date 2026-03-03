@@ -4,18 +4,18 @@ A comprehensive, enterprise-grade last-mile delivery platform built for scale.
 
 ## Tech Stack
 
-| Layer | Technology | Deployment |
-|-------|------------|------------|
-| Web Frontend | Next.js 14 (App Router) | Vercel |
-| Mobile App | React Native + Expo | App Store / Play Store |
-| Backend API | Node.js + Express | Render |
-| Database | PostgreSQL | Supabase |
-| Real-time | Supabase Realtime | Supabase |
-| Authentication | Supabase Auth | Supabase |
-| File Storage | Supabase Storage | Supabase |
-| Maps & Navigation | Mapbox / Google Maps | - |
-| Payments | Stripe | - |
-| Push Notifications | Firebase Cloud Messaging | - |
+| Layer              | Technology               | Deployment             |
+| ------------------ | ------------------------ | ---------------------- |
+| Web Frontend       | Next.js 14 (App Router)  | Vercel                 |
+| Mobile App         | React Native + Expo      | App Store / Play Store |
+| Backend API        | Node.js + Express        | Render                 |
+| Database           | PostgreSQL               | Supabase               |
+| Real-time          | Supabase Realtime        | Supabase               |
+| Authentication     | Supabase Auth            | Supabase               |
+| File Storage       | Supabase Storage         | Supabase               |
+| Maps & Navigation  | Mapbox / Google Maps     | -                      |
+| Payments           | Stripe                   | -                      |
+| Push Notifications | Firebase Cloud Messaging | -                      |
 
 ## Project Structure
 
@@ -79,6 +79,7 @@ LMA/
 ## Applications
 
 ### 1. Customer Web App
+
 - Browse restaurants/stores
 - Place orders
 - Real-time order tracking
@@ -87,12 +88,14 @@ LMA/
 - Reviews and ratings
 
 ### 2. Customer Mobile App
+
 - All web features optimized for mobile
 - Push notifications
 - Location-based services
 - Biometric authentication
 
 ### 3. Driver/Rider App (Mobile)
+
 - Accept/reject deliveries
 - Navigation integration
 - Earnings dashboard
@@ -100,12 +103,14 @@ LMA/
 - Real-time location sharing
 
 ### 4. Merchant Dashboard
+
 - Menu/inventory management
 - Order management
 - Analytics and reports
 - Payout tracking
 
 ### 5. Admin Dashboard
+
 - User management
 - Order oversight
 - Analytics and metrics

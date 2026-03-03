@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
   XCircleIcon,
   CheckCircleIcon,
-} from '@heroicons/react/24/outline';
+} from "@heroicons/react/24/outline";
 
 interface Alert {
   id: string;
   type: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   title: string;
   message: string;
   data?: Record<string, unknown>;
@@ -40,24 +40,24 @@ export function AlertsPanel({
   const severityConfig = {
     info: {
       icon: InformationCircleIcon,
-      bgColor: 'bg-blue-50',
-      borderColor: 'border-blue-200',
-      iconColor: 'text-blue-500',
-      textColor: 'text-blue-800',
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+      iconColor: "text-blue-500",
+      textColor: "text-blue-800",
     },
     warning: {
       icon: ExclamationTriangleIcon,
-      bgColor: 'bg-yellow-50',
-      borderColor: 'border-yellow-200',
-      iconColor: 'text-yellow-500',
-      textColor: 'text-yellow-800',
+      bgColor: "bg-yellow-50",
+      borderColor: "border-yellow-200",
+      iconColor: "text-yellow-500",
+      textColor: "text-yellow-800",
     },
     critical: {
       icon: XCircleIcon,
-      bgColor: 'bg-red-50',
-      borderColor: 'border-red-200',
-      iconColor: 'text-red-500',
-      textColor: 'text-red-800',
+      bgColor: "bg-red-50",
+      borderColor: "border-red-200",
+      iconColor: "text-red-500",
+      textColor: "text-red-800",
     },
   };
 
@@ -93,7 +93,7 @@ export function AlertsPanel({
             onClick={() => setShowAll(!showAll)}
             className="text-sm text-blue-600 hover:text-blue-800"
           >
-            {showAll ? 'Show Less' : `View All (${alerts.length})`}
+            {showAll ? "Show Less" : `View All (${alerts.length})`}
           </button>
         )}
       </div>
@@ -112,7 +112,7 @@ export function AlertsPanel({
             return (
               <div
                 key={alert.id}
-                className={`px-6 py-4 ${alert.acknowledged ? 'opacity-60' : ''}`}
+                className={`px-6 py-4 ${alert.acknowledged ? "opacity-60" : ""}`}
               >
                 <div className="flex items-start">
                   <div
@@ -129,7 +129,9 @@ export function AlertsPanel({
                         {formatTime(alert.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{alert.message}</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      {alert.message}
+                    </p>
                     {alert.data && Object.keys(alert.data).length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {Object.entries(alert.data).map(([key, value]) => (
@@ -166,7 +168,7 @@ function formatTime(date: Date): string {
   const diff = now.getTime() - new Date(date).getTime();
   const minutes = Math.floor(diff / 60000);
 
-  if (minutes < 1) return 'Just now';
+  if (minutes < 1) return "Just now";
   if (minutes < 60) return `${minutes}m ago`;
   if (minutes < 1440) return `${Math.floor(minutes / 60)}h ago`;
   return new Date(date).toLocaleDateString();
@@ -174,10 +176,10 @@ function formatTime(date: Date): string {
 
 function formatKey(key: string): string {
   return key
-    .replace(/([A-Z])/g, ' $1')
-    .replace(/_/g, ' ')
+    .replace(/([A-Z])/g, " $1")
+    .replace(/_/g, " ")
     .trim()
-    .split(' ')
+    .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ');
+    .join(" ");
 }

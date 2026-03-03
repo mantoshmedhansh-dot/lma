@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
+import { useState, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
 import {
   UtensilsCrossed,
   Plus,
@@ -18,7 +18,7 @@ import {
   RefreshCw,
   ChevronDown,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Category {
   id: string;
@@ -44,8 +44,10 @@ export default function MenuPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | "all">(
+    "all",
+  );
   const [merchantId, setMerchantId] = useState<string | null>(null);
 
   // Modal states
@@ -55,17 +57,20 @@ export default function MenuPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Form states
-  const [categoryForm, setCategoryForm] = useState({ name: '', description: '' });
+  const [categoryForm, setCategoryForm] = useState({
+    name: "",
+    description: "",
+  });
   const [productForm, setProductForm] = useState({
-    name: '',
-    description: '',
-    price: '',
-    compare_at_price: '',
-    image_url: '',
-    category_id: '',
+    name: "",
+    description: "",
+    price: "",
+    compare_at_price: "",
+    image_url: "",
+    category_id: "",
     is_available: true,
     is_featured: false,
-    preparation_time: '15',
+    preparation_time: "15",
   });
 
   const { toast } = useToast();
@@ -77,13 +82,15 @@ export default function MenuPage() {
 
   const fetchData = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return;
 
       const { data: merchant } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('owner_id', user.id)
+        .from("merchants")
+        .select("id")
+        .eq("owner_id", user.id)
         .single();
 
       if (!merchant) return;
@@ -91,15 +98,15 @@ export default function MenuPage() {
 
       const [categoriesRes, productsRes] = await Promise.all([
         supabase
-          .from('categories')
-          .select('*')
-          .eq('merchant_id', merchant.id)
-          .order('sort_order'),
+          .from("categories")
+          .select("*")
+          .eq("merchant_id", merchant.id)
+          .order("sort_order"),
         supabase
-          .from('products')
-          .select('*')
-          .eq('merchant_id', merchant.id)
-          .order('name'),
+          .from("products")
+          .select("*")
+          .eq("merchant_id", merchant.id)
+          .order("name"),
       ]);
 
       if (categoriesRes.error) throw categoriesRes.error;
@@ -108,11 +115,11 @@ export default function MenuPage() {
       setCategories(categoriesRes.data || []);
       setProducts(productsRes.data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load menu data',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load menu data",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -126,17 +133,17 @@ export default function MenuPage() {
     try {
       if (editingCategory) {
         const { error } = await supabase
-          .from('categories')
+          .from("categories")
           .update({
             name: categoryForm.name,
             description: categoryForm.description || null,
           })
-          .eq('id', editingCategory.id);
+          .eq("id", editingCategory.id);
 
         if (error) throw error;
-        toast({ title: 'Category updated' });
+        toast({ title: "Category updated" });
       } else {
-        const { error } = await supabase.from('categories').insert({
+        const { error } = await supabase.from("categories").insert({
           merchant_id: merchantId,
           name: categoryForm.name,
           description: categoryForm.description || null,
@@ -144,35 +151,40 @@ export default function MenuPage() {
         });
 
         if (error) throw error;
-        toast({ title: 'Category created' });
+        toast({ title: "Category created" });
       }
 
       setShowCategoryModal(false);
       setEditingCategory(null);
-      setCategoryForm({ name: '', description: '' });
+      setCategoryForm({ name: "", description: "" });
       fetchData();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to save category',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save category",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete this category? Products in this category will become uncategorized.')) return;
+    if (
+      !confirm(
+        "Delete this category? Products in this category will become uncategorized.",
+      )
+    )
+      return;
 
     try {
-      const { error } = await supabase.from('categories').delete().eq('id', id);
+      const { error } = await supabase.from("categories").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: 'Category deleted' });
+      toast({ title: "Category deleted" });
       fetchData();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete category',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
       });
     }
   };
@@ -201,54 +213,54 @@ export default function MenuPage() {
 
       if (editingProduct) {
         const { error } = await supabase
-          .from('products')
+          .from("products")
           .update(productData)
-          .eq('id', editingProduct.id);
+          .eq("id", editingProduct.id);
 
         if (error) throw error;
-        toast({ title: 'Product updated' });
+        toast({ title: "Product updated" });
       } else {
-        const { error } = await supabase.from('products').insert(productData);
+        const { error } = await supabase.from("products").insert(productData);
         if (error) throw error;
-        toast({ title: 'Product created' });
+        toast({ title: "Product created" });
       }
 
       setShowProductModal(false);
       setEditingProduct(null);
       setProductForm({
-        name: '',
-        description: '',
-        price: '',
-        compare_at_price: '',
-        image_url: '',
-        category_id: '',
+        name: "",
+        description: "",
+        price: "",
+        compare_at_price: "",
+        image_url: "",
+        category_id: "",
         is_available: true,
         is_featured: false,
-        preparation_time: '15',
+        preparation_time: "15",
       });
       fetchData();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to save product',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Delete this product?')) return;
+    if (!confirm("Delete this product?")) return;
 
     try {
-      const { error } = await supabase.from('products').delete().eq('id', id);
+      const { error } = await supabase.from("products").delete().eq("id", id);
       if (error) throw error;
-      toast({ title: 'Product deleted' });
+      toast({ title: "Product deleted" });
       fetchData();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to delete product',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
       });
     }
   };
@@ -256,17 +268,17 @@ export default function MenuPage() {
   const toggleProductAvailability = async (product: Product) => {
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .update({ is_available: !product.is_available })
-        .eq('id', product.id);
+        .eq("id", product.id);
 
       if (error) throw error;
       fetchData();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'Failed to update availability',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update availability",
+        variant: "destructive",
       });
     }
   };
@@ -276,13 +288,13 @@ export default function MenuPage() {
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
     const matchesCategory =
-      selectedCategory === 'all' || product.category_id === selectedCategory;
+      selectedCategory === "all" || product.category_id === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const getCategoryName = (categoryId: string | null) => {
-    if (!categoryId) return 'Uncategorized';
-    return categories.find((c) => c.id === categoryId)?.name || 'Uncategorized';
+    if (!categoryId) return "Uncategorized";
+    return categories.find((c) => c.id === categoryId)?.name || "Uncategorized";
   };
 
   if (loading) {
@@ -307,7 +319,7 @@ export default function MenuPage() {
             variant="outline"
             onClick={() => {
               setEditingCategory(null);
-              setCategoryForm({ name: '', description: '' });
+              setCategoryForm({ name: "", description: "" });
               setShowCategoryModal(true);
             }}
           >
@@ -318,15 +330,15 @@ export default function MenuPage() {
             onClick={() => {
               setEditingProduct(null);
               setProductForm({
-                name: '',
-                description: '',
-                price: '',
-                compare_at_price: '',
-                image_url: '',
-                category_id: categories[0]?.id || '',
+                name: "",
+                description: "",
+                price: "",
+                compare_at_price: "",
+                image_url: "",
+                category_id: categories[0]?.id || "",
                 is_available: true,
                 is_featured: false,
-                preparation_time: '15',
+                preparation_time: "15",
               });
               setShowProductModal(true);
             }}
@@ -353,7 +365,7 @@ export default function MenuPage() {
                 setEditingCategory(category);
                 setCategoryForm({
                   name: category.name,
-                  description: category.description || '',
+                  description: category.description || "",
                 });
                 setShowCategoryModal(true);
               }}
@@ -404,8 +416,8 @@ export default function MenuPage() {
             <h3 className="text-lg font-medium">No products found</h3>
             <p className="text-muted-foreground">
               {searchQuery
-                ? 'Try a different search term'
-                : 'Add your first product to get started'}
+                ? "Try a different search term"
+                : "Add your first product to get started"}
             </p>
           </div>
         ) : (
@@ -413,7 +425,7 @@ export default function MenuPage() {
             <div
               key={product.id}
               className={`bg-card rounded-lg border overflow-hidden ${
-                !product.is_available ? 'opacity-60' : ''
+                !product.is_available ? "opacity-60" : ""
               }`}
             >
               <div className="aspect-video bg-muted flex items-center justify-center">
@@ -454,11 +466,11 @@ export default function MenuPage() {
                     onClick={() => toggleProductAvailability(product)}
                     className={`px-2 py-1 rounded text-xs font-medium ${
                       product.is_available
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {product.is_available ? 'Available' : 'Unavailable'}
+                    {product.is_available ? "Available" : "Unavailable"}
                   </button>
                   {product.is_featured && (
                     <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -471,14 +483,16 @@ export default function MenuPage() {
                         setEditingProduct(product);
                         setProductForm({
                           name: product.name,
-                          description: product.description || '',
+                          description: product.description || "",
                           price: product.price.toString(),
-                          compare_at_price: product.compare_at_price?.toString() || '',
-                          image_url: product.image_url || '',
-                          category_id: product.category_id || '',
+                          compare_at_price:
+                            product.compare_at_price?.toString() || "",
+                          image_url: product.image_url || "",
+                          category_id: product.category_id || "",
                           is_available: product.is_available,
                           is_featured: product.is_featured,
-                          preparation_time: product.preparation_time?.toString() || '15',
+                          preparation_time:
+                            product.preparation_time?.toString() || "15",
                         });
                         setShowProductModal(true);
                       }}
@@ -512,7 +526,7 @@ export default function MenuPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
-                {editingCategory ? 'Edit Category' : 'New Category'}
+                {editingCategory ? "Edit Category" : "New Category"}
               </h2>
               <button
                 onClick={() => setShowCategoryModal(false)}
@@ -538,7 +552,10 @@ export default function MenuPage() {
                 <Input
                   value={categoryForm.description}
                   onChange={(e) =>
-                    setCategoryForm({ ...categoryForm, description: e.target.value })
+                    setCategoryForm({
+                      ...categoryForm,
+                      description: e.target.value,
+                    })
                   }
                   placeholder="Optional description"
                 />
@@ -552,7 +569,7 @@ export default function MenuPage() {
                   Cancel
                 </Button>
                 <Button className="flex-1" onClick={handleSaveCategory}>
-                  {editingCategory ? 'Update' : 'Create'}
+                  {editingCategory ? "Update" : "Create"}
                 </Button>
               </div>
             </div>
@@ -572,7 +589,7 @@ export default function MenuPage() {
           >
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-bold">
-                {editingProduct ? 'Edit Product' : 'New Product'}
+                {editingProduct ? "Edit Product" : "New Product"}
               </h2>
               <button
                 onClick={() => setShowProductModal(false)}
@@ -599,7 +616,10 @@ export default function MenuPage() {
                 <textarea
                   value={productForm.description}
                   onChange={(e) =>
-                    setProductForm({ ...productForm, description: e.target.value })
+                    setProductForm({
+                      ...productForm,
+                      description: e.target.value,
+                    })
                   }
                   placeholder="Product description"
                   className="w-full min-h-[80px] px-3 py-2 rounded-md border border-input bg-background text-sm resize-none"
@@ -620,7 +640,9 @@ export default function MenuPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Compare at Price</label>
+                  <label className="text-sm font-medium">
+                    Compare at Price
+                  </label>
                   <Input
                     type="number"
                     value={productForm.compare_at_price}
@@ -641,7 +663,10 @@ export default function MenuPage() {
                 <select
                   value={productForm.category_id}
                   onChange={(e) =>
-                    setProductForm({ ...productForm, category_id: e.target.value })
+                    setProductForm({
+                      ...productForm,
+                      category_id: e.target.value,
+                    })
                   }
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                 >
@@ -659,14 +684,19 @@ export default function MenuPage() {
                 <Input
                   value={productForm.image_url}
                   onChange={(e) =>
-                    setProductForm({ ...productForm, image_url: e.target.value })
+                    setProductForm({
+                      ...productForm,
+                      image_url: e.target.value,
+                    })
                   }
                   placeholder="https://example.com/image.jpg"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">Preparation Time (minutes)</label>
+                <label className="text-sm font-medium">
+                  Preparation Time (minutes)
+                </label>
                 <Input
                   type="number"
                   value={productForm.preparation_time}
@@ -720,7 +750,7 @@ export default function MenuPage() {
                   Cancel
                 </Button>
                 <Button className="flex-1" onClick={handleSaveProduct}>
-                  {editingProduct ? 'Update' : 'Create'}
+                  {editingProduct ? "Update" : "Create"}
                 </Button>
               </div>
             </div>

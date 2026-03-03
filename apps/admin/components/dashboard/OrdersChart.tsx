@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
+import { useMemo } from "react";
 import {
   LineChart,
   Line,
@@ -10,7 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   Legend,
-} from 'recharts';
+} from "recharts";
 
 interface OrdersChartProps {
   data: Array<{
@@ -50,7 +50,7 @@ export function OrdersChart({
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Orders {showRevenue && '& Revenue'} Trend
+        Orders {showRevenue && "& Revenue"} Trend
       </h3>
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={chartData}>
@@ -78,15 +78,15 @@ export function OrdersChart({
           )}
           <Tooltip
             contentStyle={{
-              backgroundColor: '#fff',
-              border: '1px solid #e5e7eb',
-              borderRadius: '8px',
+              backgroundColor: "#fff",
+              border: "1px solid #e5e7eb",
+              borderRadius: "8px",
             }}
             formatter={(value: number, name: string) => {
-              if (name === 'revenue') {
-                return [`₹${formatNumber(value)}`, 'Revenue'];
+              if (name === "revenue") {
+                return [`₹${formatNumber(value)}`, "Revenue"];
               }
-              return [value, 'Orders'];
+              return [value, "Orders"];
             }}
           />
           <Legend />
@@ -120,7 +120,7 @@ export function OrdersChart({
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 }
 
 function formatNumber(num: number): string {

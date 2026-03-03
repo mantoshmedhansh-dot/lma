@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import { randomUUID } from 'crypto';
-import { logger } from '../lib/logger.js';
+import { Request, Response, NextFunction } from "express";
+import { randomUUID } from "crypto";
+import { logger } from "../lib/logger.js";
 
 // Extend Express Request type
 declare global {
@@ -17,16 +17,20 @@ declare global {
  * Request logging middleware
  * Adds request ID, timing, and structured logging
  */
-export function requestLogger(req: Request, res: Response, next: NextFunction): void {
+export function requestLogger(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
   // Generate unique request ID
-  req.requestId = req.headers['x-request-id'] as string || randomUUID();
+  req.requestId = (req.headers["x-request-id"] as string) || randomUUID();
   req.startTime = Date.now();
 
   // Create child logger with request context
   req.logger = logger.child({ requestId: req.requestId }) as typeof logger;
 
   // Set request ID in response headers
-  res.setHeader('X-Request-ID', req.requestId);
+  res.setHeader("X-Request-ID", req.requestId);
 
   // Log request start (only in debug mode)
   logger.debug(`Request started: ${req.method} ${req.path}`, {
@@ -34,19 +38,19 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
     method: req.method,
     path: req.path,
     query: Object.keys(req.query).length > 0 ? req.query : undefined,
-    userAgent: req.headers['user-agent'],
+    userAgent: req.headers["user-agent"],
     ip: req.ip || req.socket.remoteAddress,
   });
 
   // Log response on finish
-  res.on('finish', () => {
+  res.on("finish", () => {
     const duration = Date.now() - req.startTime;
 
     logger.request(req.method, req.path, res.statusCode, duration, {
       requestId: req.requestId,
       userId: (req as Request & { user?: { id: string } }).user?.id,
-      contentLength: res.get('content-length'),
-      userAgent: req.headers['user-agent'],
+      contentLength: res.get("content-length"),
+      userAgent: req.headers["user-agent"],
       ip: req.ip || req.socket.remoteAddress,
     });
   });
@@ -57,17 +61,19 @@ export function requestLogger(req: Request, res: Response, next: NextFunction): 
 /**
  * Sanitize sensitive data from logs
  */
-export function sanitizeForLogging(obj: Record<string, unknown>): Record<string, unknown> {
+export function sanitizeForLogging(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
   const sensitiveKeys = [
-    'password',
-    'token',
-    'secret',
-    'key',
-    'authorization',
-    'cookie',
-    'credit_card',
-    'cvv',
-    'ssn',
+    "password",
+    "token",
+    "secret",
+    "key",
+    "authorization",
+    "cookie",
+    "credit_card",
+    "cvv",
+    "ssn",
   ];
 
   const sanitized: Record<string, unknown> = {};
@@ -75,8 +81,8 @@ export function sanitizeForLogging(obj: Record<string, unknown>): Record<string,
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
     if (sensitiveKeys.some((sk) => lowerKey.includes(sk))) {
-      sanitized[key] = '[REDACTED]';
-    } else if (typeof value === 'object' && value !== null) {
+      sanitized[key] = "[REDACTED]";
+    } else if (typeof value === "object" && value !== null) {
       sanitized[key] = sanitizeForLogging(value as Record<string, unknown>);
     } else {
       sanitized[key] = value;
@@ -91,7 +97,7 @@ export function sanitizeForLogging(obj: Record<string, unknown>): Record<string,
  */
 export function auditLog(action: string) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    res.on('finish', () => {
+    res.on("finish", () => {
       if (res.statusCode < 400) {
         logger.audit(action, {
           requestId: req.requestId,

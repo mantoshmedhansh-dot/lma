@@ -1,10 +1,10 @@
-import { supabaseAdmin } from '../config/supabase.js';
+import { supabaseAdmin } from "../config/supabase.js";
 
 /**
  * Health check status
  */
 export interface HealthStatus {
-  status: 'healthy' | 'degraded' | 'unhealthy';
+  status: "healthy" | "degraded" | "unhealthy";
   timestamp: string;
   uptime: number;
   version: string;
@@ -24,7 +24,7 @@ export interface HealthStatus {
 }
 
 export interface ServiceStatus {
-  status: 'healthy' | 'unhealthy';
+  status: "healthy" | "unhealthy";
   latency?: number;
   message?: string;
 }
@@ -34,28 +34,32 @@ export interface ServiceStatus {
  */
 export async function performHealthCheck(): Promise<HealthStatus> {
   const startTime = Date.now();
-  const services: HealthStatus['services'] = {
-    database: { status: 'unhealthy' },
+  const services: HealthStatus["services"] = {
+    database: { status: "unhealthy" },
   };
-  const latency: HealthStatus['latency'] = {
+  const latency: HealthStatus["latency"] = {
     database: 0,
   };
 
   // Check database
   const dbStart = Date.now();
   try {
-    const { error } = await supabaseAdmin.from('users').select('count').limit(1);
+    const { error } = await supabaseAdmin
+      .from("users")
+      .select("count")
+      .limit(1);
     services.database = {
-      status: error ? 'unhealthy' : 'healthy',
+      status: error ? "unhealthy" : "healthy",
       latency: Date.now() - dbStart,
       message: error?.message,
     };
     latency.database = Date.now() - dbStart;
   } catch (err) {
     services.database = {
-      status: 'unhealthy',
+      status: "unhealthy",
       latency: Date.now() - dbStart,
-      message: err instanceof Error ? err.message : 'Database connection failed',
+      message:
+        err instanceof Error ? err.message : "Database connection failed",
     };
   }
 
@@ -68,14 +72,18 @@ export async function performHealthCheck(): Promise<HealthStatus> {
   };
 
   // Determine overall status
-  const allHealthy = Object.values(services).every((s) => s.status === 'healthy');
-  const someHealthy = Object.values(services).some((s) => s.status === 'healthy');
+  const allHealthy = Object.values(services).every(
+    (s) => s.status === "healthy",
+  );
+  const someHealthy = Object.values(services).some(
+    (s) => s.status === "healthy",
+  );
 
   return {
-    status: allHealthy ? 'healthy' : someHealthy ? 'degraded' : 'unhealthy',
+    status: allHealthy ? "healthy" : someHealthy ? "degraded" : "unhealthy",
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    version: process.env.npm_package_version || '0.1.0',
+    version: process.env.npm_package_version || "0.1.0",
     services,
     memory,
     latency,
@@ -109,10 +117,16 @@ export class MetricsCollector {
       requests: {
         total: this.requestCount,
         errors: this.errorCount,
-        errorRate: this.requestCount > 0 ? (this.errorCount / this.requestCount) * 100 : 0,
+        errorRate:
+          this.requestCount > 0
+            ? (this.errorCount / this.requestCount) * 100
+            : 0,
       },
       latency: {
-        avg: durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
+        avg:
+          durations.length > 0
+            ? durations.reduce((a, b) => a + b, 0) / durations.length
+            : 0,
         p50: this.percentile(durations, 50),
         p95: this.percentile(durations, 95),
         p99: this.percentile(durations, 99),
@@ -140,10 +154,17 @@ export const metrics = new MetricsCollector();
  * Request timing middleware factory
  */
 export function createTimingMiddleware() {
-  return (req: { startTime?: number }, res: { on: (event: string, callback: () => void) => void; statusCode: number }, next: () => void) => {
+  return (
+    req: { startTime?: number },
+    res: {
+      on: (event: string, callback: () => void) => void;
+      statusCode: number;
+    },
+    next: () => void,
+  ) => {
     req.startTime = Date.now();
 
-    res.on('finish', () => {
+    res.on("finish", () => {
       const duration = Date.now() - (req.startTime || Date.now());
       const isError = res.statusCode >= 400;
       metrics.recordRequest(duration, isError);

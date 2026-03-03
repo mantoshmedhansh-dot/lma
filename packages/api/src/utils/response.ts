@@ -1,5 +1,5 @@
-import { Response } from 'express';
-import { ApiResponse, PaginationMeta } from '@lma/shared';
+import { Response } from "express";
+import { ApiResponse, PaginationMeta } from "@lma/shared";
 
 /**
  * Send success response
@@ -18,7 +18,7 @@ export function sendSuccess<T>(res: Response, data: T, statusCode = 200) {
 export function sendPaginated<T>(
   res: Response,
   data: T[],
-  pagination: { page: number; limit: number; total: number }
+  pagination: { page: number; limit: number; total: number },
 ) {
   const totalPages = Math.ceil(pagination.total / pagination.limit);
   const meta: PaginationMeta = {

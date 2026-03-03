@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { supabase } from '../supabase';
-import type { User, Session } from '@supabase/supabase-js';
+import { create } from "zustand";
+import { supabase } from "../supabase";
+import type { User, Session } from "@supabase/supabase-js";
 
 interface UserProfile {
   id: string;
@@ -23,10 +23,17 @@ interface AuthState {
   setLoading: (loading: boolean) => void;
   initialize: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
-  signUp: (email: string, password: string, fullName: string, phone?: string) => Promise<{ error: Error | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    phone?: string,
+  ) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   fetchProfile: () => Promise<void>;
-  updateProfile: (data: Partial<UserProfile>) => Promise<{ error: Error | null }>;
+  updateProfile: (
+    data: Partial<UserProfile>,
+  ) => Promise<{ error: Error | null }>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -43,7 +50,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
       if (session) {
         set({ user: session.user, session });
@@ -60,7 +69,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       });
     } catch (error) {
-      console.error('Auth initialization error:', error);
+      console.error("Auth initialization error:", error);
     } finally {
       set({ loading: false, initialized: true });
     }
@@ -96,7 +105,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             full_name: fullName,
             phone,
-            role: 'customer',
+            role: "customer",
           },
         },
       });
@@ -127,27 +136,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
+        .from("users")
+        .select("*")
+        .eq("id", user.id)
         .single();
 
       if (error) throw error;
       set({ profile: data });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      console.error("Error fetching profile:", error);
     }
   },
 
   updateProfile: async (profileData) => {
     const user = get().user;
-    if (!user) return { error: new Error('Not authenticated') };
+    if (!user) return { error: new Error("Not authenticated") };
 
     try {
       const { error } = await supabase
-        .from('users')
+        .from("users")
         .update(profileData)
-        .eq('id', user.id);
+        .eq("id", user.id);
 
       if (error) throw error;
 

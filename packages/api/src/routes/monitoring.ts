@@ -1,6 +1,6 @@
-import { Router } from 'express';
-import { performHealthCheck, metrics } from '../lib/monitoring.js';
-import { sendSuccess } from '../utils/response.js';
+import { Router } from "express";
+import { performHealthCheck, metrics } from "../lib/monitoring.js";
+import { sendSuccess } from "../utils/response.js";
 
 const router = Router();
 
@@ -8,15 +8,20 @@ const router = Router();
  * Detailed health check endpoint
  * GET /health
  */
-router.get('/', async (req, res, next) => {
+router.get("/", async (req, res, next) => {
   try {
     const health = await performHealthCheck();
 
     // Set appropriate status code based on health
-    const statusCode = health.status === 'healthy' ? 200 : health.status === 'degraded' ? 200 : 503;
+    const statusCode =
+      health.status === "healthy"
+        ? 200
+        : health.status === "degraded"
+          ? 200
+          : 503;
 
     res.status(statusCode).json({
-      success: health.status !== 'unhealthy',
+      success: health.status !== "unhealthy",
       data: health,
     });
   } catch (error) {
@@ -28,11 +33,11 @@ router.get('/', async (req, res, next) => {
  * Liveness probe - simple check if the server is running
  * GET /health/live
  */
-router.get('/live', (req, res) => {
+router.get("/live", (req, res) => {
   res.status(200).json({
     success: true,
     data: {
-      status: 'alive',
+      status: "alive",
       timestamp: new Date().toISOString(),
     },
   });
@@ -42,16 +47,16 @@ router.get('/live', (req, res) => {
  * Readiness probe - check if the server is ready to accept traffic
  * GET /health/ready
  */
-router.get('/ready', async (req, res) => {
+router.get("/ready", async (req, res) => {
   try {
     const health = await performHealthCheck();
 
-    if (health.status === 'unhealthy') {
+    if (health.status === "unhealthy") {
       res.status(503).json({
         success: false,
         data: {
-          status: 'not_ready',
-          reason: 'One or more services are unhealthy',
+          status: "not_ready",
+          reason: "One or more services are unhealthy",
           services: health.services,
         },
       });
@@ -61,7 +66,7 @@ router.get('/ready', async (req, res) => {
     res.status(200).json({
       success: true,
       data: {
-        status: 'ready',
+        status: "ready",
         timestamp: new Date().toISOString(),
       },
     });
@@ -69,8 +74,8 @@ router.get('/ready', async (req, res) => {
     res.status(503).json({
       success: false,
       data: {
-        status: 'not_ready',
-        reason: 'Health check failed',
+        status: "not_ready",
+        reason: "Health check failed",
       },
     });
   }
@@ -80,7 +85,7 @@ router.get('/ready', async (req, res) => {
  * Metrics endpoint (for monitoring systems)
  * GET /health/metrics
  */
-router.get('/metrics', (req, res) => {
+router.get("/metrics", (req, res) => {
   const metricsData = metrics.getMetrics();
   const memUsage = process.memoryUsage();
 
@@ -103,7 +108,7 @@ router.get('/metrics', (req, res) => {
  * Prometheus-compatible metrics endpoint
  * GET /health/prometheus
  */
-router.get('/prometheus', (req, res) => {
+router.get("/prometheus", (req, res) => {
   const metricsData = metrics.getMetrics();
   const memUsage = process.memoryUsage();
 
@@ -133,7 +138,7 @@ process_memory_heap_used_bytes ${memUsage.heapUsed}
 process_uptime_seconds ${process.uptime()}
 `.trim();
 
-  res.set('Content-Type', 'text/plain');
+  res.set("Content-Type", "text/plain");
   res.send(prometheusMetrics);
 });
 

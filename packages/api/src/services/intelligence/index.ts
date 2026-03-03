@@ -8,7 +8,7 @@
  * - Demand forecasting
  */
 
-export * from './deliveryPrediction.js';
-export * from './orderAllocation.js';
-export * from './geofencing.js';
-export * from './demandForecasting.js';
+export * from "./deliveryPrediction.js";
+export * from "./orderAllocation.js";
+export * from "./geofencing.js";
+export * from "./demandForecasting.js";

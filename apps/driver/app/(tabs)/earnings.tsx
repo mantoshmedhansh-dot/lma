@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -6,13 +6,13 @@ import {
   ScrollView,
   RefreshControl,
   Dimensions,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/lib/store/auth';
-import { useEarningsStore } from '@/lib/store/earnings';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/lib/store/auth";
+import { useEarningsStore } from "@/lib/store/earnings";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function EarningsScreen() {
   const colors = useThemeColors();
@@ -59,7 +59,11 @@ export default function EarningsScreen() {
         <Text style={styles.summaryAmount}>₹{todayEarnings.toFixed(0)}</Text>
         <View style={styles.summaryDetails}>
           <View style={styles.summaryItem}>
-            <Ionicons name="checkmark-circle" size={18} color="rgba(255,255,255,0.8)" />
+            <Ionicons
+              name="checkmark-circle"
+              size={18}
+              color="rgba(255,255,255,0.8)"
+            />
             <Text style={styles.summaryItemText}>
               {todayDeliveries} deliveries
             </Text>
@@ -67,7 +71,11 @@ export default function EarningsScreen() {
           <View style={styles.summaryItem}>
             <Ionicons name="time" size={18} color="rgba(255,255,255,0.8)" />
             <Text style={styles.summaryItemText}>
-              ₹{todayDeliveries > 0 ? (todayEarnings / todayDeliveries).toFixed(0) : 0} avg
+              ₹
+              {todayDeliveries > 0
+                ? (todayEarnings / todayDeliveries).toFixed(0)
+                : 0}{" "}
+              avg
             </Text>
           </View>
         </View>
@@ -75,79 +83,120 @@ export default function EarningsScreen() {
 
       {/* Period Stats */}
       <View style={styles.statsRow}>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
             This Week
           </Text>
           <Text style={[styles.statAmount, { color: colors.text }]}>
             ₹{weekEarnings.toFixed(0)}
           </Text>
-          <Text style={[styles.statDeliveries, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.statDeliveries, { color: colors.textSecondary }]}
+          >
             {weekDeliveries} deliveries
           </Text>
         </View>
-        <View style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.statCard,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
             This Month
           </Text>
           <Text style={[styles.statAmount, { color: colors.text }]}>
             ₹{monthEarnings.toFixed(0)}
           </Text>
-          <Text style={[styles.statDeliveries, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.statDeliveries, { color: colors.textSecondary }]}
+          >
             {monthDeliveries} deliveries
           </Text>
         </View>
       </View>
 
       {/* Daily Chart */}
-      <View style={[styles.chartCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.chartCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <Text style={[styles.chartTitle, { color: colors.text }]}>
           Last 7 Days
         </Text>
         <View style={styles.chart}>
-          {dailyEarnings.slice(0, 7).reverse().map((day, index) => {
-            const height = (day.amount / maxDailyEarning) * 100;
-            const date = new Date(day.date);
-            const dayName = date.toLocaleDateString('en', { weekday: 'short' });
+          {dailyEarnings
+            .slice(0, 7)
+            .reverse()
+            .map((day, index) => {
+              const height = (day.amount / maxDailyEarning) * 100;
+              const date = new Date(day.date);
+              const dayName = date.toLocaleDateString("en", {
+                weekday: "short",
+              });
 
-            return (
-              <View key={day.date} style={styles.chartBar}>
-                <View style={styles.barContainer}>
-                  <View
-                    style={[
-                      styles.bar,
-                      {
-                        height: `${Math.max(height, 5)}%`,
-                        backgroundColor: index === dailyEarnings.length - 1 ? colors.tint : colors.tintLight,
-                      },
-                    ]}
-                  />
+              return (
+                <View key={day.date} style={styles.chartBar}>
+                  <View style={styles.barContainer}>
+                    <View
+                      style={[
+                        styles.bar,
+                        {
+                          height: `${Math.max(height, 5)}%`,
+                          backgroundColor:
+                            index === dailyEarnings.length - 1
+                              ? colors.tint
+                              : colors.tintLight,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text
+                    style={[styles.barLabel, { color: colors.textSecondary }]}
+                  >
+                    {dayName}
+                  </Text>
+                  <Text style={[styles.barAmount, { color: colors.text }]}>
+                    ₹{day.amount.toFixed(0)}
+                  </Text>
                 </View>
-                <Text style={[styles.barLabel, { color: colors.textSecondary }]}>
-                  {dayName}
-                </Text>
-                <Text style={[styles.barAmount, { color: colors.text }]}>
-                  ₹{day.amount.toFixed(0)}
-                </Text>
-              </View>
-            );
-          })}
+              );
+            })}
         </View>
       </View>
 
       {/* Earnings Breakdown */}
-      <View style={[styles.breakdownCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.breakdownCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <Text style={[styles.breakdownTitle, { color: colors.text }]}>
           Earnings Breakdown
         </Text>
 
         <View style={styles.breakdownRow}>
           <View style={styles.breakdownItem}>
-            <View style={[styles.breakdownIcon, { backgroundColor: colors.tintLight }]}>
+            <View
+              style={[
+                styles.breakdownIcon,
+                { backgroundColor: colors.tintLight },
+              ]}
+            >
               <Ionicons name="bicycle" size={20} color={colors.tint} />
             </View>
             <View>
-              <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.breakdownLabel, { color: colors.textSecondary }]}
+              >
                 Delivery Fees
               </Text>
               <Text style={[styles.breakdownAmount, { color: colors.text }]}>
@@ -161,11 +210,15 @@ export default function EarningsScreen() {
 
         <View style={styles.breakdownRow}>
           <View style={styles.breakdownItem}>
-            <View style={[styles.breakdownIcon, { backgroundColor: '#FEF3C7' }]}>
+            <View
+              style={[styles.breakdownIcon, { backgroundColor: "#FEF3C7" }]}
+            >
               <Ionicons name="star" size={20} color="#F59E0B" />
             </View>
             <View>
-              <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>
+              <Text
+                style={[styles.breakdownLabel, { color: colors.textSecondary }]}
+              >
                 Tips
               </Text>
               <Text style={[styles.breakdownAmount, { color: colors.text }]}>
@@ -188,14 +241,20 @@ export default function EarningsScreen() {
       </View>
 
       {/* Tips */}
-      <View style={[styles.tipsCard, { backgroundColor: colors.backgroundSecondary }]}>
+      <View
+        style={[
+          styles.tipsCard,
+          { backgroundColor: colors.backgroundSecondary },
+        ]}
+      >
         <Ionicons name="bulb-outline" size={24} color={colors.tint} />
         <View style={styles.tipsContent}>
           <Text style={[styles.tipsTitle, { color: colors.text }]}>
             Increase Your Earnings
           </Text>
           <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
-            Stay online during peak hours (12-2 PM, 7-10 PM) to get more delivery requests and earn more.
+            Stay online during peak hours (12-2 PM, 7-10 PM) to get more
+            delivery requests and earn more.
           </Text>
         </View>
       </View>
@@ -214,34 +273,34 @@ const styles = StyleSheet.create({
   summaryCard: {
     padding: 24,
     borderRadius: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   summaryLabel: {
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
     fontSize: 14,
   },
   summaryAmount: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 48,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginVertical: 8,
   },
   summaryDetails: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 24,
     marginTop: 8,
   },
   summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   summaryItemText: {
-    color: 'rgba(255,255,255,0.9)',
+    color: "rgba(255,255,255,0.9)",
     fontSize: 14,
   },
   statsRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   statCard: {
@@ -255,7 +314,7 @@ const styles = StyleSheet.create({
   },
   statAmount: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginTop: 4,
   },
   statDeliveries: {
@@ -269,26 +328,26 @@ const styles = StyleSheet.create({
   },
   chartTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
   },
   chart: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     height: 140,
   },
   chartBar: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     gap: 4,
   },
   barContainer: {
     flex: 1,
-    width: '70%',
-    justifyContent: 'flex-end',
+    width: "70%",
+    justifyContent: "flex-end",
   },
   bar: {
-    width: '100%',
+    width: "100%",
     borderRadius: 4,
     minHeight: 4,
   },
@@ -297,7 +356,7 @@ const styles = StyleSheet.create({
   },
   barAmount: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   breakdownCard: {
     padding: 16,
@@ -306,51 +365,51 @@ const styles = StyleSheet.create({
   },
   breakdownTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
   },
   breakdownRow: {
     paddingVertical: 12,
   },
   breakdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   breakdownIcon: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   breakdownLabel: {
     fontSize: 12,
   },
   breakdownAmount: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginTop: 2,
   },
   divider: {
     height: 1,
   },
   totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingTop: 16,
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   totalAmount: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   tipsCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     borderRadius: 12,
     gap: 12,
@@ -360,7 +419,7 @@ const styles = StyleSheet.create({
   },
   tipsTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   tipsText: {
     fontSize: 13,

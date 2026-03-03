@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useState } from "react";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Settings,
   DollarSign,
@@ -15,12 +21,12 @@ import {
   Globe,
   Truck,
   Save,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    platformName: 'LMA',
+    platformName: "LMA",
     defaultCommission: 15,
     minOrderAmount: 100,
     maxDeliveryDistance: 10,
@@ -28,8 +34,8 @@ export default function SettingsPage() {
     baseDeliveryFee: 20,
     orderTimeout: 30,
     driverAssignmentRadius: 5,
-    supportEmail: 'support@lma.com',
-    supportPhone: '+91 98765 43210',
+    supportEmail: "support@lma.com",
+    supportPhone: "+91 98765 43210",
   });
 
   const handleSave = async () => {
@@ -63,7 +69,9 @@ export default function SettingsPage() {
                 <label className="text-sm font-medium">Platform Name</label>
                 <Input
                   value={settings.platformName}
-                  onChange={(e) => updateSetting('platformName', e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("platformName", e.target.value)
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -71,14 +79,18 @@ export default function SettingsPage() {
                 <Input
                   type="email"
                   value={settings.supportEmail}
-                  onChange={(e) => updateSetting('supportEmail', e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("supportEmail", e.target.value)
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Support Phone</label>
                 <Input
                   value={settings.supportPhone}
-                  onChange={(e) => updateSetting('supportPhone', e.target.value)}
+                  onChange={(e) =>
+                    updateSetting("supportPhone", e.target.value)
+                  }
                 />
               </div>
             </div>
@@ -92,30 +104,44 @@ export default function SettingsPage() {
               <Percent className="w-5 h-5 text-primary" />
               <CardTitle>Commission Settings</CardTitle>
             </div>
-            <CardDescription>Configure merchant commission rates</CardDescription>
+            <CardDescription>
+              Configure merchant commission rates
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Default Commission (%)</label>
+                <label className="text-sm font-medium">
+                  Default Commission (%)
+                </label>
                 <Input
                   type="number"
                   min="0"
                   max="100"
                   value={settings.defaultCommission}
-                  onChange={(e) => updateSetting('defaultCommission', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting(
+                      "defaultCommission",
+                      parseFloat(e.target.value),
+                    )
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
-                  Applied to new merchants. Individual rates can be set per merchant.
+                  Applied to new merchants. Individual rates can be set per
+                  merchant.
                 </p>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Minimum Order Amount (₹)</label>
+                <label className="text-sm font-medium">
+                  Minimum Order Amount (₹)
+                </label>
                 <Input
                   type="number"
                   min="0"
                   value={settings.minOrderAmount}
-                  onChange={(e) => updateSetting('minOrderAmount', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting("minOrderAmount", parseFloat(e.target.value))
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Global minimum order value for all merchants.
@@ -137,39 +163,64 @@ export default function SettingsPage() {
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Max Delivery Distance (km)</label>
+                <label className="text-sm font-medium">
+                  Max Delivery Distance (km)
+                </label>
                 <Input
                   type="number"
                   min="1"
                   value={settings.maxDeliveryDistance}
-                  onChange={(e) => updateSetting('maxDeliveryDistance', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting(
+                      "maxDeliveryDistance",
+                      parseFloat(e.target.value),
+                    )
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Base Delivery Fee (₹)</label>
+                <label className="text-sm font-medium">
+                  Base Delivery Fee (₹)
+                </label>
                 <Input
                   type="number"
                   min="0"
                   value={settings.baseDeliveryFee}
-                  onChange={(e) => updateSetting('baseDeliveryFee', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting("baseDeliveryFee", parseFloat(e.target.value))
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Delivery Fee per km (₹)</label>
+                <label className="text-sm font-medium">
+                  Delivery Fee per km (₹)
+                </label>
                 <Input
                   type="number"
                   min="0"
                   value={settings.deliveryFeePerKm}
-                  onChange={(e) => updateSetting('deliveryFeePerKm', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting(
+                      "deliveryFeePerKm",
+                      parseFloat(e.target.value),
+                    )
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">Driver Assignment Radius (km)</label>
+                <label className="text-sm font-medium">
+                  Driver Assignment Radius (km)
+                </label>
                 <Input
                   type="number"
                   min="1"
                   value={settings.driverAssignmentRadius}
-                  onChange={(e) => updateSetting('driverAssignmentRadius', parseFloat(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting(
+                      "driverAssignmentRadius",
+                      parseFloat(e.target.value),
+                    )
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Maximum distance to search for available drivers.
@@ -186,17 +237,23 @@ export default function SettingsPage() {
               <Clock className="w-5 h-5 text-primary" />
               <CardTitle>Order Settings</CardTitle>
             </div>
-            <CardDescription>Configure order timeouts and limits</CardDescription>
+            <CardDescription>
+              Configure order timeouts and limits
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Order Confirmation Timeout (minutes)</label>
+                <label className="text-sm font-medium">
+                  Order Confirmation Timeout (minutes)
+                </label>
                 <Input
                   type="number"
                   min="1"
                   value={settings.orderTimeout}
-                  onChange={(e) => updateSetting('orderTimeout', parseInt(e.target.value))}
+                  onChange={(e) =>
+                    updateSetting("orderTimeout", parseInt(e.target.value))
+                  }
                 />
                 <p className="text-xs text-muted-foreground">
                   Time merchants have to confirm or reject an order.
@@ -317,7 +374,7 @@ export default function SettingsPage() {
         <div className="flex justify-end">
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
       </div>

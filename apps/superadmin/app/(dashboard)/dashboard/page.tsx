@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Header } from "@/components/layout/header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   Users,
   Store,
@@ -14,7 +14,7 @@ import {
   TrendingDown,
   DollarSign,
   Activity,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -28,7 +28,7 @@ import {
   PieChart,
   Pie,
   Cell,
-} from 'recharts';
+} from "recharts";
 
 interface Stats {
   totalUsers: number;
@@ -43,7 +43,14 @@ interface Stats {
   todayRevenue: number;
 }
 
-const COLORS = ['#7c3aed', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899'];
+const COLORS = [
+  "#7c3aed",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#3b82f6",
+  "#ec4899",
+];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<Stats>({
@@ -75,29 +82,44 @@ export default function DashboardPage() {
       const todayStr = today.toISOString();
 
       // Fetch counts
-      const [usersRes, merchantsRes, driversRes, ordersRes, todayOrdersRes] = await Promise.all([
-        supabase.from('users').select('id', { count: 'exact', head: true }),
-        supabase.from('merchants').select('id, status', { count: 'exact' }),
-        supabase.from('drivers').select('id, status', { count: 'exact' }),
-        supabase.from('orders').select('id, total_amount', { count: 'exact' }),
-        supabase.from('orders').select('id, total_amount').gte('created_at', todayStr),
-      ]);
+      const [usersRes, merchantsRes, driversRes, ordersRes, todayOrdersRes] =
+        await Promise.all([
+          supabase.from("users").select("id", { count: "exact", head: true }),
+          supabase.from("merchants").select("id, status", { count: "exact" }),
+          supabase.from("drivers").select("id, status", { count: "exact" }),
+          supabase
+            .from("orders")
+            .select("id, total_amount", { count: "exact" }),
+          supabase
+            .from("orders")
+            .select("id, total_amount")
+            .gte("created_at", todayStr),
+        ]);
 
       const merchants = merchantsRes.data || [];
       const drivers = driversRes.data || [];
       const orders = ordersRes.data || [];
       const todayOrders = todayOrdersRes.data || [];
 
-      const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
-      const todayRevenue = todayOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const totalRevenue = orders.reduce(
+        (sum, o) => sum + (o.total_amount || 0),
+        0,
+      );
+      const todayRevenue = todayOrders.reduce(
+        (sum, o) => sum + (o.total_amount || 0),
+        0,
+      );
 
       setStats({
         totalUsers: usersRes.count || 0,
         totalMerchants: merchantsRes.count || 0,
-        activeMerchants: merchants.filter((m) => m.status === 'active').length,
-        pendingMerchants: merchants.filter((m) => m.status === 'pending').length,
+        activeMerchants: merchants.filter((m) => m.status === "active").length,
+        pendingMerchants: merchants.filter((m) => m.status === "pending")
+          .length,
         totalDrivers: driversRes.count || 0,
-        activeDrivers: drivers.filter((d) => d.status === 'online' || d.status === 'busy').length,
+        activeDrivers: drivers.filter(
+          (d) => d.status === "online" || d.status === "busy",
+        ).length,
         totalOrders: ordersRes.count || 0,
         todayOrders: todayOrders.length,
         totalRevenue,
@@ -106,16 +128,18 @@ export default function DashboardPage() {
 
       // Fetch recent orders
       const { data: recent } = await supabase
-        .from('orders')
-        .select(`
+        .from("orders")
+        .select(
+          `
           id,
           order_number,
           status,
           total_amount,
           created_at,
           merchant:merchants(name)
-        `)
-        .order('created_at', { ascending: false })
+        `,
+        )
+        .order("created_at", { ascending: false })
         .limit(5);
 
       setRecentOrders(recent || []);
@@ -125,21 +149,21 @@ export default function DashboardPage() {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const { data: dailyOrders } = await supabase
-        .from('orders')
-        .select('total_amount, created_at')
-        .gte('created_at', sevenDaysAgo.toISOString());
+        .from("orders")
+        .select("total_amount, created_at")
+        .gte("created_at", sevenDaysAgo.toISOString());
 
       // Group by day
       const dailyMap = new Map<string, { revenue: number; orders: number }>();
       for (let i = 0; i < 7; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = date.toISOString().split("T")[0];
         dailyMap.set(dateStr, { revenue: 0, orders: 0 });
       }
 
       dailyOrders?.forEach((order) => {
-        const dateStr = order.created_at.split('T')[0];
+        const dateStr = order.created_at.split("T")[0];
         if (dailyMap.has(dateStr)) {
           const current = dailyMap.get(dateStr)!;
           dailyMap.set(dateStr, {
@@ -151,7 +175,7 @@ export default function DashboardPage() {
 
       const dailyData = Array.from(dailyMap.entries())
         .map(([date, data]) => ({
-          date: new Date(date).toLocaleDateString('en', { weekday: 'short' }),
+          date: new Date(date).toLocaleDateString("en", { weekday: "short" }),
           ...data,
         }))
         .reverse();
@@ -160,8 +184,8 @@ export default function DashboardPage() {
 
       // Orders by status
       const { data: statusOrders } = await supabase
-        .from('orders')
-        .select('status');
+        .from("orders")
+        .select("status");
 
       const statusMap = new Map<string, number>();
       statusOrders?.forEach((order) => {
@@ -170,12 +194,13 @@ export default function DashboardPage() {
 
       setOrdersByStatus(
         Array.from(statusMap.entries()).map(([status, count]) => ({
-          name: status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' '),
+          name:
+            status.charAt(0).toUpperCase() + status.slice(1).replace("_", " "),
           value: count,
-        }))
+        })),
       );
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -183,49 +208,49 @@ export default function DashboardPage() {
 
   const statCards = [
     {
-      title: 'Total Users',
+      title: "Total Users",
       value: formatNumber(stats.totalUsers),
       icon: Users,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-100',
+      color: "text-blue-500",
+      bgColor: "bg-blue-100",
     },
     {
-      title: 'Merchants',
+      title: "Merchants",
       value: formatNumber(stats.totalMerchants),
       subtitle: `${stats.pendingMerchants} pending`,
       icon: Store,
-      color: 'text-purple-500',
-      bgColor: 'bg-purple-100',
+      color: "text-purple-500",
+      bgColor: "bg-purple-100",
     },
     {
-      title: 'Drivers',
+      title: "Drivers",
       value: formatNumber(stats.totalDrivers),
       subtitle: `${stats.activeDrivers} online`,
       icon: Truck,
-      color: 'text-green-500',
-      bgColor: 'bg-green-100',
+      color: "text-green-500",
+      bgColor: "bg-green-100",
     },
     {
-      title: 'Total Orders',
+      title: "Total Orders",
       value: formatNumber(stats.totalOrders),
       subtitle: `${stats.todayOrders} today`,
       icon: ShoppingBag,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-100',
+      color: "text-orange-500",
+      bgColor: "bg-orange-100",
     },
     {
-      title: 'Total Revenue',
+      title: "Total Revenue",
       value: formatCurrency(stats.totalRevenue),
       icon: DollarSign,
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-100',
+      color: "text-emerald-500",
+      bgColor: "bg-emerald-100",
     },
     {
       title: "Today's Revenue",
       value: formatCurrency(stats.todayRevenue),
       icon: TrendingUp,
-      color: 'text-cyan-500',
-      bgColor: 'bg-cyan-100',
+      color: "text-cyan-500",
+      bgColor: "bg-cyan-100",
     },
   ];
 
@@ -243,7 +268,9 @@ export default function DashboardPage() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-muted-foreground">{stat.title}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {stat.title}
+                      </p>
                       <p className="text-2xl font-bold mt-1">{stat.value}</p>
                       {stat.subtitle && (
                         <p className="text-xs text-muted-foreground mt-1">
@@ -276,7 +303,10 @@ export default function DashboardPage() {
                     <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip
-                      formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Revenue",
+                      ]}
                     />
                     <Line
                       type="monotone"
@@ -304,7 +334,11 @@ export default function DashboardPage() {
                     <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="orders" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="orders"
+                      fill="#7c3aed"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -332,7 +366,9 @@ export default function DashboardPage() {
                       className="flex items-center justify-between py-2 border-b last:border-0"
                     >
                       <div>
-                        <p className="font-medium text-sm">#{order.order_number}</p>
+                        <p className="font-medium text-sm">
+                          #{order.order_number}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {order.merchant?.name}
                         </p>
@@ -342,7 +378,7 @@ export default function DashboardPage() {
                           {formatCurrency(order.total_amount)}
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">
-                          {order.status.replace('_', ' ')}
+                          {order.status.replace("_", " ")}
                         </p>
                       </div>
                     </div>

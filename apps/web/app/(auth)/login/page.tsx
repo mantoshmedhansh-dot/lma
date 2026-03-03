@@ -1,15 +1,22 @@
-'use client';
+"use client";
 
-import { useState, Suspense } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Loader2 } from 'lucide-react';
+import { useState, Suspense } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   return (
@@ -22,9 +29,9 @@ export default function LoginPage() {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const message = searchParams.get('message');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const message = searchParams.get("message");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +53,7 @@ function LoginForm() {
       return;
     }
 
-    router.push('/orders');
+    router.push("/orders");
     router.refresh();
   };
 
@@ -54,7 +61,7 @@ function LoginForm() {
     const supabase = createClient();
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -125,7 +132,7 @@ function LoginForm() {
                 Signing in...
               </>
             ) : (
-              'Sign in'
+              "Sign in"
             )}
           </Button>
         </form>
@@ -170,7 +177,7 @@ function LoginForm() {
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-primary hover:underline">
             Sign up
           </Link>

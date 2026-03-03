@@ -1,12 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { Request, Response, NextFunction } from "express";
+import { ZodSchema } from "zod";
 
-type ValidationTarget = 'body' | 'query' | 'params';
+type ValidationTarget = "body" | "query" | "params";
 
 /**
  * Middleware to validate request data against a Zod schema
  */
-export function validate(schema: ZodSchema, target: ValidationTarget = 'body') {
+export function validate(schema: ZodSchema, target: ValidationTarget = "body") {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = await schema.parseAsync(req[target]);
@@ -22,19 +22,19 @@ export function validate(schema: ZodSchema, target: ValidationTarget = 'body') {
  * Validate request body
  */
 export function validateBody(schema: ZodSchema) {
-  return validate(schema, 'body');
+  return validate(schema, "body");
 }
 
 /**
  * Validate query parameters
  */
 export function validateQuery(schema: ZodSchema) {
-  return validate(schema, 'query');
+  return validate(schema, "query");
 }
 
 /**
  * Validate route parameters
  */
 export function validateParams(schema: ZodSchema) {
-  return validate(schema, 'params');
+  return validate(schema, "params");
 }

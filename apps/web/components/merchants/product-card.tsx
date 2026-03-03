@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import { useState } from 'react';
-import { Plus, Minus, Leaf } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@lma/shared';
-import { useCartStore } from '@/lib/store/cart';
-import { useToast } from '@/hooks/use-toast';
+import Image from "next/image";
+import { useState } from "react";
+import { Plus, Minus, Leaf } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { formatCurrency } from "@lma/shared";
+import { useCartStore } from "@/lib/store/cart";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProductCardProps {
   product: {
@@ -56,9 +56,10 @@ export function ProductCard({ product, merchant }: ProductCardProps) {
     // Check if cart has items from different merchant
     if (merchantId && merchantId !== merchant.id) {
       toast({
-        title: 'Different restaurant',
-        description: 'Your cart contains items from another restaurant. Would you like to clear it?',
-        variant: 'destructive',
+        title: "Different restaurant",
+        description:
+          "Your cart contains items from another restaurant. Would you like to clear it?",
+        variant: "destructive",
       });
       return;
     }
@@ -74,7 +75,7 @@ export function ProductCard({ product, merchant }: ProductCardProps) {
     });
 
     toast({
-      title: 'Added to cart',
+      title: "Added to cart",
       description: `${product.name} added to your cart`,
     });
   };
@@ -104,12 +105,16 @@ export function ProductCard({ product, merchant }: ProductCardProps) {
         <div className="flex items-start gap-2">
           {/* Veg/Non-veg indicator */}
           {(product.is_vegetarian || product.is_vegan) && (
-            <div className={`shrink-0 h-5 w-5 border-2 flex items-center justify-center ${
-              product.is_vegan ? 'border-green-600' : 'border-green-600'
-            }`}>
-              <div className={`h-2.5 w-2.5 rounded-full ${
-                product.is_vegan ? 'bg-green-600' : 'bg-green-600'
-              }`} />
+            <div
+              className={`shrink-0 h-5 w-5 border-2 flex items-center justify-center ${
+                product.is_vegan ? "border-green-600" : "border-green-600"
+              }`}
+            >
+              <div
+                className={`h-2.5 w-2.5 rounded-full ${
+                  product.is_vegan ? "bg-green-600" : "bg-green-600"
+                }`}
+              />
             </div>
           )}
           <h3 className="font-medium truncate">{product.name}</h3>
@@ -123,16 +128,17 @@ export function ProductCard({ product, merchant }: ProductCardProps) {
 
         <div className="flex items-center gap-2 mt-2">
           <span className="font-semibold">{formatCurrency(product.price)}</span>
-          {product.compare_at_price && product.compare_at_price > product.price && (
-            <>
-              <span className="text-sm text-muted-foreground line-through">
-                {formatCurrency(product.compare_at_price)}
-              </span>
-              <span className="text-xs text-green-600 font-medium">
-                {discount}% off
-              </span>
-            </>
-          )}
+          {product.compare_at_price &&
+            product.compare_at_price > product.price && (
+              <>
+                <span className="text-sm text-muted-foreground line-through">
+                  {formatCurrency(product.compare_at_price)}
+                </span>
+                <span className="text-xs text-green-600 font-medium">
+                  {discount}% off
+                </span>
+              </>
+            )}
         </div>
       </div>
 
@@ -179,11 +185,7 @@ export function ProductCard({ product, merchant }: ProductCardProps) {
               </Button>
             </div>
           ) : (
-            <Button
-              size="sm"
-              className="h-8 shadow"
-              onClick={handleAddToCart}
-            >
+            <Button size="sm" className="h-8 shadow" onClick={handleAddToCart}>
               <Plus className="h-4 w-4 mr-1" />
               Add
             </Button>

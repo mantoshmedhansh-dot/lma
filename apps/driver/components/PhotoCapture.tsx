@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,9 @@ import {
   Image,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { Ionicons } from '@expo/vector-icons';
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { Ionicons } from "@expo/vector-icons";
 
 interface PhotoCaptureProps {
   photos: string[];
@@ -37,11 +37,11 @@ export function PhotoCapture({
   const requestPermissions = async () => {
     const { status: cameraStatus } =
       await ImagePicker.requestCameraPermissionsAsync();
-    if (cameraStatus !== 'granted') {
+    if (cameraStatus !== "granted") {
       Alert.alert(
-        'Permission Required',
-        'Please grant camera access to take proof of delivery photos.',
-        [{ text: 'OK' }]
+        "Permission Required",
+        "Please grant camera access to take proof of delivery photos.",
+        [{ text: "OK" }],
       );
       return false;
     }
@@ -51,8 +51,8 @@ export function PhotoCapture({
   const takePhoto = async () => {
     if (photos.length >= maxPhotos) {
       Alert.alert(
-        'Maximum Photos',
-        `You can only add up to ${maxPhotos} photos.`
+        "Maximum Photos",
+        `You can only add up to ${maxPhotos} photos.`,
       );
       return;
     }
@@ -75,8 +75,8 @@ export function PhotoCapture({
         onPhotosChange([...photos, photoUri]);
       }
     } catch (error) {
-      console.error('Error taking photo:', error);
-      Alert.alert('Error', 'Failed to take photo. Please try again.');
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -85,17 +85,17 @@ export function PhotoCapture({
   const pickFromGallery = async () => {
     if (photos.length >= maxPhotos) {
       Alert.alert(
-        'Maximum Photos',
-        `You can only add up to ${maxPhotos} photos.`
+        "Maximum Photos",
+        `You can only add up to ${maxPhotos} photos.`,
       );
       return;
     }
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
+    if (status !== "granted") {
       Alert.alert(
-        'Permission Required',
-        'Please grant photo library access to select photos.'
+        "Permission Required",
+        "Please grant photo library access to select photos.",
       );
       return;
     }
@@ -114,19 +114,19 @@ export function PhotoCapture({
         onPhotosChange([...photos, photoUri]);
       }
     } catch (error) {
-      console.error('Error picking photo:', error);
-      Alert.alert('Error', 'Failed to select photo. Please try again.');
+      console.error("Error picking photo:", error);
+      Alert.alert("Error", "Failed to select photo. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   const removePhoto = (index: number) => {
-    Alert.alert('Remove Photo', 'Are you sure you want to remove this photo?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Remove Photo", "Are you sure you want to remove this photo?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Remove',
-        style: 'destructive',
+        text: "Remove",
+        style: "destructive",
         onPress: () => {
           const newPhotos = [...photos];
           newPhotos.splice(index, 1);
@@ -137,10 +137,10 @@ export function PhotoCapture({
   };
 
   const showPhotoOptions = () => {
-    Alert.alert('Add Photo', 'Choose an option', [
-      { text: 'Take Photo', onPress: takePhoto },
-      { text: 'Choose from Gallery', onPress: pickFromGallery },
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Add Photo", "Choose an option", [
+      { text: "Take Photo", onPress: takePhoto },
+      { text: "Choose from Gallery", onPress: pickFromGallery },
+      { text: "Cancel", style: "cancel" },
     ]);
   };
 
@@ -192,11 +192,7 @@ export function PhotoCapture({
       </View>
 
       <View style={styles.tips}>
-        <Ionicons
-          name="bulb-outline"
-          size={16}
-          color={colors.textSecondary}
-        />
+        <Ionicons name="bulb-outline" size={16} color={colors.textSecondary} />
         <Text style={[styles.tipsText, { color: colors.textSecondary }]}>
           Take a clear photo of the delivered package at the customer's door
         </Text>
@@ -210,24 +206,24 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   title: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   subtitle: {
     fontSize: 14,
   },
   photosContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
   photoWrapper: {
-    position: 'relative',
+    position: "relative",
   },
   photo: {
     width: 100,
@@ -235,32 +231,32 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   removeButton: {
-    position: 'absolute',
+    position: "absolute",
     top: -8,
     right: -8,
     width: 24,
     height: 24,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   addButton: {
     width: 100,
     height: 100,
     borderRadius: 12,
     borderWidth: 2,
-    borderStyle: 'dashed',
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderStyle: "dashed",
+    alignItems: "center",
+    justifyContent: "center",
     gap: 4,
   },
   addButtonText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   tips: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     paddingTop: 4,
   },

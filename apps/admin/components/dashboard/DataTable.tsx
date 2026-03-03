@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { useState, useMemo } from "react";
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 
 interface Column<T> {
   key: keyof T | string;
@@ -36,14 +36,14 @@ export function DataTable<T extends Record<string, unknown>>({
   searchable = false,
   searchFields = [],
   onRowClick,
-  emptyMessage = 'No data available',
+  emptyMessage = "No data available",
 }: DataTableProps<T>) {
   const [sortConfig, setSortConfig] = useState<{
     key: string | null;
-    direction: 'asc' | 'desc';
-  }>({ key: null, direction: 'asc' });
+    direction: "asc" | "desc";
+  }>({ key: null, direction: "asc" });
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Filter data based on search
   const filteredData = useMemo(() => {
@@ -53,7 +53,7 @@ export function DataTable<T extends Record<string, unknown>>({
       searchFields.some((field) => {
         const value = row[field];
         return String(value).toLowerCase().includes(searchQuery.toLowerCase());
-      })
+      }),
     );
   }, [data, searchQuery, searchFields]);
 
@@ -65,8 +65,8 @@ export function DataTable<T extends Record<string, unknown>>({
       const aValue = getNestedValue(a, sortConfig.key!);
       const bValue = getNestedValue(b, sortConfig.key!);
 
-      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
     });
   }, [filteredData, sortConfig]);
@@ -84,7 +84,7 @@ export function DataTable<T extends Record<string, unknown>>({
   const handleSort = (key: string) => {
     setSortConfig((prev) => ({
       key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
 
@@ -144,19 +144,21 @@ export function DataTable<T extends Record<string, unknown>>({
                 <th
                   key={String(column.key)}
                   className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
-                  } ${column.className || ''}`}
-                  onClick={() => column.sortable && handleSort(String(column.key))}
+                    column.sortable ? "cursor-pointer hover:bg-gray-100" : ""
+                  } ${column.className || ""}`}
+                  onClick={() =>
+                    column.sortable && handleSort(String(column.key))
+                  }
                 >
                   <div className="flex items-center gap-1">
                     {column.header}
-                    {column.sortable && sortConfig.key === column.key && (
-                      sortConfig.direction === 'asc' ? (
+                    {column.sortable &&
+                      sortConfig.key === column.key &&
+                      (sortConfig.direction === "asc" ? (
                         <ChevronUpIcon className="h-4 w-4" />
                       ) : (
                         <ChevronDownIcon className="h-4 w-4" />
-                      )
-                    )}
+                      ))}
                   </div>
                 </th>
               ))}
@@ -177,9 +179,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 <tr
                   key={String(row[keyField])}
                   className={`${
-                    onRowClick
-                      ? 'cursor-pointer hover:bg-gray-50'
-                      : ''
+                    onRowClick ? "cursor-pointer hover:bg-gray-50" : ""
                   }`}
                   onClick={() => onRowClick?.(row)}
                 >
@@ -187,12 +187,15 @@ export function DataTable<T extends Record<string, unknown>>({
                     <td
                       key={String(column.key)}
                       className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${
-                        column.className || ''
+                        column.className || ""
                       }`}
                     >
                       {column.render
-                        ? column.render(getNestedValue(row, String(column.key)), row)
-                        : String(getNestedValue(row, String(column.key)) ?? '')}
+                        ? column.render(
+                            getNestedValue(row, String(column.key)),
+                            row,
+                          )
+                        : String(getNestedValue(row, String(column.key)) ?? "")}
                     </td>
                   ))}
                 </tr>
@@ -206,8 +209,8 @@ export function DataTable<T extends Record<string, unknown>>({
       {pagination && totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, sortedData.length)} of{' '}
+            Showing {(currentPage - 1) * pageSize + 1} to{" "}
+            {Math.min(currentPage * pageSize, sortedData.length)} of{" "}
             {sortedData.length} results
           </p>
           <div className="flex gap-2">
@@ -226,8 +229,8 @@ export function DataTable<T extends Record<string, unknown>>({
                   onClick={() => setCurrentPage(pageNum)}
                   className={`px-3 py-1 border rounded text-sm ${
                     currentPage === pageNum
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 hover:bg-gray-50'
+                      ? "bg-blue-600 text-white border-blue-600"
+                      : "border-gray-300 hover:bg-gray-50"
                   }`}
                 >
                   {pageNum}
@@ -249,8 +252,8 @@ export function DataTable<T extends Record<string, unknown>>({
 }
 
 function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-  return path.split('.').reduce((acc, part) => {
-    if (acc && typeof acc === 'object') {
+  return path.split(".").reduce((acc, part) => {
+    if (acc && typeof acc === "object") {
       return (acc as Record<string, unknown>)[part];
     }
     return undefined;

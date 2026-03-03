@@ -1,16 +1,16 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { Toaster } from '@/components/ui/toaster';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: {
-    default: 'Merchant Dashboard | LMA',
-    template: '%s | LMA Merchant',
+    default: "Merchant Dashboard | LMA",
+    template: "%s | LMA Merchant",
   },
-  description: 'Manage your restaurant or store on LMA',
+  description: "Manage your restaurant or store on LMA",
 };
 
 export default function RootLayout({

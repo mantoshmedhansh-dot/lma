@@ -5,7 +5,7 @@
  * Supports both Android and iOS devices
  */
 
-import { logger } from '../../../lib/logger.js';
+import { logger } from "../../../lib/logger.js";
 
 interface PushNotificationPayload {
   title: string;
@@ -21,7 +21,7 @@ interface PushNotificationPayload {
 interface PushRecipient {
   userId: string;
   deviceToken: string;
-  platform: 'android' | 'ios' | 'web';
+  platform: "android" | "ios" | "web";
 }
 
 interface PushResult {
@@ -54,9 +54,9 @@ class PushNotificationChannel {
       // });
 
       this.initialized = true;
-      logger.info('Push notification channel initialized');
+      logger.info("Push notification channel initialized");
     } catch (error) {
-      logger.error('Failed to initialize push notifications', { error });
+      logger.error("Failed to initialize push notifications", { error });
       throw error;
     }
   }
@@ -66,7 +66,7 @@ class PushNotificationChannel {
    */
   async send(
     recipient: PushRecipient,
-    payload: PushNotificationPayload
+    payload: PushNotificationPayload,
   ): Promise<PushResult> {
     try {
       await this.initialize();
@@ -79,7 +79,7 @@ class PushNotificationChannel {
       // Simulated response for development
       const response = `mock_message_${Date.now()}`;
 
-      logger.info('Push notification sent', {
+      logger.info("Push notification sent", {
         userId: recipient.userId,
         messageId: response,
       });
@@ -90,8 +90,9 @@ class PushNotificationChannel {
         recipient,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Failed to send push notification', {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      logger.error("Failed to send push notification", {
         userId: recipient.userId,
         error: errorMessage,
       });
@@ -109,7 +110,7 @@ class PushNotificationChannel {
    */
   async sendBatch(
     recipients: PushRecipient[],
-    payload: PushNotificationPayload
+    payload: PushNotificationPayload,
   ): Promise<PushResult[]> {
     const results: PushResult[] = [];
 
@@ -118,13 +119,13 @@ class PushNotificationChannel {
     for (let i = 0; i < recipients.length; i += batchSize) {
       const batch = recipients.slice(i, i + batchSize);
       const batchResults = await Promise.all(
-        batch.map((recipient) => this.send(recipient, payload))
+        batch.map((recipient) => this.send(recipient, payload)),
       );
       results.push(...batchResults);
     }
 
     const successCount = results.filter((r) => r.success).length;
-    logger.info('Batch push notifications sent', {
+    logger.info("Batch push notifications sent", {
       total: recipients.length,
       success: successCount,
       failed: recipients.length - successCount,
@@ -138,7 +139,7 @@ class PushNotificationChannel {
    */
   async sendToTopic(
     topic: string,
-    payload: PushNotificationPayload
+    payload: PushNotificationPayload,
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
       await this.initialize();
@@ -153,12 +154,16 @@ class PushNotificationChannel {
 
       const response = `mock_topic_${Date.now()}`;
 
-      logger.info('Topic notification sent', { topic, messageId: response });
+      logger.info("Topic notification sent", { topic, messageId: response });
 
       return { success: true, messageId: response };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      logger.error('Failed to send topic notification', { topic, error: errorMessage });
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      logger.error("Failed to send topic notification", {
+        topic,
+        error: errorMessage,
+      });
       return { success: false, error: errorMessage };
     }
   }
@@ -171,9 +176,12 @@ class PushNotificationChannel {
       await this.initialize();
       // In production:
       // await admin.messaging().subscribeToTopic(tokens, topic);
-      logger.info('Devices subscribed to topic', { topic, count: tokens.length });
+      logger.info("Devices subscribed to topic", {
+        topic,
+        count: tokens.length,
+      });
     } catch (error) {
-      logger.error('Failed to subscribe to topic', { topic, error });
+      logger.error("Failed to subscribe to topic", { topic, error });
       throw error;
     }
   }
@@ -186,9 +194,12 @@ class PushNotificationChannel {
       await this.initialize();
       // In production:
       // await admin.messaging().unsubscribeFromTopic(tokens, topic);
-      logger.info('Devices unsubscribed from topic', { topic, count: tokens.length });
+      logger.info("Devices unsubscribed from topic", {
+        topic,
+        count: tokens.length,
+      });
     } catch (error) {
-      logger.error('Failed to unsubscribe from topic', { topic, error });
+      logger.error("Failed to unsubscribe from topic", { topic, error });
       throw error;
     }
   }
@@ -196,7 +207,10 @@ class PushNotificationChannel {
   /**
    * Build FCM message object
    */
-  private buildMessage(recipient: PushRecipient, payload: PushNotificationPayload) {
+  private buildMessage(
+    recipient: PushRecipient,
+    payload: PushNotificationPayload,
+  ) {
     const message: Record<string, unknown> = {
       token: recipient.deviceToken,
       notification: {
@@ -210,24 +224,25 @@ class PushNotificationChannel {
     }
 
     if (payload.imageUrl) {
-      (message.notification as Record<string, unknown>).imageUrl = payload.imageUrl;
+      (message.notification as Record<string, unknown>).imageUrl =
+        payload.imageUrl;
     }
 
     // Platform-specific options
-    if (recipient.platform === 'android') {
+    if (recipient.platform === "android") {
       message.android = {
-        priority: 'high',
+        priority: "high",
         notification: {
-          sound: payload.sound || 'default',
-          channelId: payload.channelId || 'default',
+          sound: payload.sound || "default",
+          channelId: payload.channelId || "default",
           clickAction: payload.clickAction,
         },
       };
-    } else if (recipient.platform === 'ios') {
+    } else if (recipient.platform === "ios") {
       message.apns = {
         payload: {
           aps: {
-            sound: payload.sound || 'default',
+            sound: payload.sound || "default",
             badge: payload.badge,
           },
         },

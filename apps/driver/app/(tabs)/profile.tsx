@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,12 @@ import {
   TouchableOpacity,
   Alert,
   Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useAuthStore } from '@/lib/store/auth';
-import { useThemeColors } from '@/hooks/useThemeColor';
-import { supabase } from '@/lib/supabase';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/lib/store/auth";
+import { useThemeColors } from "@/hooks/useThemeColor";
+import { supabase } from "@/lib/supabase";
 
 export default function ProfileScreen() {
   const colors = useThemeColors();
@@ -30,16 +30,16 @@ export default function ProfileScreen() {
     if (!driver) return;
     try {
       const { data } = await supabase
-        .from('drivers')
-        .select('hub_id')
-        .eq('id', driver.id)
+        .from("drivers")
+        .select("hub_id")
+        .eq("id", driver.id)
         .single();
 
       if (data?.hub_id) {
         const { data: hub } = await supabase
-          .from('hubs')
-          .select('name')
-          .eq('id', data.hub_id)
+          .from("hubs")
+          .select("name")
+          .eq("id", data.hub_id)
           .single();
         if (hub) setHubName(hub.name);
       }
@@ -49,21 +49,17 @@ export default function ProfileScreen() {
   };
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign Out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/(auth)/login');
-          },
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Sign Out",
+        style: "destructive",
+        onPress: async () => {
+          await signOut();
+          router.replace("/(auth)/login");
         },
-      ]
-    );
+      },
+    ]);
   };
 
   if (!driver) {
@@ -75,41 +71,56 @@ export default function ProfileScreen() {
   }
 
   const vehicleIcons: Record<string, keyof typeof Ionicons.glyphMap> = {
-    bike: 'bicycle',
-    scooter: 'bicycle',
-    car: 'car',
+    bike: "bicycle",
+    scooter: "bicycle",
+    car: "car",
   };
 
   const menuItems = [
     {
-      icon: 'document-text-outline' as const,
-      label: 'Documents',
-      onPress: () => Alert.alert('Coming Soon', 'Document management will be available soon.'),
+      icon: "document-text-outline" as const,
+      label: "Documents",
+      onPress: () =>
+        Alert.alert(
+          "Coming Soon",
+          "Document management will be available soon.",
+        ),
     },
     {
-      icon: 'card-outline' as const,
-      label: 'Payment Methods',
-      onPress: () => Alert.alert('Coming Soon', 'Payment methods will be available soon.'),
+      icon: "card-outline" as const,
+      label: "Payment Methods",
+      onPress: () =>
+        Alert.alert("Coming Soon", "Payment methods will be available soon."),
     },
     {
-      icon: 'notifications-outline' as const,
-      label: 'Notifications',
-      onPress: () => Alert.alert('Coming Soon', 'Notification settings will be available soon.'),
+      icon: "notifications-outline" as const,
+      label: "Notifications",
+      onPress: () =>
+        Alert.alert(
+          "Coming Soon",
+          "Notification settings will be available soon.",
+        ),
     },
     {
-      icon: 'help-circle-outline' as const,
-      label: 'Help & Support',
-      onPress: () => Alert.alert('Coming Soon', 'Help center will be available soon.'),
+      icon: "help-circle-outline" as const,
+      label: "Help & Support",
+      onPress: () =>
+        Alert.alert("Coming Soon", "Help center will be available soon."),
     },
     {
-      icon: 'shield-checkmark-outline' as const,
-      label: 'Privacy Policy',
-      onPress: () => Alert.alert('Privacy Policy', 'Our privacy policy protects your data.'),
+      icon: "shield-checkmark-outline" as const,
+      label: "Privacy Policy",
+      onPress: () =>
+        Alert.alert("Privacy Policy", "Our privacy policy protects your data."),
     },
     {
-      icon: 'document-outline' as const,
-      label: 'Terms of Service',
-      onPress: () => Alert.alert('Terms of Service', 'By using this app, you agree to our terms.'),
+      icon: "document-outline" as const,
+      label: "Terms of Service",
+      onPress: () =>
+        Alert.alert(
+          "Terms of Service",
+          "By using this app, you agree to our terms.",
+        ),
     },
   ];
 
@@ -119,10 +130,20 @@ export default function ProfileScreen() {
       contentContainerStyle={styles.content}
     >
       {/* Profile Header */}
-      <View style={[styles.profileCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={[styles.avatarContainer, { backgroundColor: colors.tintLight }]}>
+      <View
+        style={[
+          styles.profileCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
+        <View
+          style={[
+            styles.avatarContainer,
+            { backgroundColor: colors.tintLight },
+          ]}
+        >
           <Text style={[styles.avatarText, { color: colors.tint }]}>
-            {driver.full_name?.charAt(0)?.toUpperCase() || 'D'}
+            {driver.full_name?.charAt(0)?.toUpperCase() || "D"}
           </Text>
         </View>
         <View style={styles.profileInfo}>
@@ -144,12 +165,18 @@ export default function ProfileScreen() {
             <View style={styles.profileStat}>
               <Ionicons name="star" size={14} color="#F59E0B" />
               <Text style={[styles.statText, { color: colors.text }]}>
-                {driver.rating?.toFixed(1) || '0.0'}
+                {driver.rating?.toFixed(1) || "0.0"}
               </Text>
             </View>
-            <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+            <View
+              style={[styles.statDivider, { backgroundColor: colors.border }]}
+            />
             <View style={styles.profileStat}>
-              <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+              <Ionicons
+                name="checkmark-circle"
+                size={14}
+                color={colors.success}
+              />
               <Text style={[styles.statText, { color: colors.text }]}>
                 {driver.total_deliveries || 0} deliveries
               </Text>
@@ -159,10 +186,15 @@ export default function ProfileScreen() {
       </View>
 
       {/* Vehicle Info */}
-      <View style={[styles.vehicleCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.vehicleCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <View style={styles.vehicleHeader}>
           <Ionicons
-            name={vehicleIcons[driver.vehicle_type] || 'bicycle'}
+            name={vehicleIcons[driver.vehicle_type] || "bicycle"}
             size={24}
             color={colors.tint}
           />
@@ -172,15 +204,20 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.vehicleDetails}>
           <View style={styles.vehicleRow}>
-            <Text style={[styles.vehicleLabel, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.vehicleLabel, { color: colors.textSecondary }]}
+            >
               Type
             </Text>
             <Text style={[styles.vehicleValue, { color: colors.text }]}>
-              {driver.vehicle_type?.charAt(0).toUpperCase() + driver.vehicle_type?.slice(1)}
+              {driver.vehicle_type?.charAt(0).toUpperCase() +
+                driver.vehicle_type?.slice(1)}
             </Text>
           </View>
           <View style={styles.vehicleRow}>
-            <Text style={[styles.vehicleLabel, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.vehicleLabel, { color: colors.textSecondary }]}
+            >
               Number
             </Text>
             <Text style={[styles.vehicleValue, { color: colors.text }]}>
@@ -188,7 +225,9 @@ export default function ProfileScreen() {
             </Text>
           </View>
           <View style={styles.vehicleRow}>
-            <Text style={[styles.vehicleLabel, { color: colors.textSecondary }]}>
+            <Text
+              style={[styles.vehicleLabel, { color: colors.textSecondary }]}
+            >
               License
             </Text>
             <Text style={[styles.vehicleValue, { color: colors.text }]}>
@@ -199,7 +238,12 @@ export default function ProfileScreen() {
       </View>
 
       {/* Account Status */}
-      <View style={[styles.statusCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.statusCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         <View style={styles.statusRow}>
           <Text style={[styles.statusLabel, { color: colors.text }]}>
             Account Status
@@ -209,11 +253,11 @@ export default function ProfileScreen() {
               styles.statusBadge,
               {
                 backgroundColor:
-                  driver.status === 'approved'
-                    ? '#D1FAE5'
-                    : driver.status === 'pending'
-                    ? '#FEF3C7'
-                    : '#FEE2E2',
+                  driver.status === "approved"
+                    ? "#D1FAE5"
+                    : driver.status === "pending"
+                      ? "#FEF3C7"
+                      : "#FEE2E2",
               },
             ]}
           >
@@ -222,11 +266,11 @@ export default function ProfileScreen() {
                 styles.statusBadgeText,
                 {
                   color:
-                    driver.status === 'approved'
-                      ? '#059669'
-                      : driver.status === 'pending'
-                      ? '#D97706'
-                      : '#DC2626',
+                    driver.status === "approved"
+                      ? "#059669"
+                      : driver.status === "pending"
+                        ? "#D97706"
+                        : "#DC2626",
                 },
               ]}
             >
@@ -234,7 +278,7 @@ export default function ProfileScreen() {
             </Text>
           </View>
         </View>
-        {driver.status === 'pending' && (
+        {driver.status === "pending" && (
           <Text style={[styles.statusNote, { color: colors.textSecondary }]}>
             Your account is being reviewed. You'll be notified once approved.
           </Text>
@@ -242,7 +286,12 @@ export default function ProfileScreen() {
       </View>
 
       {/* Menu Items */}
-      <View style={[styles.menuCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <View
+        style={[
+          styles.menuCard,
+          { backgroundColor: colors.card, borderColor: colors.border },
+        ]}
+      >
         {menuItems.map((item, index) => (
           <TouchableOpacity
             key={item.label}
@@ -256,12 +305,20 @@ export default function ProfileScreen() {
             onPress={item.onPress}
           >
             <View style={styles.menuItemLeft}>
-              <Ionicons name={item.icon} size={22} color={colors.textSecondary} />
+              <Ionicons
+                name={item.icon}
+                size={22}
+                color={colors.textSecondary}
+              />
               <Text style={[styles.menuItemLabel, { color: colors.text }]}>
                 {item.label}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.textSecondary} />
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={colors.textSecondary}
+            />
           </TouchableOpacity>
         ))}
       </View>
@@ -274,7 +331,7 @@ export default function ProfileScreen() {
       >
         <Ionicons name="log-out-outline" size={22} color={colors.error} />
         <Text style={[styles.signOutText, { color: colors.error }]}>
-          {loading ? 'Signing out...' : 'Sign Out'}
+          {loading ? "Signing out..." : "Sign Out"}
         </Text>
       </TouchableOpacity>
 
@@ -295,59 +352,59 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   profileCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
     gap: 16,
-    alignItems: 'center',
+    alignItems: "center",
   },
   avatarContainer: {
     width: 72,
     height: 72,
     borderRadius: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   avatarText: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   profileEmail: {
     fontSize: 14,
     marginTop: 2,
   },
   hubRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
     marginTop: 4,
   },
   hubText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   profileStats: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 8,
     gap: 8,
   },
   profileStat: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   statText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   statDivider: {
     width: 1,
@@ -359,28 +416,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   vehicleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginBottom: 16,
   },
   vehicleTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   vehicleDetails: {
     gap: 12,
   },
   vehicleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   vehicleLabel: {
     fontSize: 14,
   },
   vehicleValue: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   statusCard: {
     padding: 16,
@@ -388,13 +445,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   statusLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -403,7 +460,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   statusNote: {
     fontSize: 12,
@@ -412,26 +469,26 @@ const styles = StyleSheet.create({
   menuCard: {
     borderRadius: 12,
     borderWidth: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
   },
   menuItemLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   menuItemLabel: {
     fontSize: 15,
   },
   signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 14,
     borderRadius: 12,
     borderWidth: 1,
@@ -439,10 +496,10 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   version: {
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 12,
     marginBottom: 16,
   },

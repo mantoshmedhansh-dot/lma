@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Header } from '@/components/layout/header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Header } from "@/components/layout/header";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { formatCurrency, formatNumber } from "@/lib/utils";
 import {
   TrendingUp,
   TrendingDown,
@@ -14,7 +14,7 @@ import {
   Users,
   Store,
   Calendar,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -31,14 +31,21 @@ import {
   Pie,
   Cell,
   Legend,
-} from 'recharts';
+} from "recharts";
 
-const COLORS = ['#7c3aed', '#22c55e', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899'];
+const COLORS = [
+  "#7c3aed",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#3b82f6",
+  "#ec4899",
+];
 
-type Period = '7d' | '30d' | '90d';
+type Period = "7d" | "30d" | "90d";
 
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState<Period>('30d');
+  const [period, setPeriod] = useState<Period>("30d");
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalRevenue: 0,
@@ -62,7 +69,7 @@ export default function AnalyticsPage() {
   const fetchAnalytics = async () => {
     setLoading(true);
     try {
-      const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+      const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
       const now = new Date();
       const startDate = new Date();
       startDate.setDate(now.getDate() - days);
@@ -71,22 +78,24 @@ export default function AnalyticsPage() {
 
       // Fetch orders for current period
       const { data: currentOrders } = await supabase
-        .from('orders')
-        .select('total_amount, created_at, status, merchant_id')
-        .gte('created_at', startDate.toISOString())
-        .eq('status', 'delivered');
+        .from("orders")
+        .select("total_amount, created_at, status, merchant_id")
+        .gte("created_at", startDate.toISOString())
+        .eq("status", "delivered");
 
       // Fetch orders for previous period
       const { data: previousOrders } = await supabase
-        .from('orders')
-        .select('total_amount')
-        .gte('created_at', previousStart.toISOString())
-        .lt('created_at', startDate.toISOString())
-        .eq('status', 'delivered');
+        .from("orders")
+        .select("total_amount")
+        .gte("created_at", previousStart.toISOString())
+        .lt("created_at", startDate.toISOString())
+        .eq("status", "delivered");
 
       // Calculate stats
-      const totalRevenue = currentOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
-      const previousRevenue = previousOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
+      const totalRevenue =
+        currentOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
+      const previousRevenue =
+        previousOrders?.reduce((sum, o) => sum + (o.total_amount || 0), 0) || 0;
       const totalOrders = currentOrders?.length || 0;
       const previousOrderCount = previousOrders?.length || 0;
       const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
@@ -94,18 +103,18 @@ export default function AnalyticsPage() {
       // New users counts
       const [usersRes, merchantsRes, driversRes] = await Promise.all([
         supabase
-          .from('users')
-          .select('id', { count: 'exact', head: true })
-          .gte('created_at', startDate.toISOString())
-          .eq('role', 'customer'),
+          .from("users")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startDate.toISOString())
+          .eq("role", "customer"),
         supabase
-          .from('merchants')
-          .select('id', { count: 'exact', head: true })
-          .gte('created_at', startDate.toISOString()),
+          .from("merchants")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startDate.toISOString()),
         supabase
-          .from('drivers')
-          .select('id', { count: 'exact', head: true })
-          .gte('created_at', startDate.toISOString()),
+          .from("drivers")
+          .select("id", { count: "exact", head: true })
+          .gte("created_at", startDate.toISOString()),
       ]);
 
       setStats({
@@ -124,12 +133,12 @@ export default function AnalyticsPage() {
       for (let i = 0; i < days; i++) {
         const date = new Date();
         date.setDate(date.getDate() - i);
-        const dateStr = date.toISOString().split('T')[0];
+        const dateStr = date.toISOString().split("T")[0];
         dailyMap.set(dateStr, { revenue: 0, orders: 0 });
       }
 
       currentOrders?.forEach((order) => {
-        const dateStr = order.created_at.split('T')[0];
+        const dateStr = order.created_at.split("T")[0];
         if (dailyMap.has(dateStr)) {
           const current = dailyMap.get(dateStr)!;
           dailyMap.set(dateStr, {
@@ -141,7 +150,10 @@ export default function AnalyticsPage() {
 
       const dailyDataArray = Array.from(dailyMap.entries())
         .map(([date, data]) => ({
-          date: new Date(date).toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+          date: new Date(date).toLocaleDateString("en", {
+            month: "short",
+            day: "numeric",
+          }),
           ...data,
         }))
         .reverse();
@@ -154,7 +166,8 @@ export default function AnalyticsPage() {
         if (order.merchant_id) {
           merchantRevenue.set(
             order.merchant_id,
-            (merchantRevenue.get(order.merchant_id) || 0) + (order.total_amount || 0)
+            (merchantRevenue.get(order.merchant_id) || 0) +
+              (order.total_amount || 0),
           );
         }
       });
@@ -166,15 +179,15 @@ export default function AnalyticsPage() {
 
       if (topMerchantIds.length > 0) {
         const { data: merchantNames } = await supabase
-          .from('merchants')
-          .select('id, name, type')
-          .in('id', topMerchantIds);
+          .from("merchants")
+          .select("id, name, type")
+          .in("id", topMerchantIds);
 
         const topMerchantsData = topMerchantIds.map((id) => {
           const merchant = merchantNames?.find((m) => m.id === id);
           return {
-            name: merchant?.name || 'Unknown',
-            type: merchant?.type || 'other',
+            name: merchant?.name || "Unknown",
+            type: merchant?.type || "other",
             revenue: merchantRevenue.get(id) || 0,
           };
         });
@@ -183,54 +196,70 @@ export default function AnalyticsPage() {
       }
 
       // Orders by merchant type
-      const { data: allMerchants } = await supabase.from('merchants').select('id, type');
+      const { data: allMerchants } = await supabase
+        .from("merchants")
+        .select("id, type");
       const merchantTypes = new Map<string, string>();
       allMerchants?.forEach((m) => merchantTypes.set(m.id, m.type));
 
       const typeRevenue = new Map<string, number>();
       currentOrders?.forEach((order) => {
-        const type = merchantTypes.get(order.merchant_id) || 'other';
-        typeRevenue.set(type, (typeRevenue.get(type) || 0) + (order.total_amount || 0));
+        const type = merchantTypes.get(order.merchant_id) || "other";
+        typeRevenue.set(
+          type,
+          (typeRevenue.get(type) || 0) + (order.total_amount || 0),
+        );
       });
 
       setOrdersByType(
         Array.from(typeRevenue.entries()).map(([type, revenue]) => ({
           name: type.charAt(0).toUpperCase() + type.slice(1),
           value: revenue,
-        }))
+        })),
       );
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error("Error fetching analytics:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const revenueChange = stats.previousRevenue > 0
-    ? ((stats.totalRevenue - stats.previousRevenue) / stats.previousRevenue) * 100
-    : 0;
+  const revenueChange =
+    stats.previousRevenue > 0
+      ? ((stats.totalRevenue - stats.previousRevenue) / stats.previousRevenue) *
+        100
+      : 0;
 
-  const ordersChange = stats.previousOrders > 0
-    ? ((stats.totalOrders - stats.previousOrders) / stats.previousOrders) * 100
-    : 0;
+  const ordersChange =
+    stats.previousOrders > 0
+      ? ((stats.totalOrders - stats.previousOrders) / stats.previousOrders) *
+        100
+      : 0;
 
   return (
     <div>
-      <Header title="Analytics" description="Platform performance and insights" />
+      <Header
+        title="Analytics"
+        description="Platform performance and insights"
+      />
 
       <div className="p-6 space-y-6">
         {/* Period Selector */}
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-muted-foreground" />
           <div className="flex gap-2">
-            {(['7d', '30d', '90d'] as Period[]).map((p) => (
+            {(["7d", "30d", "90d"] as Period[]).map((p) => (
               <Button
                 key={p}
-                variant={period === p ? 'default' : 'outline'}
+                variant={period === p ? "default" : "outline"}
                 size="sm"
                 onClick={() => setPeriod(p)}
               >
-                {p === '7d' ? 'Last 7 Days' : p === '30d' ? 'Last 30 Days' : 'Last 90 Days'}
+                {p === "7d"
+                  ? "Last 7 Days"
+                  : p === "30d"
+                    ? "Last 30 Days"
+                    : "Last 90 Days"}
               </Button>
             ))}
           </div>
@@ -243,9 +272,17 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
-                  <p className="text-2xl font-bold">{formatCurrency(stats.totalRevenue)}</p>
-                  <div className={`flex items-center text-sm mt-1 ${revenueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {revenueChange >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(stats.totalRevenue)}
+                  </p>
+                  <div
+                    className={`flex items-center text-sm mt-1 ${revenueChange >= 0 ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {revenueChange >= 0 ? (
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 mr-1" />
+                    )}
                     {Math.abs(revenueChange).toFixed(1)}% vs previous
                   </div>
                 </div>
@@ -261,9 +298,17 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Orders</p>
-                  <p className="text-2xl font-bold">{formatNumber(stats.totalOrders)}</p>
-                  <div className={`flex items-center text-sm mt-1 ${ordersChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {ordersChange >= 0 ? <TrendingUp className="w-4 h-4 mr-1" /> : <TrendingDown className="w-4 h-4 mr-1" />}
+                  <p className="text-2xl font-bold">
+                    {formatNumber(stats.totalOrders)}
+                  </p>
+                  <div
+                    className={`flex items-center text-sm mt-1 ${ordersChange >= 0 ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {ordersChange >= 0 ? (
+                      <TrendingUp className="w-4 h-4 mr-1" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 mr-1" />
+                    )}
                     {Math.abs(ordersChange).toFixed(1)}% vs previous
                   </div>
                 </div>
@@ -278,8 +323,12 @@ export default function AnalyticsPage() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Avg Order Value</p>
-                  <p className="text-2xl font-bold">{formatCurrency(stats.avgOrderValue)}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Avg Order Value
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(stats.avgOrderValue)}
+                  </p>
                 </div>
                 <div className="p-3 bg-purple-100 rounded-full">
                   <TrendingUp className="w-6 h-6 text-purple-600" />
@@ -293,7 +342,9 @@ export default function AnalyticsPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">New Customers</p>
-                  <p className="text-2xl font-bold">{formatNumber(stats.newCustomers)}</p>
+                  <p className="text-2xl font-bold">
+                    {formatNumber(stats.newCustomers)}
+                  </p>
                 </div>
                 <div className="p-3 bg-orange-100 rounded-full">
                   <Users className="w-6 h-6 text-orange-600" />
@@ -315,9 +366,21 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={dailyData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
-                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₹${v / 1000}k`} />
-                    <Tooltip formatter={(value: number) => [formatCurrency(value), 'Revenue']} />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={(v) => `₹${v / 1000}k`}
+                    />
+                    <Tooltip
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Revenue",
+                      ]}
+                    />
                     <Area
                       type="monotone"
                       dataKey="revenue"
@@ -341,10 +404,18 @@ export default function AnalyticsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={dailyData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="date" tick={{ fontSize: 12 }} interval="preserveStartEnd" />
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                    />
                     <YAxis tick={{ fontSize: 12 }} />
                     <Tooltip />
-                    <Bar dataKey="orders" fill="#7c3aed" radius={[4, 4, 0, 0]} />
+                    <Bar
+                      dataKey="orders"
+                      fill="#7c3aed"
+                      radius={[4, 4, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -373,9 +444,13 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{merchant.name}</p>
-                        <p className="text-sm text-muted-foreground capitalize">{merchant.type}</p>
+                        <p className="text-sm text-muted-foreground capitalize">
+                          {merchant.type}
+                        </p>
                       </div>
-                      <p className="font-semibold">{formatCurrency(merchant.revenue)}</p>
+                      <p className="font-semibold">
+                        {formatCurrency(merchant.revenue)}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -407,10 +482,15 @@ export default function AnalyticsPage() {
                         dataKey="value"
                       >
                         {ordersByType.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                      <Tooltip
+                        formatter={(value: number) => formatCurrency(value)}
+                      />
                       <Legend />
                     </PieChart>
                   </ResponsiveContainer>
@@ -430,7 +510,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">New Customers</p>
-                  <p className="text-2xl font-bold">{formatNumber(stats.newCustomers)}</p>
+                  <p className="text-2xl font-bold">
+                    {formatNumber(stats.newCustomers)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -444,7 +526,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">New Merchants</p>
-                  <p className="text-2xl font-bold">{formatNumber(stats.newMerchants)}</p>
+                  <p className="text-2xl font-bold">
+                    {formatNumber(stats.newMerchants)}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -458,7 +542,9 @@ export default function AnalyticsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">New Drivers</p>
-                  <p className="text-2xl font-bold">{formatNumber(stats.newDrivers)}</p>
+                  <p className="text-2xl font-bold">
+                    {formatNumber(stats.newDrivers)}
+                  </p>
                 </div>
               </div>
             </CardContent>

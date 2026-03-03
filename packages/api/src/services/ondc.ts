@@ -7,64 +7,64 @@
  * Reference: https://ondc.org/protocol-specs/
  */
 
-import crypto from 'crypto';
-import { supabaseAdmin } from '../config/supabase.js';
-import { logger } from '../lib/logger.js';
+import crypto from "crypto";
+import { supabaseAdmin } from "../config/supabase.js";
+import { logger } from "../lib/logger.js";
 
 // ONDC Protocol Version
-const ONDC_PROTOCOL_VERSION = '1.2.0';
+const ONDC_PROTOCOL_VERSION = "1.2.0";
 
 // ONDC Domains
 export const ONDC_DOMAINS = {
-  RETAIL: 'ONDC:RET10',
-  LOGISTICS: 'ONDC:LOG10',
-  FOOD_DELIVERY: 'ONDC:RET11',
+  RETAIL: "ONDC:RET10",
+  LOGISTICS: "ONDC:LOG10",
+  FOOD_DELIVERY: "ONDC:RET11",
 } as const;
 
 // ONDC Actions
 export const ONDC_ACTIONS = {
-  SEARCH: 'search',
-  ON_SEARCH: 'on_search',
-  SELECT: 'select',
-  ON_SELECT: 'on_select',
-  INIT: 'init',
-  ON_INIT: 'on_init',
-  CONFIRM: 'confirm',
-  ON_CONFIRM: 'on_confirm',
-  STATUS: 'status',
-  ON_STATUS: 'on_status',
-  TRACK: 'track',
-  ON_TRACK: 'on_track',
-  CANCEL: 'cancel',
-  ON_CANCEL: 'on_cancel',
-  UPDATE: 'update',
-  ON_UPDATE: 'on_update',
-  SUPPORT: 'support',
-  ON_SUPPORT: 'on_support',
+  SEARCH: "search",
+  ON_SEARCH: "on_search",
+  SELECT: "select",
+  ON_SELECT: "on_select",
+  INIT: "init",
+  ON_INIT: "on_init",
+  CONFIRM: "confirm",
+  ON_CONFIRM: "on_confirm",
+  STATUS: "status",
+  ON_STATUS: "on_status",
+  TRACK: "track",
+  ON_TRACK: "on_track",
+  CANCEL: "cancel",
+  ON_CANCEL: "on_cancel",
+  UPDATE: "update",
+  ON_UPDATE: "on_update",
+  SUPPORT: "support",
+  ON_SUPPORT: "on_support",
 } as const;
 
 // ONDC Order States
 export const ONDC_ORDER_STATES = {
-  CREATED: 'Created',
-  ACCEPTED: 'Accepted',
-  IN_PROGRESS: 'In-progress',
-  COMPLETED: 'Completed',
-  CANCELLED: 'Cancelled',
+  CREATED: "Created",
+  ACCEPTED: "Accepted",
+  IN_PROGRESS: "In-progress",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
 } as const;
 
 // ONDC Fulfillment States for Logistics
 export const ONDC_FULFILLMENT_STATES = {
-  PENDING: 'Pending',
-  SEARCHING_AGENT: 'Searching-for-Agent',
-  AGENT_ASSIGNED: 'Agent-assigned',
-  AT_PICKUP: 'At-pickup',
-  PICKED_UP: 'Picked-up',
-  IN_TRANSIT: 'In-transit',
-  AT_DESTINATION: 'At-destination',
-  DELIVERED: 'Delivered',
-  CANCELLED: 'Cancelled',
-  RTO_INITIATED: 'RTO-Initiated',
-  RTO_DELIVERED: 'RTO-Delivered',
+  PENDING: "Pending",
+  SEARCHING_AGENT: "Searching-for-Agent",
+  AGENT_ASSIGNED: "Agent-assigned",
+  AT_PICKUP: "At-pickup",
+  PICKED_UP: "Picked-up",
+  IN_TRANSIT: "In-transit",
+  AT_DESTINATION: "At-destination",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
+  RTO_INITIATED: "RTO-Initiated",
+  RTO_DELIVERED: "RTO-Delivered",
 } as const;
 
 interface ONDCContext {
@@ -103,15 +103,16 @@ interface ONDCParticipant {
 // Environment config
 function getONDCConfig() {
   return {
-    subscriberId: process.env.ONDC_SUBSCRIBER_ID || '',
-    subscriberUrl: process.env.ONDC_SUBSCRIBER_URL || '',
-    registryUrl: process.env.ONDC_REGISTRY_URL || 'https://registry.ondc.org/ondc',
-    gatewayUrl: process.env.ONDC_GATEWAY_URL || 'https://gateway.ondc.org',
-    signingPrivateKey: process.env.ONDC_SIGNING_PRIVATE_KEY || '',
-    encryptionPrivateKey: process.env.ONDC_ENCRYPTION_PRIVATE_KEY || '',
-    signingPublicKey: process.env.ONDC_SIGNING_PUBLIC_KEY || '',
-    encryptionPublicKey: process.env.ONDC_ENCRYPTION_PUBLIC_KEY || '',
-    cityCode: process.env.ONDC_CITY_CODE || 'std:011', // Delhi
+    subscriberId: process.env.ONDC_SUBSCRIBER_ID || "",
+    subscriberUrl: process.env.ONDC_SUBSCRIBER_URL || "",
+    registryUrl:
+      process.env.ONDC_REGISTRY_URL || "https://registry.ondc.org/ondc",
+    gatewayUrl: process.env.ONDC_GATEWAY_URL || "https://gateway.ondc.org",
+    signingPrivateKey: process.env.ONDC_SIGNING_PRIVATE_KEY || "",
+    encryptionPrivateKey: process.env.ONDC_ENCRYPTION_PRIVATE_KEY || "",
+    signingPublicKey: process.env.ONDC_SIGNING_PUBLIC_KEY || "",
+    encryptionPublicKey: process.env.ONDC_ENCRYPTION_PUBLIC_KEY || "",
+    cityCode: process.env.ONDC_CITY_CODE || "std:011", // Delhi
   };
 }
 
@@ -128,14 +129,14 @@ export function createContext(
     bapUri?: string;
     bppId?: string;
     bppUri?: string;
-  } = {}
+  } = {},
 ): ONDCContext {
   const config = getONDCConfig();
 
   return {
     domain: options.domain || ONDC_DOMAINS.LOGISTICS,
     action,
-    country: 'IND',
+    country: "IND",
     city: config.cityCode,
     core_version: ONDC_PROTOCOL_VERSION,
     bap_id: options.bapId || config.subscriberId,
@@ -145,7 +146,7 @@ export function createContext(
     transaction_id: options.transactionId || crypto.randomUUID(),
     message_id: options.messageId || crypto.randomUUID(),
     timestamp: new Date().toISOString(),
-    ttl: 'PT30S',
+    ttl: "PT30S",
   };
 }
 
@@ -156,7 +157,7 @@ function signRequest(body: string): string {
   const config = getONDCConfig();
 
   // Create Blake2b-512 hash
-  const hash = crypto.createHash('blake2b512').update(body).digest('base64');
+  const hash = crypto.createHash("blake2b512").update(body).digest("base64");
 
   // Create signature header
   const created = Math.floor(Date.now() / 1000);
@@ -165,9 +166,9 @@ function signRequest(body: string): string {
   const signatureInput = `(created): ${created}\n(expires): ${expires}\ndigest: BLAKE-512=${hash}`;
 
   const signature = crypto
-    .createSign('RSA-SHA256')
+    .createSign("RSA-SHA256")
     .update(signatureInput)
-    .sign(config.signingPrivateKey, 'base64');
+    .sign(config.signingPrivateKey, "base64");
 
   return `Signature keyId="${config.subscriberId}|ed25519|${config.signingPublicKey}",algorithm="ed25519",created="${created}",expires="${expires}",headers="(created) (expires) digest",signature="${signature}"`;
 }
@@ -178,22 +179,22 @@ function signRequest(body: string): string {
 export function verifySignature(
   body: string,
   authHeader: string,
-  publicKey: string
+  publicKey: string,
 ): boolean {
   try {
     // Parse authorization header
     const params = new Map<string, string>();
     authHeader
-      .replace('Signature ', '')
-      .split(',')
+      .replace("Signature ", "")
+      .split(",")
       .forEach((pair) => {
-        const [key, value] = pair.split('=');
-        params.set(key, value.replace(/"/g, ''));
+        const [key, value] = pair.split("=");
+        params.set(key, value.replace(/"/g, ""));
       });
 
-    const signature = params.get('signature');
-    const created = params.get('created');
-    const expires = params.get('expires');
+    const signature = params.get("signature");
+    const created = params.get("created");
+    const expires = params.get("expires");
 
     if (!signature || !created || !expires) {
       return false;
@@ -205,18 +206,18 @@ export function verifySignature(
     }
 
     // Create hash
-    const hash = crypto.createHash('blake2b512').update(body).digest('base64');
+    const hash = crypto.createHash("blake2b512").update(body).digest("base64");
 
     // Reconstruct signature input
     const signatureInput = `(created): ${created}\n(expires): ${expires}\ndigest: BLAKE-512=${hash}`;
 
     // Verify signature
     return crypto
-      .createVerify('RSA-SHA256')
+      .createVerify("RSA-SHA256")
       .update(signatureInput)
-      .verify(publicKey, signature, 'base64');
+      .verify(publicKey, signature, "base64");
   } catch (error) {
-    logger.error('ONDC signature verification failed', { error });
+    logger.error("ONDC signature verification failed", { error });
     return false;
   }
 }
@@ -226,16 +227,16 @@ export function verifySignature(
  */
 async function sendONDCRequest(
   url: string,
-  message: ONDCMessage
+  message: ONDCMessage,
 ): Promise<{ success: boolean; data?: unknown; error?: string }> {
   const body = JSON.stringify(message);
   const authorization = signRequest(body);
 
   try {
     const response = await fetch(url, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: authorization,
       },
       body,
@@ -247,15 +248,15 @@ async function sendONDCRequest(
     await logTransaction(message.context, message.message, data);
 
     if (!response.ok) {
-      return { success: false, error: data.error?.message || 'Request failed' };
+      return { success: false, error: data.error?.message || "Request failed" };
     }
 
     return { success: true, data };
   } catch (error) {
-    logger.error('ONDC request failed', { url, error });
+    logger.error("ONDC request failed", { url, error });
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Request failed',
+      error: error instanceof Error ? error.message : "Request failed",
     };
   }
 }
@@ -266,18 +267,18 @@ async function sendONDCRequest(
 async function logTransaction(
   context: ONDCContext,
   request: Record<string, unknown>,
-  response?: unknown
+  response?: unknown,
 ): Promise<void> {
   try {
     // Get participant
     const { data: participant } = await supabaseAdmin
-      .from('ondc_participants')
-      .select('id')
-      .eq('subscriber_id', context.bap_id)
+      .from("ondc_participants")
+      .select("id")
+      .eq("subscriber_id", context.bap_id)
       .single();
 
     if (participant) {
-      await supabaseAdmin.from('ondc_transactions').insert({
+      await supabaseAdmin.from("ondc_transactions").insert({
         participant_id: participant.id,
         transaction_id: context.transaction_id,
         message_id: context.message_id,
@@ -289,11 +290,11 @@ async function logTransaction(
         response_payload: response,
         request_at: context.timestamp,
         response_at: response ? new Date().toISOString() : null,
-        status: response ? 'completed' : 'pending',
+        status: response ? "completed" : "pending",
       });
     }
   } catch (error) {
-    logger.error('Failed to log ONDC transaction', { error });
+    logger.error("Failed to log ONDC transaction", { error });
   }
 }
 
@@ -316,84 +317,99 @@ export async function handleSearch(
       payment?: { type: string };
       category?: { id: string };
     };
-  }
+  },
 ): Promise<ONDCMessage> {
   const { fulfillment } = message.intent;
 
   // Parse pickup and delivery locations
-  const [pickupLat, pickupLng] = fulfillment.start.location.gps.split(',').map(Number);
-  const [deliveryLat, deliveryLng] = fulfillment.end.location.gps.split(',').map(Number);
+  const [pickupLat, pickupLng] = fulfillment.start.location.gps
+    .split(",")
+    .map(Number);
+  const [deliveryLat, deliveryLng] = fulfillment.end.location.gps
+    .split(",")
+    .map(Number);
 
   // Calculate distance and estimate
-  const distance = calculateDistance(pickupLat, pickupLng, deliveryLat, deliveryLng);
+  const distance = calculateDistance(
+    pickupLat,
+    pickupLng,
+    deliveryLat,
+    deliveryLng,
+  );
   const estimatedTime = Math.ceil(distance * 3); // ~3 min per km
 
   // Build catalog of services
   const catalog = {
-    'bpp/descriptor': {
-      name: 'LMA Logistics',
-      short_desc: 'Last Mile Delivery Services',
-      long_desc: 'Fast and reliable last mile delivery services',
-      images: ['https://lma.com/logo.png'],
+    "bpp/descriptor": {
+      name: "LMA Logistics",
+      short_desc: "Last Mile Delivery Services",
+      long_desc: "Fast and reliable last mile delivery services",
+      images: ["https://lma.com/logo.png"],
     },
-    'bpp/providers': [
+    "bpp/providers": [
       {
-        id: 'lma-standard',
+        id: "lma-standard",
         descriptor: {
-          name: 'LMA Standard Delivery',
-          short_desc: 'Standard delivery service',
+          name: "LMA Standard Delivery",
+          short_desc: "Standard delivery service",
         },
         categories: [
-          { id: 'Immediate Delivery', descriptor: { name: 'Immediate Delivery' } },
-          { id: 'Same Day Delivery', descriptor: { name: 'Same Day Delivery' } },
+          {
+            id: "Immediate Delivery",
+            descriptor: { name: "Immediate Delivery" },
+          },
+          {
+            id: "Same Day Delivery",
+            descriptor: { name: "Same Day Delivery" },
+          },
         ],
         items: [
           {
-            id: 'standard-delivery',
+            id: "standard-delivery",
             descriptor: {
-              name: 'Standard Delivery',
-              short_desc: 'Delivery within 45-60 minutes',
-              code: 'P2P',
+              name: "Standard Delivery",
+              short_desc: "Delivery within 45-60 minutes",
+              code: "P2P",
             },
-            category_id: 'Immediate Delivery',
+            category_id: "Immediate Delivery",
             price: {
-              currency: 'INR',
+              currency: "INR",
               value: calculateDeliveryPrice(distance).toString(),
             },
-            fulfillment_id: 'f1',
+            fulfillment_id: "f1",
             time: {
-              label: 'TAT',
+              label: "TAT",
               duration: `PT${estimatedTime}M`,
             },
           },
           {
-            id: 'express-delivery',
+            id: "express-delivery",
             descriptor: {
-              name: 'Express Delivery',
-              short_desc: 'Delivery within 30 minutes',
-              code: 'P2P',
+              name: "Express Delivery",
+              short_desc: "Delivery within 30 minutes",
+              code: "P2P",
             },
-            category_id: 'Immediate Delivery',
+            category_id: "Immediate Delivery",
             price: {
-              currency: 'INR',
+              currency: "INR",
               value: (calculateDeliveryPrice(distance) * 1.5).toString(),
             },
-            fulfillment_id: 'f2',
+            fulfillment_id: "f2",
             time: {
-              label: 'TAT',
+              label: "TAT",
               duration: `PT${Math.ceil(estimatedTime * 0.6)}M`,
             },
           },
         ],
         fulfillments: [
           {
-            id: 'f1',
-            type: 'Delivery',
+            id: "f1",
+            type: "Delivery",
             tracking: true,
           },
           {
-            id: 'f2',
-            type: 'Delivery',
+            id: "f2",
+            type: "Delivery",
             tracking: true,
           },
         ],
@@ -430,18 +446,27 @@ export async function handleSelect(
         end: { location: { gps: string; address: Record<string, string> } };
       };
     };
-  }
+  },
 ): Promise<ONDCMessage> {
   const { order } = message;
   const item = order.items[0];
 
   // Calculate quote
-  const [pickupLat, pickupLng] = order.fulfillment.start.location.gps.split(',').map(Number);
-  const [deliveryLat, deliveryLng] = order.fulfillment.end.location.gps.split(',').map(Number);
-  const distance = calculateDistance(pickupLat, pickupLng, deliveryLat, deliveryLng);
+  const [pickupLat, pickupLng] = order.fulfillment.start.location.gps
+    .split(",")
+    .map(Number);
+  const [deliveryLat, deliveryLng] = order.fulfillment.end.location.gps
+    .split(",")
+    .map(Number);
+  const distance = calculateDistance(
+    pickupLat,
+    pickupLng,
+    deliveryLat,
+    deliveryLng,
+  );
 
   const basePrice = calculateDeliveryPrice(distance);
-  const isExpress = item.id === 'express-delivery';
+  const isExpress = item.id === "express-delivery";
   const price = isExpress ? basePrice * 1.5 : basePrice;
 
   const config = getONDCConfig();
@@ -457,7 +482,7 @@ export async function handleSelect(
     },
     message: {
       order: {
-        provider: { id: 'lma-standard' },
+        provider: { id: "lma-standard" },
         items: order.items,
         fulfillment: {
           ...order.fulfillment,
@@ -465,14 +490,14 @@ export async function handleSelect(
           state: { descriptor: { code: ONDC_FULFILLMENT_STATES.PENDING } },
         },
         quote: {
-          price: { currency: 'INR', value: price.toString() },
+          price: { currency: "INR", value: price.toString() },
           breakup: [
             {
-              title: 'Delivery Charges',
-              price: { currency: 'INR', value: price.toString() },
+              title: "Delivery Charges",
+              price: { currency: "INR", value: price.toString() },
             },
           ],
-          ttl: 'PT15M',
+          ttl: "PT15M",
         },
       },
     },
@@ -495,7 +520,7 @@ export async function handleInit(
       billing: Record<string, unknown>;
       payment: { type: string };
     };
-  }
+  },
 ): Promise<ONDCMessage> {
   const config = getONDCConfig();
 
@@ -510,7 +535,7 @@ export async function handleInit(
     },
     message: {
       order: {
-        provider: { id: 'lma-standard' },
+        provider: { id: "lma-standard" },
         items: message.order.items,
         fulfillment: {
           ...message.order.fulfillment,
@@ -520,21 +545,27 @@ export async function handleInit(
         billing: message.order.billing,
         payment: {
           ...message.order.payment,
-          status: 'NOT-PAID',
-          collected_by: 'BAP',
+          status: "NOT-PAID",
+          collected_by: "BAP",
         },
         cancellation_terms: [
           {
-            fulfillment_state: { descriptor: { code: ONDC_FULFILLMENT_STATES.PENDING } },
-            cancellation_fee: { percentage: '0' },
+            fulfillment_state: {
+              descriptor: { code: ONDC_FULFILLMENT_STATES.PENDING },
+            },
+            cancellation_fee: { percentage: "0" },
           },
           {
-            fulfillment_state: { descriptor: { code: ONDC_FULFILLMENT_STATES.AGENT_ASSIGNED } },
-            cancellation_fee: { percentage: '25' },
+            fulfillment_state: {
+              descriptor: { code: ONDC_FULFILLMENT_STATES.AGENT_ASSIGNED },
+            },
+            cancellation_fee: { percentage: "25" },
           },
           {
-            fulfillment_state: { descriptor: { code: ONDC_FULFILLMENT_STATES.PICKED_UP } },
-            cancellation_fee: { percentage: '50' },
+            fulfillment_state: {
+              descriptor: { code: ONDC_FULFILLMENT_STATES.PICKED_UP },
+            },
+            cancellation_fee: { percentage: "50" },
           },
         ],
       },
@@ -555,7 +586,7 @@ export async function handleConfirm(
       billing: Record<string, unknown>;
       payment: Record<string, unknown>;
     };
-  }
+  },
 ): Promise<ONDCMessage> {
   const orderId = message.order.id || `ONDC-${Date.now()}`;
 
@@ -577,17 +608,19 @@ export async function handleConfirm(
       order: {
         id: orderId,
         state: ONDC_ORDER_STATES.ACCEPTED,
-        provider: { id: 'lma-standard' },
+        provider: { id: "lma-standard" },
         items: message.order.items,
         fulfillment: {
           ...message.order.fulfillment,
-          state: { descriptor: { code: ONDC_FULFILLMENT_STATES.SEARCHING_AGENT } },
+          state: {
+            descriptor: { code: ONDC_FULFILLMENT_STATES.SEARCHING_AGENT },
+          },
           tracking: true,
         },
         billing: message.order.billing,
         payment: {
           ...message.order.payment,
-          status: 'PAID',
+          status: "PAID",
         },
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
@@ -601,13 +634,13 @@ export async function handleConfirm(
  */
 export async function handleStatus(
   context: ONDCContext,
-  message: { order_id: string }
+  message: { order_id: string },
 ): Promise<ONDCMessage> {
   // Get order mapping
   const { data: mapping } = await supabaseAdmin
-    .from('ondc_order_mapping')
-    .select('lma_order_id, ondc_status')
-    .eq('ondc_order_id', message.order_id)
+    .from("ondc_order_mapping")
+    .select("lma_order_id, ondc_status")
+    .eq("ondc_order_id", message.order_id)
     .single();
 
   let fulfillmentState: string = ONDC_FULFILLMENT_STATES.PENDING;
@@ -615,9 +648,9 @@ export async function handleStatus(
 
   if (mapping?.lma_order_id) {
     const { data: order } = await supabaseAdmin
-      .from('orders')
-      .select('status')
-      .eq('id', mapping.lma_order_id)
+      .from("orders")
+      .select("status")
+      .eq("id", mapping.lma_order_id)
       .single();
 
     if (order) {
@@ -661,7 +694,7 @@ function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -708,9 +741,10 @@ function mapLMAStatusToONDC(status: string): string {
  * Get ONDC order state from LMA status
  */
 function getONDCOrderState(status: string): string {
-  if (status === 'cancelled') return ONDC_ORDER_STATES.CANCELLED;
-  if (status === 'delivered') return ONDC_ORDER_STATES.COMPLETED;
-  if (['pending', 'confirmed'].includes(status)) return ONDC_ORDER_STATES.CREATED;
+  if (status === "cancelled") return ONDC_ORDER_STATES.CANCELLED;
+  if (status === "delivered") return ONDC_ORDER_STATES.COMPLETED;
+  if (["pending", "confirmed"].includes(status))
+    return ONDC_ORDER_STATES.CREATED;
   return ONDC_ORDER_STATES.IN_PROGRESS;
 }
 
@@ -719,30 +753,32 @@ function getONDCOrderState(status: string): string {
  */
 async function createLMAOrderFromONDC(
   context: ONDCContext,
-  ondcOrder: Record<string, unknown>
+  ondcOrder: Record<string, unknown>,
 ): Promise<string | null> {
   try {
     // Get participant
     const { data: participant } = await supabaseAdmin
-      .from('ondc_participants')
-      .select('merchant_id')
-      .eq('subscriber_id', context.bpp_id)
+      .from("ondc_participants")
+      .select("merchant_id")
+      .eq("subscriber_id", context.bpp_id)
       .single();
 
     if (!participant?.merchant_id) {
-      logger.error('No merchant found for ONDC participant');
+      logger.error("No merchant found for ONDC participant");
       return null;
     }
 
     // Create order (simplified - would need full mapping)
     const { data: order, error } = await supabaseAdmin
-      .from('orders')
+      .from("orders")
       .insert({
         merchant_id: participant.merchant_id,
         customer_id: participant.merchant_id, // Placeholder
-        status: 'pending',
-        delivery_address_snapshot: (ondcOrder.fulfillment as Record<string, unknown>)?.end || {},
-        pickup_address_snapshot: (ondcOrder.fulfillment as Record<string, unknown>)?.start || {},
+        status: "pending",
+        delivery_address_snapshot:
+          (ondcOrder.fulfillment as Record<string, unknown>)?.end || {},
+        pickup_address_snapshot:
+          (ondcOrder.fulfillment as Record<string, unknown>)?.start || {},
         subtotal: 0,
         delivery_fee: 0,
         total_amount: 0,
@@ -752,12 +788,12 @@ async function createLMAOrderFromONDC(
       .single();
 
     if (error || !order) {
-      logger.error('Failed to create LMA order from ONDC', { error });
+      logger.error("Failed to create LMA order from ONDC", { error });
       return null;
     }
 
     // Create mapping
-    await supabaseAdmin.from('ondc_order_mapping').insert({
+    await supabaseAdmin.from("ondc_order_mapping").insert({
       participant_id: participant.merchant_id,
       ondc_order_id: (ondcOrder.id as string) || context.transaction_id,
       lma_order_id: order.id,
@@ -767,7 +803,7 @@ async function createLMAOrderFromONDC(
 
     return order.id;
   } catch (error) {
-    logger.error('Failed to create LMA order from ONDC', { error });
+    logger.error("Failed to create LMA order from ONDC", { error });
     return null;
   }
 }
@@ -777,20 +813,22 @@ async function createLMAOrderFromONDC(
  */
 export async function sendStatusUpdate(
   orderId: string,
-  status: string
+  status: string,
 ): Promise<void> {
   // Get order mapping
   const { data: mapping } = await supabaseAdmin
-    .from('ondc_order_mapping')
-    .select(`
+    .from("ondc_order_mapping")
+    .select(
+      `
       ondc_order_id,
       transaction_id,
       participant:ondc_participants (
         subscriber_id,
         subscriber_url
       )
-    `)
-    .eq('lma_order_id', orderId)
+    `,
+    )
+    .eq("lma_order_id", orderId)
     .single();
 
   if (!mapping) return;
@@ -821,6 +859,6 @@ export async function sendStatusUpdate(
 
   await sendONDCRequest(
     `${(mapping.participant as any)?.subscriber_url}/on_status`,
-    message
+    message,
   );
 }

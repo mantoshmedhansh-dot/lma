@@ -9,8 +9,8 @@
  * - Cache statistics and monitoring
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
 
 // In-memory cache store
 interface CacheEntry<T> {
@@ -69,16 +69,21 @@ export async function get<T>(key: string): Promise<T | null> {
   if (CONFIG.enableDatabaseCache) {
     try {
       const { data } = await supabaseAdmin
-        .from('cache_entries')
-        .select('value, expires_at')
-        .eq('key', key)
+        .from("cache_entries")
+        .select("value, expires_at")
+        .eq("key", key)
         .single();
 
       if (data && new Date(data.expires_at) > new Date()) {
         const value = data.value as T;
 
         // Populate memory cache
-        setMemoryCache(key, value, new Date(data.expires_at).getTime() - Date.now(), []);
+        setMemoryCache(
+          key,
+          value,
+          new Date(data.expires_at).getTime() - Date.now(),
+          [],
+        );
 
         stats.hits++;
         stats.databaseHits++;
@@ -100,7 +105,7 @@ export async function set<T>(
   key: string,
   value: T,
   ttlSeconds: number = CONFIG.defaultTTL,
-  tags: string[] = []
+  tags: string[] = [],
 ): Promise<void> {
   const expiresAt = Date.now() + ttlSeconds * 1000;
 
@@ -110,7 +115,7 @@ export async function set<T>(
   // Set in database cache
   if (CONFIG.enableDatabaseCache) {
     try {
-      await supabaseAdmin.from('cache_entries').upsert(
+      await supabaseAdmin.from("cache_entries").upsert(
         {
           key,
           value: value as Record<string, unknown>,
@@ -118,10 +123,10 @@ export async function set<T>(
           tags,
           updated_at: new Date().toISOString(),
         },
-        { onConflict: 'key' }
+        { onConflict: "key" },
       );
     } catch (error) {
-      logger.warn('Failed to set database cache', { key, error });
+      logger.warn("Failed to set database cache", { key, error });
     }
   }
 
@@ -136,9 +141,9 @@ export async function del(key: string): Promise<void> {
 
   if (CONFIG.enableDatabaseCache) {
     try {
-      await supabaseAdmin.from('cache_entries').delete().eq('key', key);
+      await supabaseAdmin.from("cache_entries").delete().eq("key", key);
     } catch (error) {
-      logger.warn('Failed to delete database cache', { key, error });
+      logger.warn("Failed to delete database cache", { key, error });
     }
   }
 
@@ -163,13 +168,16 @@ export async function deleteByTag(tag: string): Promise<number> {
   if (CONFIG.enableDatabaseCache) {
     try {
       const { count: dbCount } = await supabaseAdmin
-        .from('cache_entries')
+        .from("cache_entries")
         .delete()
-        .contains('tags', [tag]);
+        .contains("tags", [tag]);
 
       count += dbCount || 0;
     } catch (error) {
-      logger.warn('Failed to delete by tag from database cache', { tag, error });
+      logger.warn("Failed to delete by tag from database cache", {
+        tag,
+        error,
+      });
     }
   }
 
@@ -194,14 +202,14 @@ export async function clear(): Promise<void> {
 
   if (CONFIG.enableDatabaseCache) {
     try {
-      await supabaseAdmin.from('cache_entries').delete().neq('key', '');
+      await supabaseAdmin.from("cache_entries").delete().neq("key", "");
     } catch (error) {
-      logger.warn('Failed to clear database cache', { error });
+      logger.warn("Failed to clear database cache", { error });
     }
   }
 
   stats.deletes += memoryCount;
-  logger.info('Cache cleared', { memoryEntries: memoryCount });
+  logger.info("Cache cleared", { memoryEntries: memoryCount });
 }
 
 // ============================================
@@ -215,7 +223,7 @@ export async function getOrSet<T>(
   key: string,
   fn: () => Promise<T>,
   ttlSeconds: number = CONFIG.defaultTTL,
-  tags: string[] = []
+  tags: string[] = [],
 ): Promise<T> {
   const cached = await get<T>(key);
 
@@ -234,7 +242,7 @@ export async function getOrSet<T>(
 export function memoize<T, Args extends unknown[]>(
   fn: (...args: Args) => Promise<T>,
   keyGenerator: (...args: Args) => string,
-  ttlSeconds: number = CONFIG.defaultTTL
+  ttlSeconds: number = CONFIG.defaultTTL,
 ): (...args: Args) => Promise<T> {
   return async (...args: Args): Promise<T> => {
     const key = keyGenerator(...args);
@@ -251,7 +259,7 @@ export async function getOrSetWithLock<T>(
   key: string,
   fn: () => Promise<T>,
   ttlSeconds: number = CONFIG.defaultTTL,
-  tags: string[] = []
+  tags: string[] = [],
 ): Promise<T> {
   const cached = await get<T>(key);
 
@@ -288,14 +296,19 @@ export async function getOrSetWithLock<T>(
 /**
  * Cache user data
  */
-export async function cacheUser(userId: string, userData: Record<string, unknown>): Promise<void> {
-  await set(`user:${userId}`, userData, 600, ['users', `user:${userId}`]); // 10 minutes
+export async function cacheUser(
+  userId: string,
+  userData: Record<string, unknown>,
+): Promise<void> {
+  await set(`user:${userId}`, userData, 600, ["users", `user:${userId}`]); // 10 minutes
 }
 
 /**
  * Get cached user
  */
-export async function getCachedUser(userId: string): Promise<Record<string, unknown> | null> {
+export async function getCachedUser(
+  userId: string,
+): Promise<Record<string, unknown> | null> {
   return get(`user:${userId}`);
 }
 
@@ -309,35 +322,53 @@ export async function invalidateUserCache(userId: string): Promise<void> {
 /**
  * Cache merchant data
  */
-export async function cacheMerchant(merchantId: string, merchantData: Record<string, unknown>): Promise<void> {
-  await set(`merchant:${merchantId}`, merchantData, 300, ['merchants', `merchant:${merchantId}`]); // 5 minutes
+export async function cacheMerchant(
+  merchantId: string,
+  merchantData: Record<string, unknown>,
+): Promise<void> {
+  await set(`merchant:${merchantId}`, merchantData, 300, [
+    "merchants",
+    `merchant:${merchantId}`,
+  ]); // 5 minutes
 }
 
 /**
  * Get cached merchant
  */
-export async function getCachedMerchant(merchantId: string): Promise<Record<string, unknown> | null> {
+export async function getCachedMerchant(
+  merchantId: string,
+): Promise<Record<string, unknown> | null> {
   return get(`merchant:${merchantId}`);
 }
 
 /**
  * Invalidate merchant cache
  */
-export async function invalidateMerchantCache(merchantId: string): Promise<void> {
+export async function invalidateMerchantCache(
+  merchantId: string,
+): Promise<void> {
   await deleteByTag(`merchant:${merchantId}`);
 }
 
 /**
  * Cache order tracking data
  */
-export async function cacheOrderTracking(orderId: string, trackingData: Record<string, unknown>): Promise<void> {
-  await set(`tracking:${orderId}`, trackingData, 30, ['tracking', `order:${orderId}`]); // 30 seconds
+export async function cacheOrderTracking(
+  orderId: string,
+  trackingData: Record<string, unknown>,
+): Promise<void> {
+  await set(`tracking:${orderId}`, trackingData, 30, [
+    "tracking",
+    `order:${orderId}`,
+  ]); // 30 seconds
 }
 
 /**
  * Get cached order tracking
  */
-export async function getCachedOrderTracking(orderId: string): Promise<Record<string, unknown> | null> {
+export async function getCachedOrderTracking(
+  orderId: string,
+): Promise<Record<string, unknown> | null> {
   return get(`tracking:${orderId}`);
 }
 
@@ -346,16 +377,16 @@ export async function getCachedOrderTracking(orderId: string): Promise<Record<st
  */
 export async function cacheDriverLocation(
   driverId: string,
-  location: { latitude: number; longitude: number }
+  location: { latitude: number; longitude: number },
 ): Promise<void> {
-  await set(`driver_location:${driverId}`, location, 15, ['driver_locations']); // 15 seconds
+  await set(`driver_location:${driverId}`, location, 15, ["driver_locations"]); // 15 seconds
 }
 
 /**
  * Get cached driver location
  */
 export async function getCachedDriverLocation(
-  driverId: string
+  driverId: string,
 ): Promise<{ latitude: number; longitude: number } | null> {
   return get(`driver_location:${driverId}`);
 }
@@ -363,28 +394,41 @@ export async function getCachedDriverLocation(
 /**
  * Cache surge pricing
  */
-export async function cacheSurgePricing(zoneId: string, multiplier: number): Promise<void> {
-  await set(`surge:${zoneId}`, { multiplier }, 60, ['surge_pricing']); // 1 minute
+export async function cacheSurgePricing(
+  zoneId: string,
+  multiplier: number,
+): Promise<void> {
+  await set(`surge:${zoneId}`, { multiplier }, 60, ["surge_pricing"]); // 1 minute
 }
 
 /**
  * Get cached surge pricing
  */
-export async function getCachedSurgePricing(zoneId: string): Promise<{ multiplier: number } | null> {
+export async function getCachedSurgePricing(
+  zoneId: string,
+): Promise<{ multiplier: number } | null> {
   return get(`surge:${zoneId}`);
 }
 
 /**
  * Cache menu items
  */
-export async function cacheMenuItems(merchantId: string, items: unknown[]): Promise<void> {
-  await set(`menu:${merchantId}`, items, 900, ['menus', `merchant:${merchantId}`]); // 15 minutes
+export async function cacheMenuItems(
+  merchantId: string,
+  items: unknown[],
+): Promise<void> {
+  await set(`menu:${merchantId}`, items, 900, [
+    "menus",
+    `merchant:${merchantId}`,
+  ]); // 15 minutes
 }
 
 /**
  * Get cached menu items
  */
-export async function getCachedMenuItems(merchantId: string): Promise<unknown[] | null> {
+export async function getCachedMenuItems(
+  merchantId: string,
+): Promise<unknown[] | null> {
   return get(`menu:${merchantId}`);
 }
 
@@ -392,7 +436,12 @@ export async function getCachedMenuItems(merchantId: string): Promise<unknown[] 
 // MEMORY CACHE MANAGEMENT
 // ============================================
 
-function setMemoryCache<T>(key: string, value: T, ttlMs: number, tags: string[]): void {
+function setMemoryCache<T>(
+  key: string,
+  value: T,
+  ttlMs: number,
+  tags: string[],
+): void {
   // Evict if cache is full
   if (memoryCache.size >= CONFIG.maxMemoryEntries) {
     evictLRU();
@@ -436,7 +485,7 @@ function cleanupExpired(): void {
   }
 
   if (cleaned > 0) {
-    logger.debug('Cleaned expired cache entries', { count: cleaned });
+    logger.debug("Cleaned expired cache entries", { count: cleaned });
   }
 }
 
@@ -506,38 +555,40 @@ export function getKeys(): string[] {
  * Warm up cache with frequently accessed data
  */
 export async function warmUp(): Promise<void> {
-  logger.info('Starting cache warm-up');
+  logger.info("Starting cache warm-up");
 
   try {
     // Warm up active merchants
     const { data: merchants } = await supabaseAdmin
-      .from('merchants')
-      .select('id, name, category, rating, is_open')
-      .eq('status', 'active')
-      .eq('is_open', true)
+      .from("merchants")
+      .select("id, name, category, rating, is_open")
+      .eq("status", "active")
+      .eq("is_open", true)
       .limit(100);
 
     if (merchants) {
       for (const merchant of merchants) {
         await cacheMerchant(merchant.id, merchant);
       }
-      logger.info('Warmed up merchant cache', { count: merchants.length });
+      logger.info("Warmed up merchant cache", { count: merchants.length });
     }
 
     // Warm up surge pricing
     const { data: surgeRules } = await supabaseAdmin
-      .from('surge_rules')
-      .select('zone_id, multiplier')
-      .eq('is_active', true);
+      .from("surge_rules")
+      .select("zone_id, multiplier")
+      .eq("is_active", true);
 
     if (surgeRules) {
       for (const rule of surgeRules) {
         await cacheSurgePricing(rule.zone_id, rule.multiplier);
       }
-      logger.info('Warmed up surge pricing cache', { count: surgeRules.length });
+      logger.info("Warmed up surge pricing cache", {
+        count: surgeRules.length,
+      });
     }
   } catch (error) {
-    logger.error('Cache warm-up failed', { error });
+    logger.error("Cache warm-up failed", { error });
   }
 }
 
@@ -545,7 +596,7 @@ export async function warmUp(): Promise<void> {
 // CACHE MIDDLEWARE
 // ============================================
 
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
 
 interface CacheMiddlewareOptions {
   ttl?: number;
@@ -561,7 +612,7 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
   const {
     ttl = CONFIG.defaultTTL,
     keyGenerator = (req) => `response:${req.method}:${req.originalUrl}`,
-    tags = ['responses'],
+    tags = ["responses"],
     condition = () => true,
   } = options;
 
@@ -572,7 +623,7 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
     }
 
     // Only cache GET requests
-    if (req.method !== 'GET') {
+    if (req.method !== "GET") {
       return next();
     }
 
@@ -582,8 +633,8 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
       const cached = await get<{ body: unknown; contentType: string }>(key);
 
       if (cached) {
-        res.setHeader('X-Cache', 'HIT');
-        res.setHeader('Content-Type', cached.contentType || 'application/json');
+        res.setHeader("X-Cache", "HIT");
+        res.setHeader("Content-Type", cached.contentType || "application/json");
         return res.json(cached.body);
       }
     } catch {
@@ -595,12 +646,14 @@ export function cacheMiddleware(options: CacheMiddlewareOptions = {}) {
 
     // Override json method to cache response
     res.json = (body: unknown) => {
-      res.setHeader('X-Cache', 'MISS');
+      res.setHeader("X-Cache", "MISS");
 
       // Cache the response
-      set(key, { body, contentType: 'application/json' }, ttl, tags).catch(() => {
-        // Ignore cache errors
-      });
+      set(key, { body, contentType: "application/json" }, ttl, tags).catch(
+        () => {
+          // Ignore cache errors
+        },
+      );
 
       return originalJson(body);
     };

@@ -3,7 +3,7 @@
  * Provides consistent logging format for production monitoring
  */
 
-export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'fatal';
+export type LogLevel = "debug" | "info" | "warn" | "error" | "fatal";
 
 export interface LogContext {
   requestId?: string;
@@ -45,17 +45,24 @@ class Logger {
   private minLevel: LogLevel;
 
   constructor() {
-    this.service = 'lma-api';
-    this.environment = process.env.NODE_ENV || 'development';
-    this.version = process.env.npm_package_version || '0.1.0';
-    this.minLevel = (process.env.LOG_LEVEL as LogLevel) || (this.environment === 'production' ? 'info' : 'debug');
+    this.service = "lma-api";
+    this.environment = process.env.NODE_ENV || "development";
+    this.version = process.env.npm_package_version || "0.1.0";
+    this.minLevel =
+      (process.env.LOG_LEVEL as LogLevel) ||
+      (this.environment === "production" ? "info" : "debug");
   }
 
   private shouldLog(level: LogLevel): boolean {
     return LOG_LEVELS[level] >= LOG_LEVELS[this.minLevel];
   }
 
-  private formatEntry(level: LogLevel, message: string, context?: LogContext, error?: Error): LogEntry {
+  private formatEntry(
+    level: LogLevel,
+    message: string,
+    context?: LogContext,
+    error?: Error,
+  ): LogEntry {
     const entry: LogEntry = {
       timestamp: new Date().toISOString(),
       level,
@@ -73,7 +80,7 @@ class Logger {
       entry.error = {
         name: error.name,
         message: error.message,
-        stack: this.environment !== 'production' ? error.stack : undefined,
+        stack: this.environment !== "production" ? error.stack : undefined,
       };
     }
 
@@ -84,11 +91,11 @@ class Logger {
     const output = JSON.stringify(entry);
 
     switch (entry.level) {
-      case 'error':
-      case 'fatal':
+      case "error":
+      case "fatal":
         console.error(output);
         break;
-      case 'warn':
+      case "warn":
         console.warn(output);
         break;
       default:
@@ -97,46 +104,65 @@ class Logger {
   }
 
   debug(message: string, context?: LogContext): void {
-    if (this.shouldLog('debug')) {
-      this.output(this.formatEntry('debug', message, context));
+    if (this.shouldLog("debug")) {
+      this.output(this.formatEntry("debug", message, context));
     }
   }
 
   info(message: string, context?: LogContext): void {
-    if (this.shouldLog('info')) {
-      this.output(this.formatEntry('info', message, context));
+    if (this.shouldLog("info")) {
+      this.output(this.formatEntry("info", message, context));
     }
   }
 
   warn(message: string, context?: LogContext): void {
-    if (this.shouldLog('warn')) {
-      this.output(this.formatEntry('warn', message, context));
+    if (this.shouldLog("warn")) {
+      this.output(this.formatEntry("warn", message, context));
     }
   }
 
-  error(message: string, errorOrContext?: Error | LogContext, context?: LogContext): void {
-    if (this.shouldLog('error')) {
+  error(
+    message: string,
+    errorOrContext?: Error | LogContext,
+    context?: LogContext,
+  ): void {
+    if (this.shouldLog("error")) {
       if (errorOrContext instanceof Error) {
-        this.output(this.formatEntry('error', message, context, errorOrContext));
+        this.output(
+          this.formatEntry("error", message, context, errorOrContext),
+        );
       } else {
-        this.output(this.formatEntry('error', message, errorOrContext));
+        this.output(this.formatEntry("error", message, errorOrContext));
       }
     }
   }
 
-  fatal(message: string, errorOrContext?: Error | LogContext, context?: LogContext): void {
-    if (this.shouldLog('fatal')) {
+  fatal(
+    message: string,
+    errorOrContext?: Error | LogContext,
+    context?: LogContext,
+  ): void {
+    if (this.shouldLog("fatal")) {
       if (errorOrContext instanceof Error) {
-        this.output(this.formatEntry('fatal', message, context, errorOrContext));
+        this.output(
+          this.formatEntry("fatal", message, context, errorOrContext),
+        );
       } else {
-        this.output(this.formatEntry('fatal', message, errorOrContext));
+        this.output(this.formatEntry("fatal", message, errorOrContext));
       }
     }
   }
 
   // Request logging helper
-  request(method: string, path: string, statusCode: number, duration: number, context?: LogContext): void {
-    const level: LogLevel = statusCode >= 500 ? 'error' : statusCode >= 400 ? 'warn' : 'info';
+  request(
+    method: string,
+    path: string,
+    statusCode: number,
+    duration: number,
+    context?: LogContext,
+  ): void {
+    const level: LogLevel =
+      statusCode >= 500 ? "error" : statusCode >= 400 ? "warn" : "info";
 
     this.output(
       this.formatEntry(level, `${method} ${path} ${statusCode}`, {
@@ -145,18 +171,18 @@ class Logger {
         path,
         statusCode,
         duration,
-      })
+      }),
     );
   }
 
   // Audit logging for sensitive operations
   audit(action: string, context: LogContext): void {
     this.output(
-      this.formatEntry('info', `AUDIT: ${action}`, {
+      this.formatEntry("info", `AUDIT: ${action}`, {
         ...context,
         action,
         audit: true,
-      })
+      }),
     );
   }
 

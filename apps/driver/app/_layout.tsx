@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { useAuthStore } from '@/lib/store/auth';
-import { Colors } from '@/constants/colors';
+import { useEffect } from "react";
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { useAuthStore } from "@/lib/store/auth";
+import { Colors } from "@/constants/colors";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -15,7 +15,7 @@ export default function RootLayout() {
 
   return (
     <>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <Stack
         screenOptions={{
           headerStyle: {

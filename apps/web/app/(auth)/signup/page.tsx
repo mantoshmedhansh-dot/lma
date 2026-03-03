@@ -1,23 +1,30 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Loader2, CheckCircle } from "lucide-react";
 
 export default function SignUpPage() {
   const router = useRouter();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,12 +34,12 @@ export default function SignUpPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -60,12 +67,12 @@ export default function SignUpPage() {
 
     if (data.user) {
       // Create user profile
-      await supabase.from('users').insert({
+      await supabase.from("users").insert({
         id: data.user.id,
         email,
         first_name: firstName,
         last_name: lastName,
-        role: 'customer',
+        role: "customer",
       });
     }
 
@@ -77,7 +84,7 @@ export default function SignUpPage() {
     const supabase = createClient();
 
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
         redirectTo: `${window.location.origin}/auth/callback`,
       },
@@ -95,7 +102,9 @@ export default function SignUpPage() {
           <div className="flex justify-center mb-4">
             <CheckCircle className="h-16 w-16 text-green-500" />
           </div>
-          <CardTitle className="text-2xl text-center">Check your email</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Check your email
+          </CardTitle>
           <CardDescription className="text-center">
             We&apos;ve sent a verification link to <strong>{email}</strong>
           </CardDescription>
@@ -109,7 +118,7 @@ export default function SignUpPage() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => router.push('/login')}
+            onClick={() => router.push("/login")}
           >
             Back to login
           </Button>
@@ -121,7 +130,9 @@ export default function SignUpPage() {
   return (
     <Card>
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Create an account</CardTitle>
+        <CardTitle className="text-2xl text-center">
+          Create an account
+        </CardTitle>
         <CardDescription className="text-center">
           Enter your details to get started
         </CardDescription>
@@ -204,7 +215,7 @@ export default function SignUpPage() {
                 Creating account...
               </>
             ) : (
-              'Create account'
+              "Create account"
             )}
           </Button>
         </form>
@@ -248,11 +259,11 @@ export default function SignUpPage() {
         </Button>
 
         <p className="text-xs text-center text-muted-foreground">
-          By creating an account, you agree to our{' '}
+          By creating an account, you agree to our{" "}
           <Link href="/terms" className="underline hover:text-foreground">
             Terms of Service
-          </Link>{' '}
-          and{' '}
+          </Link>{" "}
+          and{" "}
           <Link href="/privacy" className="underline hover:text-foreground">
             Privacy Policy
           </Link>
@@ -260,7 +271,7 @@ export default function SignUpPage() {
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-center text-sm text-muted-foreground">
-          Already have an account?{' '}
+          Already have an account?{" "}
           <Link href="/login" className="text-primary hover:underline">
             Sign in
           </Link>

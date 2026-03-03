@@ -1,5 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -21,30 +21,32 @@ export async function createClient() {
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options });
+            cookieStore.set({ name, value: "", ...options });
           } catch {
             // Handle cookies in Server Component
           }
         },
       },
-    }
+    },
   );
 }
 
 export async function getAdmin() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) return null;
 
   // Check if user has admin role
   const { data: userData } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
     .single();
 
-  if (!userData || !['admin', 'super_admin'].includes(userData.role)) {
+  if (!userData || !["admin", "super_admin"].includes(userData.role)) {
     return null;
   }
 

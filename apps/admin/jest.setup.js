@@ -1,7 +1,7 @@
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Mock Next.js router
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   useRouter: () => ({
     push: jest.fn(),
     replace: jest.fn(),
@@ -9,17 +9,21 @@ jest.mock('next/navigation', () => ({
     back: jest.fn(),
     forward: jest.fn(),
   }),
-  usePathname: () => '/dashboard',
+  usePathname: () => "/dashboard",
   useSearchParams: () => new URLSearchParams(),
   useParams: () => ({}),
 }));
 
 // Mock Supabase client
-jest.mock('@/lib/supabase/client', () => ({
+jest.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
-      getSession: jest.fn().mockResolvedValue({ data: { session: null }, error: null }),
-      onAuthStateChange: jest.fn().mockReturnValue({ data: { subscription: { unsubscribe: jest.fn() } } }),
+      getSession: jest
+        .fn()
+        .mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: jest.fn().mockReturnValue({
+        data: { subscription: { unsubscribe: jest.fn() } },
+      }),
       signInWithPassword: jest.fn(),
       signOut: jest.fn(),
     },
@@ -40,7 +44,7 @@ jest.mock('@/lib/supabase/client', () => ({
 }));
 
 // Mock window.matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: jest.fn().mockImplementation((query) => ({
     matches: false,
@@ -63,8 +67,8 @@ global.ResizeObserver = class ResizeObserver {
 };
 
 // Mock Recharts (to avoid canvas issues in tests)
-jest.mock('recharts', () => {
-  const OriginalModule = jest.requireActual('recharts');
+jest.mock("recharts", () => {
+  const OriginalModule = jest.requireActual("recharts");
   return {
     ...OriginalModule,
     ResponsiveContainer: ({ children }) => children,

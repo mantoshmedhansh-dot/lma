@@ -14,12 +14,15 @@
  * - Feedback analysis
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
-import { sendNotification, NotificationRecipient } from './notificationService.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
+import {
+  sendNotification,
+  NotificationRecipient,
+} from "./notificationService.js";
 
 // Rating types
-type RatingTarget = 'order' | 'driver' | 'merchant';
+type RatingTarget = "order" | "driver" | "merchant";
 
 interface RatingDimension {
   id: string;
@@ -75,67 +78,119 @@ interface RatingStats {
   totalRatings: number;
   ratingDistribution: Record<number, number>;
   dimensionAverages?: Record<string, number>;
-  recentTrend: 'up' | 'down' | 'stable';
+  recentTrend: "up" | "down" | "stable";
 }
 
 interface FeedbackIssue {
   id: string;
   category: string;
   description: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
 }
 
 // Issue categories
 const ISSUE_CATEGORIES: FeedbackIssue[] = [
-  { id: 'late_delivery', category: 'Delivery', description: 'Order arrived late', severity: 'medium' },
-  { id: 'wrong_items', category: 'Order', description: 'Wrong items received', severity: 'high' },
-  { id: 'missing_items', category: 'Order', description: 'Items missing from order', severity: 'high' },
-  { id: 'cold_food', category: 'Food', description: 'Food was cold', severity: 'medium' },
-  { id: 'poor_packaging', category: 'Packaging', description: 'Poor packaging', severity: 'low' },
-  { id: 'spilled', category: 'Packaging', description: 'Order was spilled/damaged', severity: 'high' },
-  { id: 'rude_driver', category: 'Driver', description: 'Driver was unprofessional', severity: 'medium' },
-  { id: 'hygiene', category: 'Food', description: 'Hygiene concerns', severity: 'high' },
-  { id: 'quantity', category: 'Food', description: 'Less quantity than expected', severity: 'medium' },
-  { id: 'taste', category: 'Food', description: 'Taste was not good', severity: 'low' },
+  {
+    id: "late_delivery",
+    category: "Delivery",
+    description: "Order arrived late",
+    severity: "medium",
+  },
+  {
+    id: "wrong_items",
+    category: "Order",
+    description: "Wrong items received",
+    severity: "high",
+  },
+  {
+    id: "missing_items",
+    category: "Order",
+    description: "Items missing from order",
+    severity: "high",
+  },
+  {
+    id: "cold_food",
+    category: "Food",
+    description: "Food was cold",
+    severity: "medium",
+  },
+  {
+    id: "poor_packaging",
+    category: "Packaging",
+    description: "Poor packaging",
+    severity: "low",
+  },
+  {
+    id: "spilled",
+    category: "Packaging",
+    description: "Order was spilled/damaged",
+    severity: "high",
+  },
+  {
+    id: "rude_driver",
+    category: "Driver",
+    description: "Driver was unprofessional",
+    severity: "medium",
+  },
+  {
+    id: "hygiene",
+    category: "Food",
+    description: "Hygiene concerns",
+    severity: "high",
+  },
+  {
+    id: "quantity",
+    category: "Food",
+    description: "Less quantity than expected",
+    severity: "medium",
+  },
+  {
+    id: "taste",
+    category: "Food",
+    description: "Taste was not good",
+    severity: "low",
+  },
 ];
 
 /**
  * Submit order rating
  */
-export async function submitOrderRating(rating: OrderRating): Promise<{ success: boolean; ratingId?: string }> {
+export async function submitOrderRating(
+  rating: OrderRating,
+): Promise<{ success: boolean; ratingId?: string }> {
   try {
     // Validate order exists and belongs to customer
     const { data: order } = await supabaseAdmin
-      .from('orders')
-      .select('id, customer_id, driver_id, merchant_id, status')
-      .eq('id', rating.orderId)
-      .eq('customer_id', rating.customerId)
+      .from("orders")
+      .select("id, customer_id, driver_id, merchant_id, status")
+      .eq("id", rating.orderId)
+      .eq("customer_id", rating.customerId)
       .single();
 
     if (!order) {
       return { success: false };
     }
 
-    if (order.status !== 'delivered') {
-      logger.warn('Cannot rate undelivered order', { orderId: rating.orderId });
+    if (order.status !== "delivered") {
+      logger.warn("Cannot rate undelivered order", { orderId: rating.orderId });
       return { success: false };
     }
 
     // Check if already rated
     const { data: existing } = await supabaseAdmin
-      .from('order_ratings')
-      .select('id')
-      .eq('order_id', rating.orderId)
+      .from("order_ratings")
+      .select("id")
+      .eq("order_id", rating.orderId)
       .single();
 
     if (existing) {
-      logger.warn('Order already rated', { orderId: rating.orderId });
+      logger.warn("Order already rated", { orderId: rating.orderId });
       return { success: false };
     }
 
     // Insert rating
     const { data, error } = await supabaseAdmin
-      .from('order_ratings')
+      .from("order_ratings")
       .insert({
         order_id: rating.orderId,
         customer_id: rating.customerId,
@@ -147,7 +202,7 @@ export async function submitOrderRating(rating: OrderRating): Promise<{ success:
         issues: rating.issues,
         tip_amount: rating.tipAmount,
       })
-      .select('id')
+      .select("id")
       .single();
 
     if (error) throw error;
@@ -186,14 +241,17 @@ export async function submitOrderRating(rating: OrderRating): Promise<{ success:
       await handleIssueReport(rating.orderId, rating.customerId, rating.issues);
     }
 
-    logger.info('Order rating submitted', {
+    logger.info("Order rating submitted", {
       orderId: rating.orderId,
       rating: rating.overallRating,
     });
 
     return { success: true, ratingId: data.id };
   } catch (error) {
-    logger.error('Failed to submit order rating', { error, orderId: rating.orderId });
+    logger.error("Failed to submit order rating", {
+      error,
+      orderId: rating.orderId,
+    });
     return { success: false };
   }
 }
@@ -202,7 +260,7 @@ export async function submitOrderRating(rating: OrderRating): Promise<{ success:
  * Submit driver rating
  */
 export async function submitDriverRating(rating: DriverRating): Promise<void> {
-  await supabaseAdmin.from('driver_ratings').insert({
+  await supabaseAdmin.from("driver_ratings").insert({
     driver_id: rating.driverId,
     order_id: rating.orderId,
     customer_id: rating.customerId,
@@ -218,8 +276,10 @@ export async function submitDriverRating(rating: DriverRating): Promise<void> {
 /**
  * Submit merchant rating
  */
-export async function submitMerchantRating(rating: MerchantRating): Promise<void> {
-  await supabaseAdmin.from('merchant_ratings').insert({
+export async function submitMerchantRating(
+  rating: MerchantRating,
+): Promise<void> {
+  await supabaseAdmin.from("merchant_ratings").insert({
     merchant_id: rating.merchantId,
     order_id: rating.orderId,
     customer_id: rating.customerId,
@@ -236,11 +296,13 @@ export async function submitMerchantRating(rating: MerchantRating): Promise<void
 /**
  * Get rating statistics for a driver
  */
-export async function getDriverRatingStats(driverId: string): Promise<RatingStats> {
+export async function getDriverRatingStats(
+  driverId: string,
+): Promise<RatingStats> {
   const { data: ratings } = await supabaseAdmin
-    .from('driver_ratings')
-    .select('rating, dimensions, created_at')
-    .eq('driver_id', driverId);
+    .from("driver_ratings")
+    .select("rating, dimensions, created_at")
+    .eq("driver_id", driverId);
 
   return calculateRatingStats(ratings || []);
 }
@@ -248,11 +310,13 @@ export async function getDriverRatingStats(driverId: string): Promise<RatingStat
 /**
  * Get rating statistics for a merchant
  */
-export async function getMerchantRatingStats(merchantId: string): Promise<RatingStats> {
+export async function getMerchantRatingStats(
+  merchantId: string,
+): Promise<RatingStats> {
   const { data: ratings } = await supabaseAdmin
-    .from('merchant_ratings')
-    .select('rating, dimensions, created_at')
-    .eq('merchant_id', merchantId);
+    .from("merchant_ratings")
+    .select("rating, dimensions, created_at")
+    .eq("merchant_id", merchantId);
 
   return calculateRatingStats(ratings || []);
 }
@@ -260,11 +324,13 @@ export async function getMerchantRatingStats(merchantId: string): Promise<Rating
 /**
  * Get order rating
  */
-export async function getOrderRating(orderId: string): Promise<OrderRating | null> {
+export async function getOrderRating(
+  orderId: string,
+): Promise<OrderRating | null> {
   const { data } = await supabaseAdmin
-    .from('order_ratings')
-    .select('*')
-    .eq('order_id', orderId)
+    .from("order_ratings")
+    .select("*")
+    .eq("order_id", orderId)
     .single();
 
   if (!data) return null;
@@ -288,18 +354,20 @@ export async function getOrderRating(orderId: string): Promise<OrderRating | nul
  */
 export async function getDriverRecentRatings(
   driverId: string,
-  limit: number = 10
-): Promise<Array<{
-  orderId: string;
-  rating: number;
-  feedback?: string;
-  createdAt: Date;
-}>> {
+  limit: number = 10,
+): Promise<
+  Array<{
+    orderId: string;
+    rating: number;
+    feedback?: string;
+    createdAt: Date;
+  }>
+> {
   const { data } = await supabaseAdmin
-    .from('driver_ratings')
-    .select('order_id, rating, feedback, created_at')
-    .eq('driver_id', driverId)
-    .order('created_at', { ascending: false })
+    .from("driver_ratings")
+    .select("order_id, rating, feedback, created_at")
+    .eq("driver_id", driverId)
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   return (data || []).map((r) => ({
@@ -315,19 +383,21 @@ export async function getDriverRecentRatings(
  */
 export async function getMerchantRecentRatings(
   merchantId: string,
-  limit: number = 10
-): Promise<Array<{
-  orderId: string;
-  rating: number;
-  feedback?: string;
-  photos?: string[];
-  createdAt: Date;
-}>> {
+  limit: number = 10,
+): Promise<
+  Array<{
+    orderId: string;
+    rating: number;
+    feedback?: string;
+    photos?: string[];
+    createdAt: Date;
+  }>
+> {
   const { data } = await supabaseAdmin
-    .from('merchant_ratings')
-    .select('order_id, rating, feedback, photos, created_at')
-    .eq('merchant_id', merchantId)
-    .order('created_at', { ascending: false })
+    .from("merchant_ratings")
+    .select("order_id, rating, feedback, photos, created_at")
+    .eq("merchant_id", merchantId)
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   return (data || []).map((r) => ({
@@ -344,57 +414,67 @@ export async function getMerchantRecentRatings(
  */
 export async function requestFeedback(orderId: string): Promise<void> {
   const { data: order } = await supabaseAdmin
-    .from('orders')
-    .select(`
+    .from("orders")
+    .select(
+      `
       id,
       order_number,
       customer_id,
       users!orders_customer_id_fkey(id, full_name, phone, email),
       merchants(business_name)
-    `)
-    .eq('id', orderId)
-    .eq('status', 'delivered')
+    `,
+    )
+    .eq("id", orderId)
+    .eq("status", "delivered")
     .single();
 
   if (!order) return;
 
   // Check if already rated
   const { data: existing } = await supabaseAdmin
-    .from('order_ratings')
-    .select('id')
-    .eq('order_id', orderId)
+    .from("order_ratings")
+    .select("id")
+    .eq("order_id", orderId)
     .single();
 
   if (existing) return;
 
   // Get device tokens
   const { data: devices } = await supabaseAdmin
-    .from('user_devices')
-    .select('token, platform')
-    .eq('user_id', order.customer_id)
-    .eq('is_active', true);
+    .from("user_devices")
+    .select("token, platform")
+    .eq("user_id", order.customer_id)
+    .eq("is_active", true);
 
-  const user = order.users as { id: string; full_name: string; phone: string; email: string };
+  const user = order.users as {
+    id: string;
+    full_name: string;
+    phone: string;
+    email: string;
+  };
   const merchant = order.merchants as { business_name: string };
 
   const recipient: NotificationRecipient = {
     userId: order.customer_id,
     email: user?.email,
     phone: user?.phone,
-    deviceTokens: devices?.map((d) => ({ token: d.token, platform: d.platform })),
+    deviceTokens: devices?.map((d) => ({
+      token: d.token,
+      platform: d.platform,
+    })),
   };
 
-  const feedbackUrl = `${process.env.APP_URL || 'https://lma.app'}/rate/${orderId}`;
+  const feedbackUrl = `${process.env.APP_URL || "https://lma.app"}/rate/${orderId}`;
 
   await sendNotification(recipient, {
-    type: 'feedback_request',
-    title: 'How was your order?',
-    body: `Rate your experience with ${merchant?.business_name || 'your recent order'}`,
+    type: "feedback_request",
+    title: "How was your order?",
+    body: `Rate your experience with ${merchant?.business_name || "your recent order"}`,
     data: { orderId, feedbackUrl },
     actionUrl: feedbackUrl,
   });
 
-  logger.info('Feedback request sent', { orderId });
+  logger.info("Feedback request sent", { orderId });
 }
 
 /**
@@ -411,39 +491,42 @@ export async function reportIssue(
   orderId: string,
   customerId: string,
   issueIds: string[],
-  additionalDetails?: string
+  additionalDetails?: string,
 ): Promise<{ success: boolean; ticketId?: string }> {
   try {
     const issues = ISSUE_CATEGORIES.filter((i) => issueIds.includes(i.id));
     const severity = issues.reduce(
       (max, i) =>
-        i.severity === 'high' ? 'high' :
-        i.severity === 'medium' && max !== 'high' ? 'medium' : max,
-      'low' as 'low' | 'medium' | 'high'
+        i.severity === "high"
+          ? "high"
+          : i.severity === "medium" && max !== "high"
+            ? "medium"
+            : max,
+      "low" as "low" | "medium" | "high",
     );
 
     const { data, error } = await supabaseAdmin
-      .from('support_tickets')
+      .from("support_tickets")
       .insert({
         order_id: orderId,
         customer_id: customerId,
-        type: 'order_issue',
-        status: 'open',
+        type: "order_issue",
+        status: "open",
         priority: severity,
-        subject: `Order Issue: ${issues.map((i) => i.description).join(', ')}`,
+        subject: `Order Issue: ${issues.map((i) => i.description).join(", ")}`,
         description: additionalDetails,
         metadata: { issues: issueIds },
       })
-      .select('id')
+      .select("id")
       .single();
 
     if (error) throw error;
 
-    logger.info('Issue reported', { orderId, issueIds, ticketId: data.id });
+    logger.info("Issue reported", { orderId, issueIds, ticketId: data.id });
 
     return { success: true, ticketId: data.id };
   } catch (error) {
-    logger.error('Failed to report issue', { error, orderId });
+    logger.error("Failed to report issue", { error, orderId });
     return { success: false };
   }
 }
@@ -456,7 +539,7 @@ export async function getFeedbackSummary(
     merchantId?: string;
     driverId?: string;
     daysBack?: number;
-  } = {}
+  } = {},
 ): Promise<{
   totalRatings: number;
   averageRating: number;
@@ -469,12 +552,12 @@ export async function getFeedbackSummary(
   startDate.setDate(startDate.getDate() - daysBack);
 
   let query = supabaseAdmin
-    .from('order_ratings')
-    .select('overall_rating, issues, feedback')
-    .gte('created_at', startDate.toISOString());
+    .from("order_ratings")
+    .select("overall_rating, issues, feedback")
+    .gte("created_at", startDate.toISOString());
 
   if (options.merchantId) {
-    query = query.eq('merchant_id', options.merchantId);
+    query = query.eq("merchant_id", options.merchantId);
   }
 
   const { data: ratings } = await query;
@@ -531,91 +614,99 @@ export async function getFeedbackSummary(
 
 async function updateDriverAverageRating(driverId: string): Promise<void> {
   const { data } = await supabaseAdmin
-    .from('driver_ratings')
-    .select('rating')
-    .eq('driver_id', driverId);
+    .from("driver_ratings")
+    .select("rating")
+    .eq("driver_id", driverId);
 
   if (!data || data.length === 0) return;
 
   const avgRating = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
 
   await supabaseAdmin
-    .from('drivers')
+    .from("drivers")
     .update({
       average_rating: Math.round(avgRating * 10) / 10,
       total_ratings: data.length,
     })
-    .eq('id', driverId);
+    .eq("id", driverId);
 }
 
 async function updateMerchantAverageRating(merchantId: string): Promise<void> {
   const { data } = await supabaseAdmin
-    .from('merchant_ratings')
-    .select('rating')
-    .eq('merchant_id', merchantId);
+    .from("merchant_ratings")
+    .select("rating")
+    .eq("merchant_id", merchantId);
 
   if (!data || data.length === 0) return;
 
   const avgRating = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
 
   await supabaseAdmin
-    .from('merchants')
+    .from("merchants")
     .update({
       average_rating: Math.round(avgRating * 10) / 10,
       total_ratings: data.length,
     })
-    .eq('id', merchantId);
+    .eq("id", merchantId);
 }
 
-async function processTip(driverId: string, orderId: string, amount: number): Promise<void> {
+async function processTip(
+  driverId: string,
+  orderId: string,
+  amount: number,
+): Promise<void> {
   // Record tip
-  await supabaseAdmin.from('driver_tips').insert({
+  await supabaseAdmin.from("driver_tips").insert({
     driver_id: driverId,
     order_id: orderId,
     amount,
   });
 
   // Update driver balance
-  await supabaseAdmin.rpc('increment_driver_balance', {
+  await supabaseAdmin.rpc("increment_driver_balance", {
     driver_id: driverId,
     amount,
   });
 
-  logger.info('Tip processed', { driverId, orderId, amount });
+  logger.info("Tip processed", { driverId, orderId, amount });
 }
 
 async function handleIssueReport(
   orderId: string,
   customerId: string,
-  issues: string[]
+  issues: string[],
 ): Promise<void> {
   // Create support ticket for high-severity issues
   const highSeverityIssues = ISSUE_CATEGORIES.filter(
-    (i) => issues.includes(i.id) && i.severity === 'high'
+    (i) => issues.includes(i.id) && i.severity === "high",
   );
 
   if (highSeverityIssues.length > 0) {
-    await supabaseAdmin.from('support_tickets').insert({
+    await supabaseAdmin.from("support_tickets").insert({
       order_id: orderId,
       customer_id: customerId,
-      type: 'order_issue',
-      status: 'open',
-      priority: 'high',
-      subject: `High Priority Issue: ${highSeverityIssues.map((i) => i.description).join(', ')}`,
+      type: "order_issue",
+      status: "open",
+      priority: "high",
+      subject: `High Priority Issue: ${highSeverityIssues.map((i) => i.description).join(", ")}`,
       metadata: { issues },
     });
   }
 }
 
 function calculateRatingStats(
-  ratings: Array<{ rating: number; dimensions?: Record<string, number>; created_at: string }>
+  ratings: Array<{
+    rating: number;
+    dimensions?: Record<string, number>;
+    created_at: string;
+  }>,
 ): RatingStats {
   if (ratings.length === 0) {
     return {
       averageRating: 0,
       totalRatings: 0,
       ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-      recentTrend: 'stable',
+      recentTrend: "stable",
     };
   }
 
@@ -653,20 +744,26 @@ function calculateRatingStats(
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
-  const recentRatings = ratings.filter((r) => new Date(r.created_at) >= weekAgo);
+  const recentRatings = ratings.filter(
+    (r) => new Date(r.created_at) >= weekAgo,
+  );
   const previousRatings = ratings.filter(
-    (r) => new Date(r.created_at) >= twoWeeksAgo && new Date(r.created_at) < weekAgo
+    (r) =>
+      new Date(r.created_at) >= twoWeeksAgo && new Date(r.created_at) < weekAgo,
   );
 
-  let recentTrend: 'up' | 'down' | 'stable' = 'stable';
+  let recentTrend: "up" | "down" | "stable" = "stable";
   if (recentRatings.length > 0 && previousRatings.length > 0) {
-    const recentAvg = recentRatings.reduce((s, r) => s + r.rating, 0) / recentRatings.length;
-    const previousAvg = previousRatings.reduce((s, r) => s + r.rating, 0) / previousRatings.length;
+    const recentAvg =
+      recentRatings.reduce((s, r) => s + r.rating, 0) / recentRatings.length;
+    const previousAvg =
+      previousRatings.reduce((s, r) => s + r.rating, 0) /
+      previousRatings.length;
 
     if (recentAvg > previousAvg + 0.2) {
-      recentTrend = 'up';
+      recentTrend = "up";
     } else if (recentAvg < previousAvg - 0.2) {
-      recentTrend = 'down';
+      recentTrend = "down";
     }
   }
 
@@ -674,9 +771,16 @@ function calculateRatingStats(
     averageRating,
     totalRatings: ratings.length,
     ratingDistribution: distribution,
-    dimensionAverages: Object.keys(dimensionAverages).length > 0 ? dimensionAverages : undefined,
+    dimensionAverages:
+      Object.keys(dimensionAverages).length > 0 ? dimensionAverages : undefined,
     recentTrend,
   };
 }
 
-export type { OrderRating, DriverRating, MerchantRating, RatingStats, FeedbackIssue };
+export type {
+  OrderRating,
+  DriverRating,
+  MerchantRating,
+  RatingStats,
+  FeedbackIssue,
+};

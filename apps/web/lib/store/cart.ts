@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export interface CartItem {
   productId: string;
@@ -25,9 +25,18 @@ export interface CartState {
   items: CartItem[];
 
   // Actions
-  addItem: (merchantId: string, merchantName: string, merchantLogo: string | null, item: CartItem) => void;
+  addItem: (
+    merchantId: string,
+    merchantName: string,
+    merchantLogo: string | null,
+    item: CartItem,
+  ) => void;
   removeItem: (productId: string, variantId?: string) => void;
-  updateQuantity: (productId: string, quantity: number, variantId?: string) => void;
+  updateQuantity: (
+    productId: string,
+    quantity: number,
+    variantId?: string,
+  ) => void;
   clearCart: () => void;
   getSubtotal: () => number;
   getItemCount: () => number;
@@ -57,7 +66,8 @@ export const useCartStore = create<CartState>()(
 
         // Check if item already exists
         const existingIndex = state.items.findIndex(
-          (i) => i.productId === item.productId && i.variantId === item.variantId
+          (i) =>
+            i.productId === item.productId && i.variantId === item.variantId,
         );
 
         if (existingIndex > -1) {
@@ -79,7 +89,8 @@ export const useCartStore = create<CartState>()(
       removeItem: (productId, variantId) => {
         const state = get();
         const newItems = state.items.filter(
-          (item) => !(item.productId === productId && item.variantId === variantId)
+          (item) =>
+            !(item.productId === productId && item.variantId === variantId),
         );
 
         if (newItems.length === 0) {
@@ -125,10 +136,11 @@ export const useCartStore = create<CartState>()(
         const state = get();
         return state.items.reduce((total, item) => {
           const itemTotal = item.price * item.quantity;
-          const addonsTotal = item.addons?.reduce(
-            (sum, addon) => sum + addon.price * addon.quantity,
-            0
-          ) || 0;
+          const addonsTotal =
+            item.addons?.reduce(
+              (sum, addon) => sum + addon.price * addon.quantity,
+              0,
+            ) || 0;
           return total + itemTotal + addonsTotal;
         }, 0);
       },
@@ -139,7 +151,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'lma-cart',
-    }
-  )
+      name: "lma-cart",
+    },
+  ),
 );

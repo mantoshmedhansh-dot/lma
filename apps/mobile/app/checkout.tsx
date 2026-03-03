@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -8,22 +8,23 @@ import {
   TextInput,
   Alert,
   ActivityIndicator,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/lib/store/auth';
-import { useCartStore } from '@/lib/store/cart';
-import { useOrdersStore } from '@/lib/store/orders';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/lib/store/auth";
+import { useCartStore } from "@/lib/store/cart";
+import { useOrdersStore } from "@/lib/store/orders";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function CheckoutScreen() {
   const colors = useThemeColors();
   const router = useRouter();
   const { user } = useAuthStore();
   const { items, merchant, getSubtotal, getTotal, clearCart } = useCartStore();
-  const { addresses, defaultAddress, fetchAddresses, createOrder } = useOrdersStore();
+  const { addresses, defaultAddress, fetchAddresses, createOrder } =
+    useOrdersStore();
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
-  const [deliveryInstructions, setDeliveryInstructions] = useState('');
+  const [deliveryInstructions, setDeliveryInstructions] = useState("");
   const [loading, setLoading] = useState(false);
 
   const subtotal = getSubtotal();
@@ -44,14 +45,14 @@ export default function CheckoutScreen() {
 
   const handlePlaceOrder = async () => {
     if (!user || !merchant || !selectedAddress) {
-      Alert.alert('Error', 'Please select a delivery address');
+      Alert.alert("Error", "Please select a delivery address");
       return;
     }
 
     if (merchant.minimum_order > subtotal) {
       Alert.alert(
-        'Minimum Order',
-        `Minimum order amount is ₹${merchant.minimum_order}. Please add more items.`
+        "Minimum Order",
+        `Minimum order amount is ₹${merchant.minimum_order}. Please add more items.`,
       );
       return;
     }
@@ -76,7 +77,7 @@ export default function CheckoutScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert("Error", error.message);
       return;
     }
 
@@ -86,13 +87,19 @@ export default function CheckoutScreen() {
 
   if (items.length === 0) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <Text style={[styles.emptyText, { color: colors.text }]}>
           Your cart is empty
         </Text>
         <TouchableOpacity
           style={[styles.browseButton, { backgroundColor: colors.tint }]}
-          onPress={() => router.replace('/(tabs)/home')}
+          onPress={() => router.replace("/(tabs)/home")}
         >
           <Text style={styles.browseButtonText}>Browse Restaurants</Text>
         </TouchableOpacity>
@@ -104,7 +111,12 @@ export default function CheckoutScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Delivery Address */}
-        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <Ionicons name="location" size={20} color={colors.tint} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -115,7 +127,12 @@ export default function CheckoutScreen() {
           {addresses.length === 0 ? (
             <TouchableOpacity
               style={[styles.addAddressButton, { borderColor: colors.tint }]}
-              onPress={() => Alert.alert('Coming Soon', 'Address management will be available soon.')}
+              onPress={() =>
+                Alert.alert(
+                  "Coming Soon",
+                  "Address management will be available soon.",
+                )
+              }
             >
               <Ionicons name="add" size={20} color={colors.tint} />
               <Text style={[styles.addAddressText, { color: colors.tint }]}>
@@ -129,8 +146,14 @@ export default function CheckoutScreen() {
                 style={[
                   styles.addressCard,
                   {
-                    borderColor: selectedAddress === address.id ? colors.tint : colors.border,
-                    backgroundColor: selectedAddress === address.id ? colors.tintLight : 'transparent',
+                    borderColor:
+                      selectedAddress === address.id
+                        ? colors.tint
+                        : colors.border,
+                    backgroundColor:
+                      selectedAddress === address.id
+                        ? colors.tintLight
+                        : "transparent",
                   },
                 ]}
                 onPress={() => setSelectedAddress(address.id)}
@@ -139,11 +162,21 @@ export default function CheckoutScreen() {
                   <View
                     style={[
                       styles.radioOuter,
-                      { borderColor: selectedAddress === address.id ? colors.tint : colors.border },
+                      {
+                        borderColor:
+                          selectedAddress === address.id
+                            ? colors.tint
+                            : colors.border,
+                      },
                     ]}
                   >
                     {selectedAddress === address.id && (
-                      <View style={[styles.radioInner, { backgroundColor: colors.tint }]} />
+                      <View
+                        style={[
+                          styles.radioInner,
+                          { backgroundColor: colors.tint },
+                        ]}
+                      />
                     )}
                   </View>
                 </View>
@@ -153,15 +186,28 @@ export default function CheckoutScreen() {
                       {address.label}
                     </Text>
                     {address.is_default && (
-                      <View style={[styles.defaultBadge, { backgroundColor: colors.tintLight }]}>
-                        <Text style={[styles.defaultText, { color: colors.tint }]}>
+                      <View
+                        style={[
+                          styles.defaultBadge,
+                          { backgroundColor: colors.tintLight },
+                        ]}
+                      >
+                        <Text
+                          style={[styles.defaultText, { color: colors.tint }]}
+                        >
                           Default
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text style={[styles.addressText, { color: colors.textSecondary }]}>
-                    {address.street}, {address.city}, {address.state} {address.postal_code}
+                  <Text
+                    style={[
+                      styles.addressText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
+                    {address.street}, {address.city}, {address.state}{" "}
+                    {address.postal_code}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -170,9 +216,18 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Delivery Instructions */}
-        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View style={styles.sectionHeader}>
-            <Ionicons name="document-text-outline" size={20} color={colors.tint} />
+            <Ionicons
+              name="document-text-outline"
+              size={20}
+              color={colors.tint}
+            />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Delivery Instructions
             </Text>
@@ -180,7 +235,11 @@ export default function CheckoutScreen() {
           <TextInput
             style={[
               styles.instructionsInput,
-              { color: colors.text, borderColor: colors.border, backgroundColor: colors.backgroundSecondary },
+              {
+                color: colors.text,
+                borderColor: colors.border,
+                backgroundColor: colors.backgroundSecondary,
+              },
             ]}
             placeholder="Add any special instructions..."
             placeholderTextColor={colors.textSecondary}
@@ -192,7 +251,12 @@ export default function CheckoutScreen() {
         </View>
 
         {/* Order Summary */}
-        <View style={[styles.section, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <View
+          style={[
+            styles.section,
+            { backgroundColor: colors.card, borderColor: colors.border },
+          ]}
+        >
           <View style={styles.sectionHeader}>
             <Ionicons name="receipt-outline" size={20} color={colors.tint} />
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -209,29 +273,59 @@ export default function CheckoutScreen() {
               </Text>
             </View>
           ))}
-          <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.summaryDivider, { backgroundColor: colors.border }]}
+          />
           <View style={styles.summaryRow}>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Subtotal</Text>
-            <Text style={[styles.summaryValue, { color: colors.text }]}>₹{subtotal.toFixed(2)}</Text>
+            <Text
+              style={[styles.summaryLabel, { color: colors.textSecondary }]}
+            >
+              Subtotal
+            </Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>
+              ₹{subtotal.toFixed(2)}
+            </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>Delivery Fee</Text>
-            <Text style={[styles.summaryValue, { color: colors.text }]}>₹{deliveryFee.toFixed(2)}</Text>
+            <Text
+              style={[styles.summaryLabel, { color: colors.textSecondary }]}
+            >
+              Delivery Fee
+            </Text>
+            <Text style={[styles.summaryValue, { color: colors.text }]}>
+              ₹{deliveryFee.toFixed(2)}
+            </Text>
           </View>
-          <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
+          <View
+            style={[styles.summaryDivider, { backgroundColor: colors.border }]}
+          />
           <View style={styles.summaryRow}>
-            <Text style={[styles.totalLabel, { color: colors.text }]}>Total</Text>
-            <Text style={[styles.totalValue, { color: colors.text }]}>₹{total.toFixed(2)}</Text>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>
+              Total
+            </Text>
+            <Text style={[styles.totalValue, { color: colors.text }]}>
+              ₹{total.toFixed(2)}
+            </Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Place Order Button */}
-      <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border }]}>
+      <View
+        style={[
+          styles.footer,
+          { backgroundColor: colors.background, borderTopColor: colors.border },
+        ]}
+      >
         <TouchableOpacity
           style={[
             styles.placeOrderButton,
-            { backgroundColor: loading || !selectedAddress ? colors.textSecondary : colors.tint },
+            {
+              backgroundColor:
+                loading || !selectedAddress
+                  ? colors.textSecondary
+                  : colors.tint,
+            },
           ]}
           onPress={handlePlaceOrder}
           disabled={loading || !selectedAddress}
@@ -255,8 +349,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
   },
   emptyText: {
@@ -269,9 +363,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   browseButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   content: {
     flex: 1,
@@ -284,31 +378,31 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   addAddressButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
     borderRadius: 10,
     borderWidth: 1,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     gap: 8,
   },
   addAddressText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   addressCard: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 12,
     borderRadius: 10,
     borderWidth: 1,
@@ -323,8 +417,8 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   radioInner: {
     width: 10,
@@ -335,13 +429,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addressLabelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   addressLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   defaultBadge: {
     paddingHorizontal: 6,
@@ -350,7 +444,7 @@ const styles = StyleSheet.create({
   },
   defaultText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   addressText: {
     fontSize: 13,
@@ -362,12 +456,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 12,
     fontSize: 14,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     minHeight: 80,
   },
   summaryItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   summaryItemName: {
@@ -382,8 +476,8 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
   summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 8,
   },
   summaryLabel: {
@@ -394,31 +488,31 @@ const styles = StyleSheet.create({
   },
   totalLabel: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   totalValue: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
     padding: 16,
     borderTopWidth: 1,
   },
   placeOrderButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 16,
     borderRadius: 12,
   },
   placeOrderText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   placeOrderTotal: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

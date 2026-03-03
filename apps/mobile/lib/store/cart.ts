@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import * as SecureStore from 'expo-secure-store';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import * as SecureStore from "expo-secure-store";
 
 interface CartItem {
   id: string;
@@ -58,14 +58,16 @@ export const useCartStore = create<CartState>()(
           set({ items: [], merchant: null });
         }
 
-        const existingItem = items.find((item) => item.productId === product.id);
+        const existingItem = items.find(
+          (item) => item.productId === product.id,
+        );
 
         if (existingItem) {
           set({
             items: items.map((item) =>
               item.productId === product.id
                 ? { ...item, quantity: item.quantity + 1 }
-                : item
+                : item,
             ),
             merchant,
           });
@@ -106,7 +108,7 @@ export const useCartStore = create<CartState>()(
 
         set({
           items: items.map((item) =>
-            item.productId === productId ? { ...item, quantity } : item
+            item.productId === productId ? { ...item, quantity } : item,
           ),
         });
       },
@@ -120,7 +122,7 @@ export const useCartStore = create<CartState>()(
       getSubtotal: () => {
         return get().items.reduce(
           (sum, item) => sum + item.price * item.quantity,
-          0
+          0,
         );
       },
 
@@ -131,8 +133,8 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: 'cart-storage',
+      name: "cart-storage",
       storage: createJSONStorage(() => zustandStorage),
-    }
-  )
+    },
+  ),
 );

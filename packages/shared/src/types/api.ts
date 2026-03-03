@@ -34,7 +34,7 @@ export interface PaginationQuery {
   page?: number;
   limit?: number;
   sort_by?: string;
-  sort_order?: 'asc' | 'desc';
+  sort_order?: "asc" | "desc";
 }
 
 // =====================================================
@@ -450,7 +450,7 @@ export interface DriverEarningsSummary {
 // =====================================================
 
 export interface MerchantOrderUpdate {
-  status: 'confirmed' | 'preparing' | 'ready_for_pickup' | 'cancelled';
+  status: "confirmed" | "preparing" | "ready_for_pickup" | "cancelled";
   notes?: string;
   estimated_prep_time?: number;
 }
@@ -550,7 +550,7 @@ export interface SearchResponse {
 
 export interface RegisterPushTokenRequest {
   token: string;
-  device_type: 'ios' | 'android' | 'web';
+  device_type: "ios" | "android" | "web";
   device_id?: string;
 }
 

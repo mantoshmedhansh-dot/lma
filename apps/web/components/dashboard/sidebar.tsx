@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Package,
   Route,
@@ -13,21 +13,21 @@ import {
   Users,
   LayoutDashboard,
   LogOut,
-} from 'lucide-react';
-import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+} from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { href: '/orders', label: 'Orders', icon: Package },
-  { href: '/orders/import', label: 'Import Orders', icon: Upload },
-  { href: '/routes', label: 'Routes', icon: Route },
-  { href: '/routes/plan', label: 'Route Planning', icon: LayoutDashboard },
-  { href: '/fleet', label: 'Vehicles', icon: Truck },
-  { href: '/fleet/drivers', label: 'Drivers', icon: Users },
-  { href: '/tracking', label: 'Live Tracking', icon: MapPin },
-  { href: '/reports', label: 'Reports', icon: BarChart3 },
-  { href: '/settings', label: 'Settings', icon: Settings },
+  { href: "/orders", label: "Orders", icon: Package },
+  { href: "/orders/import", label: "Import Orders", icon: Upload },
+  { href: "/routes", label: "Routes", icon: Route },
+  { href: "/routes/plan", label: "Route Planning", icon: LayoutDashboard },
+  { href: "/fleet", label: "Vehicles", icon: Truck },
+  { href: "/fleet/drivers", label: "Drivers", icon: Users },
+  { href: "/tracking", label: "Live Tracking", icon: MapPin },
+  { href: "/reports", label: "Reports", icon: BarChart3 },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -42,7 +42,7 @@ export function Sidebar({ hubName, userEmail }: SidebarProps) {
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/login");
   };
 
   return (
@@ -69,7 +69,8 @@ export function Sidebar({ hubName, userEmail }: SidebarProps) {
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
             const Icon = item.icon;
             return (
               <li key={item.href}>
@@ -77,8 +78,8 @@ export function Sidebar({ hubName, userEmail }: SidebarProps) {
                   href={item.href}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors ${
                     isActive
-                      ? 'bg-primary/10 text-primary font-medium'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -93,7 +94,9 @@ export function Sidebar({ hubName, userEmail }: SidebarProps) {
       {/* User section */}
       <div className="border-t p-4">
         {userEmail && (
-          <p className="mb-2 truncate text-xs text-muted-foreground">{userEmail}</p>
+          <p className="mb-2 truncate text-xs text-muted-foreground">
+            {userEmail}
+          </p>
         )}
         <Button
           variant="ghost"

@@ -3,7 +3,7 @@ export interface DeliveryRoute {
   hub_id: string;
   route_name: string | null;
   route_date: string;
-  status: 'planned' | 'assigned' | 'in_progress' | 'completed' | 'cancelled';
+  status: "planned" | "assigned" | "in_progress" | "completed" | "cancelled";
   total_stops: number;
   total_distance_km: number | null;
   estimated_duration_mins: number | null;
@@ -20,7 +20,7 @@ export interface RouteStop {
   route_id: string;
   order_id: string;
   sequence: number;
-  status: 'pending' | 'arrived' | 'delivered' | 'failed' | 'skipped';
+  status: "pending" | "arrived" | "delivered" | "failed" | "skipped";
   planned_eta: string | null;
   actual_arrival: string | null;
   actual_departure: string | null;
@@ -49,20 +49,20 @@ export interface RouteVehicle {
 }
 
 export type FailureReason =
-  | 'customer_unavailable'
-  | 'customer_rejected'
-  | 'wrong_address'
-  | 'access_issue'
-  | 'damaged_package'
-  | 'reschedule_requested'
-  | 'other';
+  | "customer_unavailable"
+  | "customer_rejected"
+  | "wrong_address"
+  | "access_issue"
+  | "damaged_package"
+  | "reschedule_requested"
+  | "other";
 
 export const FAILURE_REASONS: { value: FailureReason; label: string }[] = [
-  { value: 'customer_unavailable', label: 'Customer Unavailable' },
-  { value: 'customer_rejected', label: 'Customer Rejected' },
-  { value: 'wrong_address', label: 'Wrong Address' },
-  { value: 'access_issue', label: 'Access Issue' },
-  { value: 'damaged_package', label: 'Damaged Package' },
-  { value: 'reschedule_requested', label: 'Reschedule Requested' },
-  { value: 'other', label: 'Other' },
+  { value: "customer_unavailable", label: "Customer Unavailable" },
+  { value: "customer_rejected", label: "Customer Rejected" },
+  { value: "wrong_address", label: "Wrong Address" },
+  { value: "access_issue", label: "Access Issue" },
+  { value: "damaged_package", label: "Damaged Package" },
+  { value: "reschedule_requested", label: "Reschedule Requested" },
+  { value: "other", label: "Other" },
 ];

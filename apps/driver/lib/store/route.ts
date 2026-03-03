@@ -1,6 +1,6 @@
-import { create } from 'zustand';
-import type { DeliveryRoute, RouteStop } from '../types/route';
-import * as deliveryApi from '../api/delivery';
+import { create } from "zustand";
+import type { DeliveryRoute, RouteStop } from "../types/route";
+import * as deliveryApi from "../api/delivery";
 
 interface RouteState {
   route: DeliveryRoute | null;
@@ -9,14 +9,17 @@ interface RouteState {
   error: string | null;
   fetchRoute: () => Promise<void>;
   markArrived: (stopId: string) => Promise<void>;
-  markComplete: (stopId: string, status: 'delivered' | 'failed') => Promise<void>;
+  markComplete: (
+    stopId: string,
+    status: "delivered" | "failed",
+  ) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
 function findCurrentStop(stops: RouteStop[]): RouteStop | null {
   return (
-    stops.find((s) => s.status === 'arrived') ||
-    stops.find((s) => s.status === 'pending') ||
+    stops.find((s) => s.status === "arrived") ||
+    stops.find((s) => s.status === "pending") ||
     null
   );
 }
@@ -34,7 +37,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
       const currentStop = route ? findCurrentStop(route.stops) : null;
       set({ route, currentStop });
     } catch (error: any) {
-      set({ error: error.message || 'Failed to fetch route' });
+      set({ error: error.message || "Failed to fetch route" });
     } finally {
       set({ loading: false });
     }
@@ -48,7 +51,11 @@ export const useRouteStore = create<RouteState>((set, get) => ({
 
       const updatedStops = route.stops.map((s) =>
         s.id === stopId
-          ? { ...s, status: 'arrived' as const, actual_arrival: new Date().toISOString() }
+          ? {
+              ...s,
+              status: "arrived" as const,
+              actual_arrival: new Date().toISOString(),
+            }
           : s,
       );
       const updatedRoute = { ...route, stops: updatedStops };
@@ -61,7 +68,7 @@ export const useRouteStore = create<RouteState>((set, get) => ({
     }
   },
 
-  markComplete: async (stopId: string, status: 'delivered' | 'failed') => {
+  markComplete: async (stopId: string, status: "delivered" | "failed") => {
     try {
       await deliveryApi.completeStop(stopId, status);
       const { route } = get();

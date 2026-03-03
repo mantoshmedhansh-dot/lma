@@ -1,16 +1,23 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, ArrowLeft, Mail } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, ArrowLeft, Mail } from "lucide-react";
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,14 +52,17 @@ export default function ForgotPasswordPage() {
               <Mail className="h-8 w-8 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Check your email</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            Check your email
+          </CardTitle>
           <CardDescription className="text-center">
             We&apos;ve sent a password reset link to <strong>{email}</strong>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-center text-muted-foreground">
-            Click the link in your email to reset your password. If you don&apos;t see it, check your spam folder.
+            Click the link in your email to reset your password. If you
+            don&apos;t see it, check your spam folder.
           </p>
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
@@ -63,7 +73,10 @@ export default function ForgotPasswordPage() {
           >
             Try another email
           </Button>
-          <Link href="/login" className="text-sm text-center text-primary hover:underline">
+          <Link
+            href="/login"
+            className="text-sm text-center text-primary hover:underline"
+          >
             Back to login
           </Link>
         </CardFooter>
@@ -106,7 +119,7 @@ export default function ForgotPasswordPage() {
                 Sending...
               </>
             ) : (
-              'Send reset link'
+              "Send reset link"
             )}
           </Button>
         </form>

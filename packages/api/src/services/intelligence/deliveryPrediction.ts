@@ -5,9 +5,9 @@
  * based on historical data, traffic patterns, distance, and other factors.
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
-import { calculateDistance } from '../routeOptimization.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
+import { calculateDistance } from "../routeOptimization.js";
 
 // Feature weights learned from historical data (simplified ML model)
 interface ModelWeights {
@@ -35,10 +35,30 @@ const DEFAULT_WEIGHTS: ModelWeights = {
 
 // Traffic patterns by hour (0-23)
 const TRAFFIC_PATTERNS: Record<number, number> = {
-  0: 0.7, 1: 0.6, 2: 0.6, 3: 0.6, 4: 0.7, 5: 0.8,
-  6: 1.0, 7: 1.3, 8: 1.5, 9: 1.4, 10: 1.2, 11: 1.1,
-  12: 1.3, 13: 1.2, 14: 1.1, 15: 1.2, 16: 1.3, 17: 1.5,
-  18: 1.6, 19: 1.5, 20: 1.3, 21: 1.1, 22: 0.9, 23: 0.8,
+  0: 0.7,
+  1: 0.6,
+  2: 0.6,
+  3: 0.6,
+  4: 0.7,
+  5: 0.8,
+  6: 1.0,
+  7: 1.3,
+  8: 1.5,
+  9: 1.4,
+  10: 1.2,
+  11: 1.1,
+  12: 1.3,
+  13: 1.2,
+  14: 1.1,
+  15: 1.2,
+  16: 1.3,
+  17: 1.5,
+  18: 1.6,
+  19: 1.5,
+  20: 1.3,
+  21: 1.1,
+  22: 0.9,
+  23: 0.8,
 };
 
 // Day of week patterns (0 = Sunday)
@@ -90,7 +110,7 @@ interface PredictionResult {
  * Predict delivery time using ML-inspired algorithm
  */
 export async function predictDeliveryTime(
-  input: PredictionInput
+  input: PredictionInput,
 ): Promise<PredictionResult> {
   const weights = await getModelWeights();
   const now = input.scheduledTime || new Date();
@@ -100,7 +120,7 @@ export async function predictDeliveryTime(
     input.pickupLat,
     input.pickupLng,
     input.deliveryLat,
-    input.deliveryLng
+    input.deliveryLng,
   );
 
   // Get traffic factor
@@ -115,9 +135,9 @@ export async function predictDeliveryTime(
   let merchantPrepTime = 15; // Default prep time
   if (input.merchantId) {
     const { data: merchant } = await supabaseAdmin
-      .from('merchants')
-      .select('estimated_prep_time')
-      .eq('id', input.merchantId)
+      .from("merchants")
+      .select("estimated_prep_time")
+      .eq("id", input.merchantId)
       .single();
     if (merchant?.estimated_prep_time) {
       merchantPrepTime = merchant.estimated_prep_time;
@@ -128,9 +148,9 @@ export async function predictDeliveryTime(
   let driverFactor = 1.0;
   if (input.driverId) {
     const { data: driver } = await supabaseAdmin
-      .from('drivers')
-      .select('average_rating, total_deliveries')
-      .eq('id', input.driverId)
+      .from("drivers")
+      .select("average_rating, total_deliveries")
+      .eq("id", input.driverId)
       .single();
     if (driver?.average_rating && driver.total_deliveries > 10) {
       // Better rated drivers are slightly faster
@@ -140,7 +160,8 @@ export async function predictDeliveryTime(
 
   // Calculate travel time
   const baseTravelTime = distance * weights.distanceWeight;
-  const adjustedTravelTime = baseTravelTime * trafficFactor * dayFactor * driverFactor;
+  const adjustedTravelTime =
+    baseTravelTime * trafficFactor * dayFactor * driverFactor;
 
   // Calculate total time components
   const travelTime = Math.round(adjustedTravelTime);
@@ -149,7 +170,8 @@ export async function predictDeliveryTime(
   const deliveryTime = 5; // Fixed delivery buffer
   const bufferTime = Math.round(distance * 0.5); // Dynamic buffer based on distance
 
-  const totalMinutes = travelTime + prepTime + pickupTime + deliveryTime + bufferTime;
+  const totalMinutes =
+    travelTime + prepTime + pickupTime + deliveryTime + bufferTime;
 
   // Calculate confidence based on data availability
   let confidence = 0.7; // Base confidence
@@ -158,7 +180,7 @@ export async function predictDeliveryTime(
   if (distance < 10) confidence += 0.05; // More confident for shorter distances
 
   // Calculate range (±15-25% based on confidence)
-  const variancePercent = 0.25 - (confidence * 0.1);
+  const variancePercent = 0.25 - confidence * 0.1;
   const minTime = Math.round(totalMinutes * (1 - variancePercent));
   const maxTime = Math.round(totalMinutes * (1 + variancePercent));
 
@@ -193,22 +215,25 @@ export async function getHistoricalData(
     merchantId?: string;
     daysBack?: number;
     limit?: number;
-  } = {}
-): Promise<Array<{
-  distance: number;
-  actualTime: number;
-  hour: number;
-  dayOfWeek: number;
-  prepTime: number;
-}>> {
+  } = {},
+): Promise<
+  Array<{
+    distance: number;
+    actualTime: number;
+    hour: number;
+    dayOfWeek: number;
+    prepTime: number;
+  }>
+> {
   const { merchantId, daysBack = 30, limit = 1000 } = options;
 
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - daysBack);
 
   let query = supabaseAdmin
-    .from('orders')
-    .select(`
+    .from("orders")
+    .select(
+      `
       pickup_latitude,
       pickup_longitude,
       delivery_latitude,
@@ -217,20 +242,21 @@ export async function getHistoricalData(
       confirmed_at,
       picked_up_at,
       delivered_at
-    `)
-    .eq('status', 'delivered')
-    .gte('created_at', startDate.toISOString())
-    .not('delivered_at', 'is', null)
+    `,
+    )
+    .eq("status", "delivered")
+    .gte("created_at", startDate.toISOString())
+    .not("delivered_at", "is", null)
     .limit(limit);
 
   if (merchantId) {
-    query = query.eq('merchant_id', merchantId);
+    query = query.eq("merchant_id", merchantId);
   }
 
   const { data: orders, error } = await query;
 
   if (error || !orders) {
-    logger.error('Failed to fetch historical data', { error });
+    logger.error("Failed to fetch historical data", { error });
     return [];
   }
 
@@ -241,7 +267,7 @@ export async function getHistoricalData(
         order.pickup_latitude,
         order.pickup_longitude,
         order.delivery_latitude,
-        order.delivery_longitude
+        order.delivery_longitude,
       );
 
       const createdAt = new Date(order.created_at);
@@ -250,7 +276,10 @@ export async function getHistoricalData(
 
       let prepTime = 15;
       if (order.confirmed_at && order.picked_up_at) {
-        prepTime = (new Date(order.picked_up_at).getTime() - new Date(order.confirmed_at).getTime()) / 60000;
+        prepTime =
+          (new Date(order.picked_up_at).getTime() -
+            new Date(order.confirmed_at).getTime()) /
+          60000;
       }
 
       return {
@@ -266,18 +295,23 @@ export async function getHistoricalData(
 /**
  * Train/update model weights based on historical data
  */
-export async function updateModelWeights(merchantId?: string): Promise<ModelWeights> {
+export async function updateModelWeights(
+  merchantId?: string,
+): Promise<ModelWeights> {
   const historicalData = await getHistoricalData({ merchantId, daysBack: 90 });
 
   if (historicalData.length < 50) {
-    logger.info('Insufficient data for training, using defaults', {
+    logger.info("Insufficient data for training, using defaults", {
       dataPoints: historicalData.length,
     });
     return DEFAULT_WEIGHTS;
   }
 
   // Simple linear regression to find optimal distance weight
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  let sumX = 0,
+    sumY = 0,
+    sumXY = 0,
+    sumX2 = 0;
   const n = historicalData.length;
 
   for (const point of historicalData) {
@@ -305,14 +339,16 @@ export async function updateModelWeights(merchantId?: string): Promise<ModelWeig
   };
 
   // Save to database
-  const key = merchantId ? `model_weights_${merchantId}` : 'model_weights_global';
-  await supabaseAdmin.from('app_config').upsert({
+  const key = merchantId
+    ? `model_weights_${merchantId}`
+    : "model_weights_global";
+  await supabaseAdmin.from("app_config").upsert({
     key,
     value: newWeights,
     updated_at: new Date().toISOString(),
   });
 
-  logger.info('Updated model weights', {
+  logger.info("Updated model weights", {
     merchantId,
     dataPoints: n,
     weights: newWeights,
@@ -328,9 +364,9 @@ async function getModelWeights(merchantId?: string): Promise<ModelWeights> {
   // Try merchant-specific weights first
   if (merchantId) {
     const { data: merchantWeights } = await supabaseAdmin
-      .from('app_config')
-      .select('value')
-      .eq('key', `model_weights_${merchantId}`)
+      .from("app_config")
+      .select("value")
+      .eq("key", `model_weights_${merchantId}`)
       .single();
 
     if (merchantWeights?.value) {
@@ -340,9 +376,9 @@ async function getModelWeights(merchantId?: string): Promise<ModelWeights> {
 
   // Try global weights
   const { data: globalWeights } = await supabaseAdmin
-    .from('app_config')
-    .select('value')
-    .eq('key', 'model_weights_global')
+    .from("app_config")
+    .select("value")
+    .eq("key", "model_weights_global")
     .single();
 
   if (globalWeights?.value) {
@@ -357,7 +393,7 @@ async function getModelWeights(merchantId?: string): Promise<ModelWeights> {
  */
 export async function calculateAccuracy(
   merchantId?: string,
-  daysBack: number = 7
+  daysBack: number = 7,
 ): Promise<{
   meanAbsoluteError: number;
   meanPercentageError: number;
@@ -384,10 +420,12 @@ export async function calculateAccuracy(
 
   for (const point of historicalData) {
     // Simulate prediction
-    const predicted = DEFAULT_WEIGHTS.baseTime +
-      point.distance * DEFAULT_WEIGHTS.distanceWeight *
-      TRAFFIC_PATTERNS[point.hour] *
-      DAY_PATTERNS[point.dayOfWeek];
+    const predicted =
+      DEFAULT_WEIGHTS.baseTime +
+      point.distance *
+        DEFAULT_WEIGHTS.distanceWeight *
+        TRAFFIC_PATTERNS[point.hour] *
+        DAY_PATTERNS[point.dayOfWeek];
 
     const absError = Math.abs(predicted - point.actualTime);
     const pctError = absError / point.actualTime;
@@ -402,23 +440,31 @@ export async function calculateAccuracy(
   const n = historicalData.length;
 
   return {
-    meanAbsoluteError: Math.round(totalAbsError / n * 10) / 10,
-    meanPercentageError: Math.round(totalPctError / n * 1000) / 10,
-    within10Percent: Math.round(within10 / n * 1000) / 10,
-    within20Percent: Math.round(within20 / n * 1000) / 10,
+    meanAbsoluteError: Math.round((totalAbsError / n) * 10) / 10,
+    meanPercentageError: Math.round((totalPctError / n) * 1000) / 10,
+    within10Percent: Math.round((within10 / n) * 1000) / 10,
+    within20Percent: Math.round((within20 / n) * 1000) / 10,
     sampleSize: n,
   };
 }
 
 // Helper functions
 function getTimeOfDayLabel(hour: number): string {
-  if (hour >= 6 && hour < 12) return 'morning';
-  if (hour >= 12 && hour < 17) return 'afternoon';
-  if (hour >= 17 && hour < 21) return 'evening';
-  return 'night';
+  if (hour >= 6 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 21) return "evening";
+  return "night";
 }
 
 function getDayLabel(day: number): string {
-  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
   return days[day];
 }

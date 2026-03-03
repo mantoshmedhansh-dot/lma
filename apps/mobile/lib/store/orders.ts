@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { supabase } from '../supabase';
+import { create } from "zustand";
+import { supabase } from "../supabase";
 
 interface OrderItem {
   id: string;
@@ -62,8 +62,13 @@ interface OrdersState {
   fetchOrders: (userId: string) => Promise<void>;
   fetchOrderById: (orderId: string) => Promise<void>;
   fetchAddresses: (userId: string) => Promise<void>;
-  createOrder: (orderData: CreateOrderData) => Promise<{ orderId: string | null; error: Error | null }>;
-  addAddress: (userId: string, address: Omit<Address, 'id'>) => Promise<{ error: Error | null }>;
+  createOrder: (
+    orderData: CreateOrderData,
+  ) => Promise<{ orderId: string | null; error: Error | null }>;
+  addAddress: (
+    userId: string,
+    address: Omit<Address, "id">,
+  ) => Promise<{ error: Error | null }>;
   setDefaultAddress: (addressId: string, userId: string) => Promise<void>;
   subscribeToOrder: (orderId: string) => () => void;
 }
@@ -90,8 +95,9 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     set({ loading: true });
     try {
       const { data, error } = await supabase
-        .from('orders')
-        .select(`
+        .from("orders")
+        .select(
+          `
           id,
           order_number,
           status,
@@ -103,14 +109,15 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
           estimated_delivery_time,
           delivered_at,
           merchant:merchants(id, name, logo_url)
-        `)
-        .eq('customer_id', userId)
-        .order('created_at', { ascending: false });
+        `,
+        )
+        .eq("customer_id", userId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       set({ orders: data || [] });
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      console.error("Error fetching orders:", error);
     } finally {
       set({ loading: false });
     }
@@ -120,8 +127,9 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     set({ loading: true });
     try {
       const { data, error } = await supabase
-        .from('orders')
-        .select(`
+        .from("orders")
+        .select(
+          `
           id,
           order_number,
           status,
@@ -136,14 +144,15 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
           merchant:merchants(id, name, logo_url, contact_phone),
           driver:drivers(id, full_name, phone, current_location),
           items:order_items(id, quantity, unit_price, product:products(name, image_url))
-        `)
-        .eq('id', orderId)
+        `,
+        )
+        .eq("id", orderId)
         .single();
 
       if (error) throw error;
       set({ currentOrder: data });
     } catch (error) {
-      console.error('Error fetching order:', error);
+      console.error("Error fetching order:", error);
     } finally {
       set({ loading: false });
     }
@@ -152,19 +161,20 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   fetchAddresses: async (userId) => {
     try {
       const { data, error } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('user_id', userId)
-        .order('is_default', { ascending: false });
+        .from("addresses")
+        .select("*")
+        .eq("user_id", userId)
+        .order("is_default", { ascending: false });
 
       if (error) throw error;
 
       const addresses = data || [];
-      const defaultAddress = addresses.find((a) => a.is_default) || addresses[0] || null;
+      const defaultAddress =
+        addresses.find((a) => a.is_default) || addresses[0] || null;
 
       set({ addresses, defaultAddress });
     } catch (error) {
-      console.error('Error fetching addresses:', error);
+      console.error("Error fetching addresses:", error);
     }
   },
 
@@ -172,24 +182,24 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     try {
       // Get the address
       const { data: address } = await supabase
-        .from('addresses')
-        .select('*')
-        .eq('id', orderData.addressId)
+        .from("addresses")
+        .select("*")
+        .eq("id", orderData.addressId)
         .single();
 
-      if (!address) throw new Error('Address not found');
+      if (!address) throw new Error("Address not found");
 
       // Generate order number
       const orderNumber = `LMA${Date.now().toString(36).toUpperCase()}`;
 
       // Create order
       const { data: order, error: orderError } = await supabase
-        .from('orders')
+        .from("orders")
         .insert({
           order_number: orderNumber,
           customer_id: orderData.userId,
           merchant_id: orderData.merchantId,
-          status: 'pending',
+          status: "pending",
           subtotal: orderData.subtotal,
           delivery_fee: orderData.deliveryFee,
           total_amount: orderData.total,
@@ -216,7 +226,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       }));
 
       const { error: itemsError } = await supabase
-        .from('order_items')
+        .from("order_items")
         .insert(orderItems);
 
       if (itemsError) throw itemsError;
@@ -232,12 +242,12 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       // If setting as default, unset other defaults first
       if (addressData.is_default) {
         await supabase
-          .from('addresses')
+          .from("addresses")
           .update({ is_default: false })
-          .eq('user_id', userId);
+          .eq("user_id", userId);
       }
 
-      const { error } = await supabase.from('addresses').insert({
+      const { error } = await supabase.from("addresses").insert({
         user_id: userId,
         ...addressData,
       });
@@ -255,19 +265,19 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     try {
       // Unset all defaults
       await supabase
-        .from('addresses')
+        .from("addresses")
         .update({ is_default: false })
-        .eq('user_id', userId);
+        .eq("user_id", userId);
 
       // Set new default
       await supabase
-        .from('addresses')
+        .from("addresses")
         .update({ is_default: true })
-        .eq('id', addressId);
+        .eq("id", addressId);
 
       await get().fetchAddresses(userId);
     } catch (error) {
-      console.error('Error setting default address:', error);
+      console.error("Error setting default address:", error);
     }
   },
 
@@ -275,16 +285,16 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     const channel = supabase
       .channel(`order-${orderId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'orders',
+          event: "UPDATE",
+          schema: "public",
+          table: "orders",
           filter: `id=eq.${orderId}`,
         },
         () => {
           get().fetchOrderById(orderId);
-        }
+        },
       )
       .subscribe();
 

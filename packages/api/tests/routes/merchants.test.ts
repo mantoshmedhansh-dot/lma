@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import request from 'supertest';
-import express from 'express';
-import merchantsRouter from '../../src/routes/merchants.js';
-import { createTestApp } from '../helpers.js';
-import { mockMerchant, mockProduct } from '../mocks/supabase.js';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import request from "supertest";
+import express from "express";
+import merchantsRouter from "../../src/routes/merchants.js";
+import { createTestApp } from "../helpers.js";
+import { mockMerchant, mockProduct } from "../mocks/supabase.js";
 
 // Mock Supabase
 const mockSupabase = {
@@ -13,16 +13,16 @@ const mockSupabase = {
   },
 };
 
-vi.mock('../../src/config/supabase.js', () => ({
+vi.mock("../../src/config/supabase.js", () => ({
   supabaseAdmin: mockSupabase,
 }));
 
-vi.mock('@lma/shared', () => ({
+vi.mock("@lma/shared", () => ({
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
 }));
 
-describe('Merchants Routes', () => {
+describe("Merchants Routes", () => {
   let app: express.Express;
 
   beforeEach(() => {
@@ -30,9 +30,12 @@ describe('Merchants Routes', () => {
     app = createTestApp(merchantsRouter);
   });
 
-  describe('GET /', () => {
-    it('should return list of merchants', async () => {
-      const merchants = [mockMerchant, { ...mockMerchant, id: 'merchant-2', business_name: 'Restaurant 2' }];
+  describe("GET /", () => {
+    it("should return list of merchants", async () => {
+      const merchants = [
+        mockMerchant,
+        { ...mockMerchant, id: "merchant-2", business_name: "Restaurant 2" },
+      ];
 
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
@@ -48,7 +51,7 @@ describe('Merchants Routes', () => {
         }),
       });
 
-      const response = await request(app).get('/');
+      const response = await request(app).get("/");
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -57,7 +60,7 @@ describe('Merchants Routes', () => {
       expect(response.body.pagination.total).toBe(2);
     });
 
-    it('should filter merchants by type', async () => {
+    it("should filter merchants by type", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -72,14 +75,14 @@ describe('Merchants Routes', () => {
         }),
       });
 
-      const response = await request(app).get('/?type=restaurant');
+      const response = await request(app).get("/?type=restaurant");
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(mockSupabase.from).toHaveBeenCalledWith('merchants');
+      expect(mockSupabase.from).toHaveBeenCalledWith("merchants");
     });
 
-    it('should filter merchants by city', async () => {
+    it("should filter merchants by city", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -94,13 +97,13 @@ describe('Merchants Routes', () => {
         }),
       });
 
-      const response = await request(app).get('/?city=Mumbai');
+      const response = await request(app).get("/?city=Mumbai");
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
     });
 
-    it('should search merchants by name', async () => {
+    it("should search merchants by name", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -115,13 +118,13 @@ describe('Merchants Routes', () => {
         }),
       });
 
-      const response = await request(app).get('/?search=Test');
+      const response = await request(app).get("/?search=Test");
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
     });
 
-    it('should paginate results', async () => {
+    it("should paginate results", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -136,7 +139,7 @@ describe('Merchants Routes', () => {
         }),
       });
 
-      const response = await request(app).get('/?page=2&limit=10');
+      const response = await request(app).get("/?page=2&limit=10");
 
       expect(response.status).toBe(200);
       expect(response.body.pagination.page).toBe(2);
@@ -145,7 +148,7 @@ describe('Merchants Routes', () => {
       expect(response.body.pagination.totalPages).toBe(5);
     });
 
-    it('should sort merchants by rating', async () => {
+    it("should sort merchants by rating", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -160,14 +163,16 @@ describe('Merchants Routes', () => {
         }),
       });
 
-      const response = await request(app).get('/?sort_by=rating&sort_order=desc');
+      const response = await request(app).get(
+        "/?sort_by=rating&sort_order=desc",
+      );
 
       expect(response.status).toBe(200);
     });
   });
 
-  describe('GET /:id', () => {
-    it('should return merchant by ID', async () => {
+  describe("GET /:id", () => {
+    it("should return merchant by ID", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -190,31 +195,31 @@ describe('Merchants Routes', () => {
       expect(response.body.data.business_name).toBe(mockMerchant.business_name);
     });
 
-    it('should return 404 for non-existent merchant', async () => {
+    it("should return 404 for non-existent merchant", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { code: 'PGRST116' },
+          error: { code: "PGRST116" },
         }),
       });
 
-      const response = await request(app).get('/non-existent-uuid-1234-5678');
+      const response = await request(app).get("/non-existent-uuid-1234-5678");
 
       expect(response.status).toBe(400); // Invalid UUID format
     });
 
-    it('should return 400 for invalid UUID format', async () => {
-      const response = await request(app).get('/invalid-id');
+    it("should return 400 for invalid UUID format", async () => {
+      const response = await request(app).get("/invalid-id");
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
     });
   });
 
-  describe('GET /slug/:slug', () => {
-    it('should return merchant by slug', async () => {
+  describe("GET /slug/:slug", () => {
+    it("should return merchant by slug", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
@@ -236,28 +241,34 @@ describe('Merchants Routes', () => {
       expect(response.body.data.slug).toBe(mockMerchant.slug);
     });
 
-    it('should return 404 for non-existent slug', async () => {
+    it("should return 404 for non-existent slug", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { code: 'PGRST116' },
+          error: { code: "PGRST116" },
         }),
       });
 
-      const response = await request(app).get('/slug/non-existent-slug');
+      const response = await request(app).get("/slug/non-existent-slug");
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
     });
   });
 
-  describe('GET /:id/products', () => {
-    it('should return merchant products', async () => {
+  describe("GET /:id/products", () => {
+    it("should return merchant products", async () => {
       const products = [
         { ...mockProduct, product_variants: [], product_addons: [] },
-        { ...mockProduct, id: 'product-2', name: 'Product 2', product_variants: [], product_addons: [] },
+        {
+          ...mockProduct,
+          id: "product-2",
+          name: "Product 2",
+          product_variants: [],
+          product_addons: [],
+        },
       ];
 
       mockSupabase.from.mockReturnValue({
@@ -276,7 +287,7 @@ describe('Merchants Routes', () => {
       expect(response.body.data).toHaveLength(2);
     });
 
-    it('should return empty array for merchant with no products', async () => {
+    it("should return empty array for merchant with no products", async () => {
       mockSupabase.from.mockReturnValue({
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),

@@ -9,7 +9,7 @@ interface Location {
   id: string;
   latitude: number;
   longitude: number;
-  type: 'pickup' | 'delivery';
+  type: "pickup" | "delivery";
   orderId?: string;
   address?: string;
   estimatedTime?: number; // minutes at stop
@@ -59,7 +59,7 @@ export function calculateDistance(
   lat1: number,
   lon1: number,
   lat2: number,
-  lon2: number
+  lon2: number,
 ): number {
   const R = 6371; // Earth's radius in km
   const dLat = toRad(lat2 - lat1);
@@ -67,7 +67,10 @@ export function calculateDistance(
 
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
@@ -93,7 +96,7 @@ function buildDistanceMatrix(locations: Location[]): number[][] {
           locations[i].latitude,
           locations[i].longitude,
           locations[j].latitude,
-          locations[j].longitude
+          locations[j].longitude,
         );
       }
     }
@@ -109,7 +112,7 @@ function buildDistanceMatrix(locations: Location[]): number[][] {
 function nearestNeighbor(
   distanceMatrix: number[][],
   startIndex: number,
-  mustVisitInOrder: Map<number, number[]> // Map of location index to indices that must come after it
+  mustVisitInOrder: Map<number, number[]>, // Map of location index to indices that must come after it
 ): number[] {
   const n = distanceMatrix.length;
   const visited = new Set<number>();
@@ -167,7 +170,7 @@ function nearestNeighbor(
 function twoOptImprovement(
   route: number[],
   distanceMatrix: number[][],
-  maxIterations: number = 100
+  maxIterations: number = 100,
 ): number[] {
   let improved = true;
   let iterations = 0;
@@ -209,7 +212,10 @@ function twoOptImprovement(
 /**
  * Calculate total route distance
  */
-function calculateTotalDistance(route: number[], distanceMatrix: number[][]): number {
+function calculateTotalDistance(
+  route: number[],
+  distanceMatrix: number[][],
+): number {
   let total = 0;
   for (let i = 0; i < route.length - 1; i++) {
     total += distanceMatrix[route[i]][route[i + 1]];
@@ -220,7 +226,10 @@ function calculateTotalDistance(route: number[], distanceMatrix: number[][]): nu
 /**
  * Calculate estimated travel time based on distance and vehicle type
  */
-function calculateTravelTime(distance: number, vehicleType: string = 'default'): number {
+function calculateTravelTime(
+  distance: number,
+  vehicleType: string = "default",
+): number {
   const metrics = VEHICLE_METRICS[vehicleType] || VEHICLE_METRICS.default;
   return (distance / metrics.averageSpeed) * 60; // Convert to minutes
 }
@@ -235,18 +244,21 @@ export function optimizeRoute(
     vehicleType?: string;
     startTime?: Date;
     respectPickupDeliveryOrder?: boolean;
-  } = {}
+  } = {},
 ): OptimizedRoute {
-  const { vehicleType = 'default', startTime = new Date(), respectPickupDeliveryOrder = true } =
-    options;
+  const {
+    vehicleType = "default",
+    startTime = new Date(),
+    respectPickupDeliveryOrder = true,
+  } = options;
 
   // Add driver location as the starting point
   const allLocations: Location[] = [
     {
-      id: 'driver-start',
+      id: "driver-start",
       latitude: driverLocation.latitude,
       longitude: driverLocation.longitude,
-      type: 'pickup',
+      type: "pickup",
     },
     ...locations,
   ];
@@ -260,13 +272,13 @@ export function optimizeRoute(
     const pickupIndices: Map<string, number> = new Map();
 
     allLocations.forEach((loc, index) => {
-      if (loc.type === 'pickup' && loc.orderId) {
+      if (loc.type === "pickup" && loc.orderId) {
         pickupIndices.set(loc.orderId, index);
       }
     });
 
     allLocations.forEach((loc, index) => {
-      if (loc.type === 'delivery' && loc.orderId) {
+      if (loc.type === "delivery" && loc.orderId) {
         const pickupIndex = pickupIndices.get(loc.orderId);
         if (pickupIndex !== undefined) {
           const existing = mustVisitInOrder.get(pickupIndex) || [];
@@ -278,7 +290,10 @@ export function optimizeRoute(
 
   // Calculate original (unoptimized) route distance for comparison
   const originalOrder = allLocations.map((_, i) => i);
-  const originalDistance = calculateTotalDistance(originalOrder, distanceMatrix);
+  const originalDistance = calculateTotalDistance(
+    originalOrder,
+    distanceMatrix,
+  );
 
   // Find optimized route using nearest neighbor
   let optimizedOrder = nearestNeighbor(distanceMatrix, 0, mustVisitInOrder);
@@ -289,7 +304,10 @@ export function optimizeRoute(
   }
 
   // Calculate optimized distance
-  const optimizedDistance = calculateTotalDistance(optimizedOrder, distanceMatrix);
+  const optimizedDistance = calculateTotalDistance(
+    optimizedOrder,
+    distanceMatrix,
+  );
 
   // Build optimized stops with timing
   const metrics = VEHICLE_METRICS[vehicleType] || VEHICLE_METRICS.default;
@@ -304,7 +322,10 @@ export function optimizeRoute(
 
     const distanceFromPrevious =
       i === 0 ? 0 : distanceMatrix[optimizedOrder[i - 1]][locationIndex];
-    const durationFromPrevious = calculateTravelTime(distanceFromPrevious, vehicleType);
+    const durationFromPrevious = calculateTravelTime(
+      distanceFromPrevious,
+      vehicleType,
+    );
 
     cumulativeDistance += distanceFromPrevious;
     cumulativeDuration += durationFromPrevious;
@@ -313,7 +334,9 @@ export function optimizeRoute(
     const stopTime = location.estimatedTime || metrics.stopTime;
     cumulativeDuration += stopTime;
 
-    const estimatedArrival = new Date(currentTime.getTime() + cumulativeDuration * 60 * 1000);
+    const estimatedArrival = new Date(
+      currentTime.getTime() + cumulativeDuration * 60 * 1000,
+    );
 
     stops.push({
       sequence: i,
@@ -329,7 +352,8 @@ export function optimizeRoute(
   // Calculate savings
   const distanceSaved = originalDistance - optimizedDistance;
   const timeSaved = calculateTravelTime(distanceSaved, vehicleType);
-  const percentageSaved = originalDistance > 0 ? (distanceSaved / originalDistance) * 100 : 0;
+  const percentageSaved =
+    originalDistance > 0 ? (distanceSaved / originalDistance) * 100 : 0;
 
   return {
     stops: stops.slice(1), // Remove driver start position from stops
@@ -351,8 +375,8 @@ export function calculateETA(
   fromLon: number,
   toLat: number,
   toLon: number,
-  vehicleType: string = 'default',
-  trafficMultiplier: number = 1.0
+  vehicleType: string = "default",
+  trafficMultiplier: number = 1.0,
 ): {
   distance: number;
   duration: number;
@@ -383,7 +407,7 @@ export function estimateDeliveryTime(
     pickupTime?: number; // minutes
     deliveryTime?: number; // minutes
     trafficMultiplier?: number;
-  } = {}
+  } = {},
 ): {
   pickupTime: number;
   transitTime: number;
@@ -392,15 +416,21 @@ export function estimateDeliveryTime(
   estimatedDelivery: Date;
 } {
   const {
-    vehicleType = 'default',
+    vehicleType = "default",
     prepTime = 15,
     pickupTime = 5,
     deliveryTime = 5,
     trafficMultiplier = 1.0,
   } = options;
 
-  const distance = calculateDistance(pickupLat, pickupLon, deliveryLat, deliveryLon);
-  const transitTime = calculateTravelTime(distance, vehicleType) * trafficMultiplier;
+  const distance = calculateDistance(
+    pickupLat,
+    pickupLon,
+    deliveryLat,
+    deliveryLon,
+  );
+  const transitTime =
+    calculateTravelTime(distance, vehicleType) * trafficMultiplier;
 
   const totalTime = prepTime + pickupTime + transitTime + deliveryTime;
 
@@ -443,7 +473,7 @@ export function getTrafficMultiplier(date: Date = new Date()): number {
  */
 export function clusterDeliveries(
   deliveries: Location[],
-  maxClusterRadius: number = 3 // km
+  maxClusterRadius: number = 3, // km
 ): Location[][] {
   if (deliveries.length === 0) return [];
 
@@ -468,7 +498,7 @@ export function clusterDeliveries(
         delivery.latitude,
         delivery.longitude,
         other.latitude,
-        other.longitude
+        other.longitude,
       );
 
       if (distance <= maxClusterRadius) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,16 +9,16 @@ import {
   TextInput,
   FlatList,
   Dimensions,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { useMerchantsStore } from '@/lib/store/merchants';
-import { useCartStore } from '@/lib/store/cart';
-import { useThemeColors } from '@/hooks/useThemeColor';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import { useMerchantsStore } from "@/lib/store/merchants";
+import { useCartStore } from "@/lib/store/cart";
+import { useThemeColors } from "@/hooks/useThemeColor";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 
 export default function HomeScreen() {
   const colors = useThemeColors();
@@ -56,29 +56,37 @@ export default function HomeScreen() {
 
   const renderCategory = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={[styles.categoryCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+      style={[
+        styles.categoryCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
       onPress={() => router.push(`/search?type=${item.id}`)}
     >
-      <View style={[styles.categoryIcon, { backgroundColor: colors.tintLight }]}>
+      <View
+        style={[styles.categoryIcon, { backgroundColor: colors.tintLight }]}
+      >
         <Ionicons
           name={
-            item.id === 'restaurant'
-              ? 'restaurant'
-              : item.id === 'grocery'
-              ? 'cart'
-              : item.id === 'pharmacy'
-              ? 'medkit'
-              : item.id === 'bakery'
-              ? 'cafe'
-              : item.id === 'cafe'
-              ? 'cafe'
-              : 'storefront'
+            item.id === "restaurant"
+              ? "restaurant"
+              : item.id === "grocery"
+                ? "cart"
+                : item.id === "pharmacy"
+                  ? "medkit"
+                  : item.id === "bakery"
+                    ? "cafe"
+                    : item.id === "cafe"
+                      ? "cafe"
+                      : "storefront"
           }
           size={24}
           color={colors.tint}
         />
       </View>
-      <Text style={[styles.categoryName, { color: colors.text }]} numberOfLines={1}>
+      <Text
+        style={[styles.categoryName, { color: colors.text }]}
+        numberOfLines={1}
+      >
         {item.name}
       </Text>
     </TouchableOpacity>
@@ -86,7 +94,10 @@ export default function HomeScreen() {
 
   const renderMerchant = ({ item }: { item: any }) => (
     <TouchableOpacity
-      style={[styles.merchantCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+      style={[
+        styles.merchantCard,
+        { backgroundColor: colors.card, borderColor: colors.border },
+      ]}
       onPress={() => router.push(`/merchant/${item.slug}`)}
     >
       <View style={styles.merchantImage}>
@@ -97,7 +108,12 @@ export default function HomeScreen() {
             contentFit="cover"
           />
         ) : (
-          <View style={[styles.merchantImagePlaceholder, { backgroundColor: colors.tintLight }]}>
+          <View
+            style={[
+              styles.merchantImagePlaceholder,
+              { backgroundColor: colors.tintLight },
+            ]}
+          >
             <Ionicons name="storefront" size={32} color={colors.tint} />
           </View>
         )}
@@ -108,14 +124,17 @@ export default function HomeScreen() {
         )}
       </View>
       <View style={styles.merchantInfo}>
-        <Text style={[styles.merchantName, { color: colors.text }]} numberOfLines={1}>
+        <Text
+          style={[styles.merchantName, { color: colors.text }]}
+          numberOfLines={1}
+        >
           {item.name}
         </Text>
         <View style={styles.merchantMeta}>
           <View style={styles.ratingContainer}>
             <Ionicons name="star" size={14} color="#F59E0B" />
             <Text style={[styles.rating, { color: colors.text }]}>
-              {item.rating?.toFixed(1) || '0.0'}
+              {item.rating?.toFixed(1) || "0.0"}
             </Text>
           </View>
           <Text style={[styles.dot, { color: colors.textSecondary }]}>•</Text>
@@ -150,11 +169,13 @@ export default function HomeScreen() {
           </View>
           <TouchableOpacity
             style={[styles.cartButton, { backgroundColor: colors.tintLight }]}
-            onPress={() => router.push('/cart')}
+            onPress={() => router.push("/cart")}
           >
             <Ionicons name="cart" size={24} color={colors.tint} />
             {cartItemCount > 0 && (
-              <View style={[styles.cartBadge, { backgroundColor: colors.tint }]}>
+              <View
+                style={[styles.cartBadge, { backgroundColor: colors.tint }]}
+              >
                 <Text style={styles.cartBadgeText}>{cartItemCount}</Text>
               </View>
             )}
@@ -163,11 +184,16 @@ export default function HomeScreen() {
 
         {/* Search Bar */}
         <TouchableOpacity
-          style={[styles.searchBar, { backgroundColor: colors.backgroundSecondary }]}
-          onPress={() => router.push('/(tabs)/search')}
+          style={[
+            styles.searchBar,
+            { backgroundColor: colors.backgroundSecondary },
+          ]}
+          onPress={() => router.push("/(tabs)/search")}
         >
           <Ionicons name="search" size={20} color={colors.textSecondary} />
-          <Text style={[styles.searchPlaceholder, { color: colors.textSecondary }]}>
+          <Text
+            style={[styles.searchPlaceholder, { color: colors.textSecondary }]}
+          >
             Search restaurants, groceries...
           </Text>
         </TouchableOpacity>
@@ -221,7 +247,10 @@ export default function HomeScreen() {
           {merchants.map((merchant) => (
             <TouchableOpacity
               key={merchant.id}
-              style={[styles.merchantRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+              style={[
+                styles.merchantRow,
+                { backgroundColor: colors.card, borderColor: colors.border },
+              ]}
               onPress={() => router.push(`/merchant/${merchant.slug}`)}
             >
               <View style={styles.merchantRowImage}>
@@ -232,7 +261,12 @@ export default function HomeScreen() {
                     contentFit="cover"
                   />
                 ) : (
-                  <View style={[styles.merchantRowPlaceholder, { backgroundColor: colors.tintLight }]}>
+                  <View
+                    style={[
+                      styles.merchantRowPlaceholder,
+                      { backgroundColor: colors.tintLight },
+                    ]}
+                  >
                     <Ionicons name="storefront" size={24} color={colors.tint} />
                   </View>
                 )}
@@ -244,19 +278,37 @@ export default function HomeScreen() {
                 <View style={styles.merchantMeta}>
                   <Ionicons name="star" size={12} color="#F59E0B" />
                   <Text style={[styles.ratingSmall, { color: colors.text }]}>
-                    {merchant.rating?.toFixed(1) || '0.0'}
+                    {merchant.rating?.toFixed(1) || "0.0"}
                   </Text>
-                  <Text style={[styles.dot, { color: colors.textSecondary }]}>•</Text>
-                  <Text style={[styles.metaTextSmall, { color: colors.textSecondary }]}>
+                  <Text style={[styles.dot, { color: colors.textSecondary }]}>
+                    •
+                  </Text>
+                  <Text
+                    style={[
+                      styles.metaTextSmall,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     {merchant.type}
                   </Text>
                 </View>
-                <Text style={[styles.metaTextSmall, { color: colors.textSecondary }]}>
-                  {merchant.preparation_time} min • ₹{merchant.delivery_fee} delivery
+                <Text
+                  style={[
+                    styles.metaTextSmall,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {merchant.preparation_time} min • ₹{merchant.delivery_fee}{" "}
+                  delivery
                 </Text>
               </View>
               {!merchant.is_open && (
-                <View style={[styles.closedBadgeSmall, { backgroundColor: colors.error }]}>
+                <View
+                  style={[
+                    styles.closedBadgeSmall,
+                    { backgroundColor: colors.error },
+                  ]}
+                >
                   <Text style={styles.closedTextSmall}>Closed</Text>
                 </View>
               )}
@@ -278,47 +330,47 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   greeting: {
     fontSize: 12,
   },
   locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   location: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   cartButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: -4,
     right: -4,
     width: 20,
     height: 20,
     borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   cartBadgeText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
@@ -338,7 +390,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 16,
     paddingHorizontal: 16,
   },
@@ -348,7 +400,7 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     width: 80,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 12,
     borderRadius: 12,
     borderWidth: 1,
@@ -358,13 +410,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   categoryName: {
     fontSize: 12,
-    fontWeight: '500',
-    textAlign: 'center',
+    fontWeight: "500",
+    textAlign: "center",
   },
   merchantList: {
     paddingHorizontal: 16,
@@ -374,56 +426,56 @@ const styles = StyleSheet.create({
     width: width * 0.7,
     borderRadius: 16,
     borderWidth: 1,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   merchantImage: {
     height: 120,
   },
   merchantImageInner: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   merchantImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   closedBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: "rgba(0,0,0,0.7)",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   closedText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   merchantInfo: {
     padding: 12,
   },
   merchantName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   merchantMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 4,
   },
   ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 2,
   },
   rating: {
     fontSize: 13,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   dot: {
     fontSize: 8,
@@ -432,7 +484,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   merchantRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginHorizontal: 16,
     marginBottom: 12,
     padding: 12,
@@ -444,43 +496,43 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
   merchantRowImageInner: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   merchantRowPlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
   },
   merchantRowInfo: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   merchantRowName: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
   },
   ratingSmall: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   metaTextSmall: {
     fontSize: 12,
   },
   closedBadgeSmall: {
-    alignSelf: 'center',
+    alignSelf: "center",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   closedTextSmall: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

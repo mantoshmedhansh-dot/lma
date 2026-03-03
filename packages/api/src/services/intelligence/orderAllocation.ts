@@ -9,30 +9,30 @@
  * - Historical acceptance rates
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
-import { calculateDistance } from '../routeOptimization.js';
-import { predictDeliveryTime } from './deliveryPrediction.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
+import { calculateDistance } from "../routeOptimization.js";
+import { predictDeliveryTime } from "./deliveryPrediction.js";
 
 // Allocation scoring weights
 interface AllocationWeights {
-  distance: number;        // Proximity to pickup
-  rating: number;          // Driver rating factor
-  acceptanceRate: number;  // Historical acceptance rate
-  deliverySpeed: number;   // Average delivery speed
-  vehicleMatch: number;    // Vehicle type suitability
-  currentLoad: number;     // Current order load
-  fairness: number;        // Fair distribution factor
+  distance: number; // Proximity to pickup
+  rating: number; // Driver rating factor
+  acceptanceRate: number; // Historical acceptance rate
+  deliverySpeed: number; // Average delivery speed
+  vehicleMatch: number; // Vehicle type suitability
+  currentLoad: number; // Current order load
+  fairness: number; // Fair distribution factor
 }
 
 const DEFAULT_WEIGHTS: AllocationWeights = {
-  distance: 0.30,
+  distance: 0.3,
   rating: 0.15,
   acceptanceRate: 0.15,
-  deliverySpeed: 0.10,
-  vehicleMatch: 0.10,
-  currentLoad: 0.10,
-  fairness: 0.10,
+  deliverySpeed: 0.1,
+  vehicleMatch: 0.1,
+  currentLoad: 0.1,
+  fairness: 0.1,
 };
 
 interface Driver {
@@ -56,7 +56,7 @@ interface Order {
   total_amount: number;
   is_cod: boolean;
   delivery_fee: number;
-  priority?: 'normal' | 'high' | 'express';
+  priority?: "normal" | "high" | "express";
 }
 
 interface DriverScore {
@@ -95,7 +95,7 @@ export async function findBestDriver(
     vehicleTypes?: string[];
     excludeDrivers?: string[];
     minRating?: number;
-  } = {}
+  } = {},
 ): Promise<AllocationResult> {
   const {
     maxDistance = 10, // km
@@ -106,8 +106,9 @@ export async function findBestDriver(
 
   // Get available drivers
   let query = supabaseAdmin
-    .from('drivers')
-    .select(`
+    .from("drivers")
+    .select(
+      `
       id,
       user_id,
       current_latitude,
@@ -116,14 +117,15 @@ export async function findBestDriver(
       average_rating,
       total_deliveries,
       status
-    `)
-    .eq('status', 'online')
-    .eq('is_active', true)
-    .eq('is_verified', true)
-    .gte('average_rating', minRating);
+    `,
+    )
+    .eq("status", "online")
+    .eq("is_active", true)
+    .eq("is_verified", true)
+    .gte("average_rating", minRating);
 
   if (vehicleTypes?.length) {
-    query = query.in('vehicle_type', vehicleTypes);
+    query = query.in("vehicle_type", vehicleTypes);
   }
 
   const { data: drivers, error } = await query;
@@ -132,7 +134,7 @@ export async function findBestDriver(
     return {
       success: false,
       scores: [],
-      reason: 'No available drivers found',
+      reason: "No available drivers found",
     };
   }
 
@@ -145,7 +147,7 @@ export async function findBestDriver(
       driver.current_latitude,
       driver.current_longitude,
       order.pickup_latitude,
-      order.pickup_longitude
+      order.pickup_longitude,
     );
 
     return distance <= maxDistance;
@@ -155,7 +157,7 @@ export async function findBestDriver(
     return {
       success: false,
       scores: [],
-      reason: 'No drivers within range',
+      reason: "No drivers within range",
     };
   }
 
@@ -175,11 +177,11 @@ export async function findBestDriver(
         driver,
         order,
         stats,
-        DEFAULT_WEIGHTS
+        DEFAULT_WEIGHTS,
       );
 
       return score;
-    })
+    }),
   );
 
   // Sort by total score (descending)
@@ -191,7 +193,7 @@ export async function findBestDriver(
     return {
       success: false,
       scores,
-      reason: 'No suitable driver found (low scores)',
+      reason: "No suitable driver found (low scores)",
     };
   }
 
@@ -215,14 +217,14 @@ async function calculateDriverScore(
     avgDeliveryTime: number;
     ordersToday: number;
   },
-  weights: AllocationWeights
+  weights: AllocationWeights,
 ): Promise<DriverScore> {
   // Distance score (closer is better)
   const distanceToPickup = calculateDistance(
     driver.current_latitude,
     driver.current_longitude,
     order.pickup_latitude,
-    order.pickup_longitude
+    order.pickup_longitude,
   );
   const distanceScore = Math.max(0, 1 - distanceToPickup / 10); // Normalize to 0-1
 
@@ -242,7 +244,10 @@ async function calculateDriverScore(
   const loadScore = Math.max(0, 1 - stats.ordersToday / 20); // Normalize
 
   // Fairness score (boost drivers with fewer recent orders)
-  const fairnessScore = calculateFairnessScore(driver.total_deliveries, stats.ordersToday);
+  const fairnessScore = calculateFairnessScore(
+    driver.total_deliveries,
+    stats.ordersToday,
+  );
 
   // Calculate weighted total
   const scores = {
@@ -294,26 +299,30 @@ function getVehicleMatchScore(vehicleType: string, order: Order): number {
   const isCOD = order.is_cod;
 
   // Map vehicle capabilities
-  const vehicleCapabilities: Record<string, {
-    maxValue: number;
-    codCapable: boolean;
-    speed: number;
-  }> = {
+  const vehicleCapabilities: Record<
+    string,
+    {
+      maxValue: number;
+      codCapable: boolean;
+      speed: number;
+    }
+  > = {
     bicycle: { maxValue: 500, codCapable: false, speed: 0.7 },
     motorcycle: { maxValue: 5000, codCapable: true, speed: 1.0 },
     car: { maxValue: 20000, codCapable: true, speed: 0.9 },
     van: { maxValue: 100000, codCapable: true, speed: 0.8 },
   };
 
-  const caps = vehicleCapabilities[vehicleType] || vehicleCapabilities.motorcycle;
+  const caps =
+    vehicleCapabilities[vehicleType] || vehicleCapabilities.motorcycle;
 
   // Check if vehicle can handle order
   if (orderValue > caps.maxValue) return 0.3;
   if (isCOD && !caps.codCapable) return 0.2;
 
   // Prefer appropriate vehicle size
-  if (orderValue < 1000 && vehicleType === 'van') return 0.7;
-  if (orderValue > 5000 && vehicleType === 'bicycle') return 0.4;
+  if (orderValue < 1000 && vehicleType === "van") return 0.7;
+  if (orderValue > 5000 && vehicleType === "bicycle") return 0.4;
 
   return caps.speed;
 }
@@ -321,7 +330,10 @@ function getVehicleMatchScore(vehicleType: string, order: Order): number {
 /**
  * Calculate fairness score to ensure even distribution
  */
-function calculateFairnessScore(totalDeliveries: number, ordersToday: number): number {
+function calculateFairnessScore(
+  totalDeliveries: number,
+  ordersToday: number,
+): number {
   // New drivers get a boost
   if (totalDeliveries < 10) return 0.8;
 
@@ -336,24 +348,27 @@ function calculateFairnessScore(totalDeliveries: number, ordersToday: number): n
 /**
  * Get driver statistics
  */
-async function getDriverStats(
-  driverIds: string[]
-): Promise<Map<string, {
-  acceptanceRate: number;
-  avgDeliveryTime: number;
-  ordersToday: number;
-}>> {
+async function getDriverStats(driverIds: string[]): Promise<
+  Map<
+    string,
+    {
+      acceptanceRate: number;
+      avgDeliveryTime: number;
+      ordersToday: number;
+    }
+  >
+> {
   const stats = new Map();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
   // Get orders completed today
   const { data: todayOrders } = await supabaseAdmin
-    .from('orders')
-    .select('driver_id')
-    .in('driver_id', driverIds)
-    .gte('created_at', today.toISOString())
-    .eq('status', 'delivered');
+    .from("orders")
+    .select("driver_id")
+    .in("driver_id", driverIds)
+    .gte("created_at", today.toISOString())
+    .eq("status", "delivered");
 
   // Count orders per driver
   const orderCounts: Record<string, number> = {};
@@ -366,29 +381,40 @@ async function getDriverStats(
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   const { data: historicalOrders } = await supabaseAdmin
-    .from('orders')
-    .select('driver_id, created_at, delivered_at, status')
-    .in('driver_id', driverIds)
-    .gte('created_at', thirtyDaysAgo.toISOString());
+    .from("orders")
+    .select("driver_id, created_at, delivered_at, status")
+    .in("driver_id", driverIds)
+    .gte("created_at", thirtyDaysAgo.toISOString());
 
   // Calculate per-driver stats
-  const driverHistory: Record<string, {
-    offered: number;
-    accepted: number;
-    deliveryTimes: number[];
-  }> = {};
+  const driverHistory: Record<
+    string,
+    {
+      offered: number;
+      accepted: number;
+      deliveryTimes: number[];
+    }
+  > = {};
 
   historicalOrders?.forEach((o) => {
     if (!driverHistory[o.driver_id]) {
-      driverHistory[o.driver_id] = { offered: 0, accepted: 0, deliveryTimes: [] };
+      driverHistory[o.driver_id] = {
+        offered: 0,
+        accepted: 0,
+        deliveryTimes: [],
+      };
     }
 
     driverHistory[o.driver_id].offered++;
-    if (o.status === 'delivered') {
+    if (o.status === "delivered") {
       driverHistory[o.driver_id].accepted++;
       if (o.delivered_at && o.created_at) {
-        const time = (new Date(o.delivered_at).getTime() - new Date(o.created_at).getTime()) / 60000;
-        if (time > 0 && time < 180) { // Filter outliers
+        const time =
+          (new Date(o.delivered_at).getTime() -
+            new Date(o.created_at).getTime()) /
+          60000;
+        if (time > 0 && time < 180) {
+          // Filter outliers
           driverHistory[o.driver_id].deliveryTimes.push(time);
         }
       }
@@ -397,11 +423,18 @@ async function getDriverStats(
 
   // Build stats map
   driverIds.forEach((id) => {
-    const history = driverHistory[id] || { offered: 0, accepted: 0, deliveryTimes: [] };
-    const acceptanceRate = history.offered > 0 ? history.accepted / history.offered : 0.5;
-    const avgDeliveryTime = history.deliveryTimes.length > 0
-      ? history.deliveryTimes.reduce((a, b) => a + b, 0) / history.deliveryTimes.length
-      : 30;
+    const history = driverHistory[id] || {
+      offered: 0,
+      accepted: 0,
+      deliveryTimes: [],
+    };
+    const acceptanceRate =
+      history.offered > 0 ? history.accepted / history.offered : 0.5;
+    const avgDeliveryTime =
+      history.deliveryTimes.length > 0
+        ? history.deliveryTimes.reduce((a, b) => a + b, 0) /
+          history.deliveryTimes.length
+        : 30;
 
     stats.set(id, {
       acceptanceRate,
@@ -423,17 +456,17 @@ export async function autoAssignOrder(orderId: string): Promise<{
 }> {
   // Get order
   const { data: order, error: orderError } = await supabaseAdmin
-    .from('orders')
-    .select('*')
-    .eq('id', orderId)
+    .from("orders")
+    .select("*")
+    .eq("id", orderId)
     .single();
 
   if (orderError || !order) {
-    return { success: false, message: 'Order not found' };
+    return { success: false, message: "Order not found" };
   }
 
   if (order.driver_id) {
-    return { success: false, message: 'Order already assigned' };
+    return { success: false, message: "Order already assigned" };
   }
 
   // Find best driver
@@ -451,32 +484,35 @@ export async function autoAssignOrder(orderId: string): Promise<{
   });
 
   if (!result.success || !result.driverId) {
-    return { success: false, message: result.reason || 'No suitable driver found' };
+    return {
+      success: false,
+      message: result.reason || "No suitable driver found",
+    };
   }
 
   // Assign driver
   const { error: updateError } = await supabaseAdmin
-    .from('orders')
+    .from("orders")
     .update({
       driver_id: result.driverId,
-      status: 'driver_assigned',
+      status: "driver_assigned",
     })
-    .eq('id', orderId)
-    .is('driver_id', null); // Ensure not already assigned
+    .eq("id", orderId)
+    .is("driver_id", null); // Ensure not already assigned
 
   if (updateError) {
-    logger.error('Failed to assign driver', { orderId, error: updateError });
-    return { success: false, message: 'Failed to assign driver' };
+    logger.error("Failed to assign driver", { orderId, error: updateError });
+    return { success: false, message: "Failed to assign driver" };
   }
 
   // Update driver status
   await supabaseAdmin
-    .from('drivers')
-    .update({ status: 'on_delivery' })
-    .eq('id', result.driverId);
+    .from("drivers")
+    .update({ status: "on_delivery" })
+    .eq("id", result.driverId);
 
   // Log allocation
-  logger.info('Order auto-assigned', {
+  logger.info("Order auto-assigned", {
     orderId,
     driverId: result.driverId,
     score: result.scores[0]?.totalScore,
@@ -487,7 +523,7 @@ export async function autoAssignOrder(orderId: string): Promise<{
   return {
     success: true,
     driverId: result.driverId,
-    message: 'Order assigned successfully',
+    message: "Order assigned successfully",
   };
 }
 
@@ -499,7 +535,11 @@ export async function batchAllocate(orderIds: string[]): Promise<{
   failed: number;
   results: Array<{ orderId: string; success: boolean; driverId?: string }>;
 }> {
-  const results: Array<{ orderId: string; success: boolean; driverId?: string }> = [];
+  const results: Array<{
+    orderId: string;
+    success: boolean;
+    driverId?: string;
+  }> = [];
   let assigned = 0;
   let failed = 0;
 
@@ -529,40 +569,40 @@ export async function batchAllocate(orderIds: string[]): Promise<{
  */
 export async function reassignOrder(
   orderId: string,
-  reason: string
+  reason: string,
 ): Promise<{ success: boolean; newDriverId?: string; message: string }> {
   // Get current order
   const { data: order } = await supabaseAdmin
-    .from('orders')
-    .select('driver_id')
-    .eq('id', orderId)
+    .from("orders")
+    .select("driver_id")
+    .eq("id", orderId)
     .single();
 
   if (!order) {
-    return { success: false, message: 'Order not found' };
+    return { success: false, message: "Order not found" };
   }
 
   const previousDriverId = order.driver_id;
 
   // Clear current assignment
   await supabaseAdmin
-    .from('orders')
-    .update({ driver_id: null, status: 'ready_for_pickup' })
-    .eq('id', orderId);
+    .from("orders")
+    .update({ driver_id: null, status: "ready_for_pickup" })
+    .eq("id", orderId);
 
   // Free up previous driver
   if (previousDriverId) {
     await supabaseAdmin
-      .from('drivers')
-      .update({ status: 'online' })
-      .eq('id', previousDriverId);
+      .from("drivers")
+      .update({ status: "online" })
+      .eq("id", previousDriverId);
   }
 
   // Find new driver (excluding previous)
   const result = await autoAssignOrder(orderId);
 
   if (result.success) {
-    logger.info('Order reassigned', {
+    logger.info("Order reassigned", {
       orderId,
       previousDriver: previousDriverId,
       newDriver: result.driverId,

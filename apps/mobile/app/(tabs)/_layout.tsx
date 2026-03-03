@@ -1,8 +1,8 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/hooks/useThemeColor';
-import { useCartStore } from '@/lib/store/cart';
-import { View, Text, StyleSheet } from 'react-native';
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeColors } from "@/hooks/useThemeColor";
+import { useCartStore } from "@/lib/store/cart";
+import { View, Text, StyleSheet } from "react-native";
 
 export default function TabsLayout() {
   const colors = useThemeColors();
@@ -27,7 +27,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: "Home",
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
@@ -37,7 +37,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="search"
         options={{
-          title: 'Search',
+          title: "Search",
           headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="search" size={size} color={color} />
@@ -47,7 +47,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="orders"
         options={{
-          title: 'Orders',
+          title: "Orders",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="receipt" size={size} color={color} />
           ),
@@ -56,7 +56,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

@@ -1,6 +1,6 @@
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/hooks/useThemeColor';
+import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function TabsLayout() {
   const colors = useThemeColors();
@@ -24,7 +24,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Home',
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -33,7 +33,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="stops"
         options={{
-          title: 'Stops',
+          title: "Stops",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list" size={size} color={color} />
           ),
@@ -42,7 +42,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="earnings"
         options={{
-          title: 'Earnings',
+          title: "Earnings",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="wallet" size={size} color={color} />
           ),
@@ -51,7 +51,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          title: "Profile",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),

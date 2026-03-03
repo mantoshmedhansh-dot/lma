@@ -15,36 +15,36 @@
  * - Delivery tracking
  */
 
-import { supabaseAdmin } from '../../config/supabase.js';
-import { logger } from '../../lib/logger.js';
-import { pushChannel, PushNotificationPayload } from './channels/push.js';
-import { smsChannel, SMSPayload } from './channels/sms.js';
-import { emailChannel, EmailPayload } from './channels/email.js';
+import { supabaseAdmin } from "../../config/supabase.js";
+import { logger } from "../../lib/logger.js";
+import { pushChannel, PushNotificationPayload } from "./channels/push.js";
+import { smsChannel, SMSPayload } from "./channels/sms.js";
+import { emailChannel, EmailPayload } from "./channels/email.js";
 
 // Notification types
 type NotificationType =
-  | 'order_placed'
-  | 'order_confirmed'
-  | 'order_preparing'
-  | 'order_ready'
-  | 'driver_assigned'
-  | 'order_picked_up'
-  | 'order_in_transit'
-  | 'order_delivered'
-  | 'order_cancelled'
-  | 'driver_nearby'
-  | 'payment_received'
-  | 'payment_failed'
-  | 'promo_offer'
-  | 'account_update'
-  | 'password_reset'
-  | 'otp'
-  | 'feedback_request'
-  | 'support_response'
-  | 'driver_earnings'
-  | 'merchant_order';
+  | "order_placed"
+  | "order_confirmed"
+  | "order_preparing"
+  | "order_ready"
+  | "driver_assigned"
+  | "order_picked_up"
+  | "order_in_transit"
+  | "order_delivered"
+  | "order_cancelled"
+  | "driver_nearby"
+  | "payment_received"
+  | "payment_failed"
+  | "promo_offer"
+  | "account_update"
+  | "password_reset"
+  | "otp"
+  | "feedback_request"
+  | "support_response"
+  | "driver_earnings"
+  | "merchant_order";
 
-type NotificationChannel = 'push' | 'sms' | 'email' | 'in_app';
+type NotificationChannel = "push" | "sms" | "email" | "in_app";
 
 interface NotificationRecipient {
   userId: string;
@@ -52,7 +52,7 @@ interface NotificationRecipient {
   phone?: string;
   deviceTokens?: Array<{
     token: string;
-    platform: 'android' | 'ios' | 'web';
+    platform: "android" | "ios" | "web";
   }>;
   preferredChannels?: NotificationChannel[];
 }
@@ -63,7 +63,7 @@ interface NotificationPayload {
   body: string;
   data?: Record<string, unknown>;
   channels?: NotificationChannel[];
-  priority?: 'low' | 'normal' | 'high';
+  priority?: "low" | "normal" | "high";
   templateId?: string;
   templateData?: Record<string, unknown>;
   imageUrl?: string;
@@ -96,7 +96,10 @@ interface UserNotificationPreferences {
 }
 
 // Rate limiting configuration
-const RATE_LIMITS: Record<NotificationChannel, { maxPerHour: number; maxPerDay: number }> = {
+const RATE_LIMITS: Record<
+  NotificationChannel,
+  { maxPerHour: number; maxPerDay: number }
+> = {
   push: { maxPerHour: 10, maxPerDay: 50 },
   sms: { maxPerHour: 5, maxPerDay: 20 },
   email: { maxPerHour: 10, maxPerDay: 30 },
@@ -108,10 +111,10 @@ const RATE_LIMITS: Record<NotificationChannel, { maxPerHour: number; maxPerDay: 
  */
 export async function sendNotification(
   recipient: NotificationRecipient,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<NotificationResult> {
   const notificationId = generateNotificationId();
-  const channels: NotificationResult['channels'] = {};
+  const channels: NotificationResult["channels"] = {};
 
   // Get user preferences
   const preferences = await getUserNotificationPreferences(recipient.userId);
@@ -122,9 +125,12 @@ export async function sendNotification(
   // Check quiet hours
   if (isInQuietHours(preferences)) {
     // Store for later delivery (except high priority)
-    if (payload.priority !== 'high') {
+    if (payload.priority !== "high") {
       await storeForLaterDelivery(notificationId, recipient, payload);
-      logger.info('Notification stored for quiet hours', { notificationId, userId: recipient.userId });
+      logger.info("Notification stored for quiet hours", {
+        notificationId,
+        userId: recipient.userId,
+      });
       return {
         notificationId,
         userId: recipient.userId,
@@ -137,7 +143,7 @@ export async function sendNotification(
   // Check rate limits
   const rateLimitOk = await checkRateLimits(recipient.userId, channelsToUse);
   if (!rateLimitOk.success) {
-    logger.warn('Rate limit exceeded', {
+    logger.warn("Rate limit exceeded", {
       userId: recipient.userId,
       exceededChannels: rateLimitOk.exceededChannels,
     });
@@ -146,29 +152,30 @@ export async function sendNotification(
   // Send via each channel
   for (const channel of channelsToUse) {
     if (rateLimitOk.exceededChannels?.includes(channel)) {
-      channels[channel] = { success: false, error: 'Rate limit exceeded' };
+      channels[channel] = { success: false, error: "Rate limit exceeded" };
       continue;
     }
 
     try {
       switch (channel) {
-        case 'push':
+        case "push":
           channels.push = await sendPushNotification(recipient, payload);
           break;
-        case 'sms':
+        case "sms":
           channels.sms = await sendSMSNotification(recipient, payload);
           break;
-        case 'email':
+        case "email":
           channels.email = await sendEmailNotification(recipient, payload);
           break;
-        case 'in_app':
+        case "in_app":
           channels.in_app = await sendInAppNotification(recipient, payload);
           break;
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
       channels[channel] = { success: false, error: errorMessage };
-      logger.error('Failed to send notification via channel', {
+      logger.error("Failed to send notification via channel", {
         notificationId,
         channel,
         error: errorMessage,
@@ -197,14 +204,14 @@ export async function sendNotification(
  */
 export async function sendBulkNotification(
   recipients: NotificationRecipient[],
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<NotificationResult[]> {
   const results = await Promise.all(
-    recipients.map((recipient) => sendNotification(recipient, payload))
+    recipients.map((recipient) => sendNotification(recipient, payload)),
   );
 
   const successCount = results.filter((r) => r.overallSuccess).length;
-  logger.info('Bulk notification sent', {
+  logger.info("Bulk notification sent", {
     total: recipients.length,
     success: successCount,
     type: payload.type,
@@ -218,10 +225,10 @@ export async function sendBulkNotification(
  */
 async function sendPushNotification(
   recipient: NotificationRecipient,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   if (!recipient.deviceTokens || recipient.deviceTokens.length === 0) {
-    return { success: false, error: 'No device tokens' };
+    return { success: false, error: "No device tokens" };
   }
 
   const pushPayload: PushNotificationPayload = {
@@ -240,9 +247,9 @@ async function sendPushNotification(
           deviceToken: device.token,
           platform: device.platform,
         },
-        pushPayload
-      )
-    )
+        pushPayload,
+      ),
+    ),
   );
 
   const successResult = results.find((r) => r.success);
@@ -250,7 +257,10 @@ async function sendPushNotification(
     return { success: true, messageId: successResult.messageId };
   }
 
-  return { success: false, error: results[0]?.error || 'All push sends failed' };
+  return {
+    success: false,
+    error: results[0]?.error || "All push sends failed",
+  };
 }
 
 /**
@@ -258,10 +268,10 @@ async function sendPushNotification(
  */
 async function sendSMSNotification(
   recipient: NotificationRecipient,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   if (!recipient.phone) {
-    return { success: false, error: 'No phone number' };
+    return { success: false, error: "No phone number" };
   }
 
   const smsPayload: SMSPayload = {
@@ -271,7 +281,7 @@ async function sendSMSNotification(
 
   const result = await smsChannel.send(
     { userId: recipient.userId, phoneNumber: recipient.phone },
-    smsPayload
+    smsPayload,
   );
 
   return {
@@ -286,10 +296,10 @@ async function sendSMSNotification(
  */
 async function sendEmailNotification(
   recipient: NotificationRecipient,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   if (!recipient.email) {
-    return { success: false, error: 'No email address' };
+    return { success: false, error: "No email address" };
   }
 
   const emailPayload: EmailPayload = {
@@ -302,7 +312,7 @@ async function sendEmailNotification(
 
   const result = await emailChannel.send(
     { userId: recipient.userId, email: recipient.email },
-    emailPayload
+    emailPayload,
   );
 
   return {
@@ -317,26 +327,31 @@ async function sendEmailNotification(
  */
 async function sendInAppNotification(
   recipient: NotificationRecipient,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const { data, error } = await supabaseAdmin.from('in_app_notifications').insert({
-      user_id: recipient.userId,
-      type: payload.type,
-      title: payload.title,
-      body: payload.body,
-      data: payload.data,
-      image_url: payload.imageUrl,
-      action_url: payload.actionUrl,
-      is_read: false,
-      created_at: new Date().toISOString(),
-    }).select('id').single();
+    const { data, error } = await supabaseAdmin
+      .from("in_app_notifications")
+      .insert({
+        user_id: recipient.userId,
+        type: payload.type,
+        title: payload.title,
+        body: payload.body,
+        data: payload.data,
+        image_url: payload.imageUrl,
+        action_url: payload.actionUrl,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      })
+      .select("id")
+      .single();
 
     if (error) throw error;
 
     return { success: true, messageId: data.id };
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
     return { success: false, error: errorMessage };
   }
 }
@@ -345,12 +360,12 @@ async function sendInAppNotification(
  * Get user notification preferences
  */
 export async function getUserNotificationPreferences(
-  userId: string
+  userId: string,
 ): Promise<UserNotificationPreferences> {
   const { data } = await supabaseAdmin
-    .from('notification_preferences')
-    .select('*')
-    .eq('user_id', userId)
+    .from("notification_preferences")
+    .select("*")
+    .eq("user_id", userId)
     .single();
 
   if (data) {
@@ -381,9 +396,9 @@ export async function getUserNotificationPreferences(
  */
 export async function updateUserNotificationPreferences(
   userId: string,
-  preferences: Partial<UserNotificationPreferences>
+  preferences: Partial<UserNotificationPreferences>,
 ): Promise<void> {
-  await supabaseAdmin.from('notification_preferences').upsert({
+  await supabaseAdmin.from("notification_preferences").upsert({
     user_id: userId,
     push_enabled: preferences.pushEnabled,
     sms_enabled: preferences.smsEnabled,
@@ -401,24 +416,26 @@ export async function updateUserNotificationPreferences(
  */
 export async function getInAppNotifications(
   userId: string,
-  options: { limit?: number; unreadOnly?: boolean } = {}
-): Promise<Array<{
-  id: string;
-  type: string;
-  title: string;
-  body: string;
-  data?: Record<string, unknown>;
-  isRead: boolean;
-  createdAt: Date;
-}>> {
+  options: { limit?: number; unreadOnly?: boolean } = {},
+): Promise<
+  Array<{
+    id: string;
+    type: string;
+    title: string;
+    body: string;
+    data?: Record<string, unknown>;
+    isRead: boolean;
+    createdAt: Date;
+  }>
+> {
   let query = supabaseAdmin
-    .from('in_app_notifications')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .from("in_app_notifications")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
   if (options.unreadOnly) {
-    query = query.eq('is_read', false);
+    query = query.eq("is_read", false);
   }
 
   if (options.limit) {
@@ -443,25 +460,27 @@ export async function getInAppNotifications(
  */
 export async function markNotificationAsRead(
   notificationId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
   await supabaseAdmin
-    .from('in_app_notifications')
+    .from("in_app_notifications")
     .update({ is_read: true, read_at: new Date().toISOString() })
-    .eq('id', notificationId)
-    .eq('user_id', userId);
+    .eq("id", notificationId)
+    .eq("user_id", userId);
 }
 
 /**
  * Mark all notifications as read
  */
-export async function markAllNotificationsAsRead(userId: string): Promise<number> {
+export async function markAllNotificationsAsRead(
+  userId: string,
+): Promise<number> {
   const { data } = await supabaseAdmin
-    .from('in_app_notifications')
+    .from("in_app_notifications")
     .update({ is_read: true, read_at: new Date().toISOString() })
-    .eq('user_id', userId)
-    .eq('is_read', false)
-    .select('id');
+    .eq("user_id", userId)
+    .eq("is_read", false)
+    .select("id");
 
   return data?.length || 0;
 }
@@ -475,7 +494,7 @@ function generateNotificationId(): string {
 function determineChannels(
   payload: NotificationPayload,
   preferences: UserNotificationPreferences,
-  recipient: NotificationRecipient
+  recipient: NotificationRecipient,
 ): NotificationChannel[] {
   // Start with requested channels or defaults based on notification type
   let channels = payload.channels || getDefaultChannels(payload.type);
@@ -483,13 +502,13 @@ function determineChannels(
   // Filter based on user preferences
   channels = channels.filter((channel) => {
     switch (channel) {
-      case 'push':
+      case "push":
         return preferences.pushEnabled && recipient.deviceTokens?.length;
-      case 'sms':
+      case "sms":
         return preferences.smsEnabled && recipient.phone;
-      case 'email':
+      case "email":
         return preferences.emailEnabled && recipient.email;
-      case 'in_app':
+      case "in_app":
         return preferences.inAppEnabled;
       default:
         return false;
@@ -500,11 +519,11 @@ function determineChannels(
   if (preferences.disabledTypes?.includes(payload.type)) {
     // Only allow transactional notifications (OTP, order updates)
     const transactionalTypes: NotificationType[] = [
-      'otp',
-      'order_confirmed',
-      'order_delivered',
-      'order_cancelled',
-      'password_reset',
+      "otp",
+      "order_confirmed",
+      "order_delivered",
+      "order_cancelled",
+      "password_reset",
     ];
     if (!transactionalTypes.includes(payload.type)) {
       return [];
@@ -516,29 +535,29 @@ function determineChannels(
 
 function getDefaultChannels(type: NotificationType): NotificationChannel[] {
   const channelMap: Record<NotificationType, NotificationChannel[]> = {
-    order_placed: ['push', 'email', 'in_app'],
-    order_confirmed: ['push', 'sms', 'in_app'],
-    order_preparing: ['push', 'in_app'],
-    order_ready: ['push', 'in_app'],
-    driver_assigned: ['push', 'in_app'],
-    order_picked_up: ['push', 'in_app'],
-    order_in_transit: ['push', 'in_app'],
-    order_delivered: ['push', 'sms', 'email', 'in_app'],
-    order_cancelled: ['push', 'sms', 'email', 'in_app'],
-    driver_nearby: ['push'],
-    payment_received: ['push', 'in_app'],
-    payment_failed: ['push', 'sms', 'email', 'in_app'],
-    promo_offer: ['push', 'email', 'in_app'],
-    account_update: ['email', 'in_app'],
-    password_reset: ['email'],
-    otp: ['sms'],
-    feedback_request: ['push', 'email', 'in_app'],
-    support_response: ['push', 'email', 'in_app'],
-    driver_earnings: ['push', 'in_app'],
-    merchant_order: ['push', 'sms', 'in_app'],
+    order_placed: ["push", "email", "in_app"],
+    order_confirmed: ["push", "sms", "in_app"],
+    order_preparing: ["push", "in_app"],
+    order_ready: ["push", "in_app"],
+    driver_assigned: ["push", "in_app"],
+    order_picked_up: ["push", "in_app"],
+    order_in_transit: ["push", "in_app"],
+    order_delivered: ["push", "sms", "email", "in_app"],
+    order_cancelled: ["push", "sms", "email", "in_app"],
+    driver_nearby: ["push"],
+    payment_received: ["push", "in_app"],
+    payment_failed: ["push", "sms", "email", "in_app"],
+    promo_offer: ["push", "email", "in_app"],
+    account_update: ["email", "in_app"],
+    password_reset: ["email"],
+    otp: ["sms"],
+    feedback_request: ["push", "email", "in_app"],
+    support_response: ["push", "email", "in_app"],
+    driver_earnings: ["push", "in_app"],
+    merchant_order: ["push", "sms", "in_app"],
   };
 
-  return channelMap[type] || ['push', 'in_app'];
+  return channelMap[type] || ["push", "in_app"];
 }
 
 function isInQuietHours(preferences: UserNotificationPreferences): boolean {
@@ -547,19 +566,25 @@ function isInQuietHours(preferences: UserNotificationPreferences): boolean {
   }
 
   const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
   if (preferences.quietHoursStart <= preferences.quietHoursEnd) {
-    return currentTime >= preferences.quietHoursStart && currentTime < preferences.quietHoursEnd;
+    return (
+      currentTime >= preferences.quietHoursStart &&
+      currentTime < preferences.quietHoursEnd
+    );
   } else {
     // Overnight quiet hours (e.g., 22:00 - 07:00)
-    return currentTime >= preferences.quietHoursStart || currentTime < preferences.quietHoursEnd;
+    return (
+      currentTime >= preferences.quietHoursStart ||
+      currentTime < preferences.quietHoursEnd
+    );
   }
 }
 
 async function checkRateLimits(
   userId: string,
-  channels: NotificationChannel[]
+  channels: NotificationChannel[],
 ): Promise<{ success: boolean; exceededChannels?: NotificationChannel[] }> {
   const exceeded: NotificationChannel[] = [];
   const now = new Date();
@@ -570,20 +595,23 @@ async function checkRateLimits(
     const limits = RATE_LIMITS[channel];
 
     const { count: hourCount } = await supabaseAdmin
-      .from('notification_log')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('channel', channel)
-      .gte('sent_at', hourAgo.toISOString());
+      .from("notification_log")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("channel", channel)
+      .gte("sent_at", hourAgo.toISOString());
 
     const { count: dayCount } = await supabaseAdmin
-      .from('notification_log')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('channel', channel)
-      .gte('sent_at', dayAgo.toISOString());
+      .from("notification_log")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("channel", channel)
+      .gte("sent_at", dayAgo.toISOString());
 
-    if ((hourCount || 0) >= limits.maxPerHour || (dayCount || 0) >= limits.maxPerDay) {
+    if (
+      (hourCount || 0) >= limits.maxPerHour ||
+      (dayCount || 0) >= limits.maxPerDay
+    ) {
       exceeded.push(channel);
     }
   }
@@ -596,17 +624,17 @@ async function checkRateLimits(
 
 async function updateRateLimitCounters(
   userId: string,
-  channels: NotificationChannel[]
+  channels: NotificationChannel[],
 ): Promise<void> {
   const now = new Date().toISOString();
   await Promise.all(
     channels.map((channel) =>
-      supabaseAdmin.from('notification_log').insert({
+      supabaseAdmin.from("notification_log").insert({
         user_id: userId,
         channel,
         sent_at: now,
-      })
-    )
+      }),
+    ),
   );
 }
 
@@ -614,9 +642,9 @@ async function recordNotification(
   notificationId: string,
   userId: string,
   payload: NotificationPayload,
-  channels: NotificationResult['channels']
+  channels: NotificationResult["channels"],
 ): Promise<void> {
-  await supabaseAdmin.from('notification_history').insert({
+  await supabaseAdmin.from("notification_history").insert({
     id: notificationId,
     user_id: userId,
     type: payload.type,
@@ -632,9 +660,9 @@ async function recordNotification(
 async function storeForLaterDelivery(
   notificationId: string,
   recipient: NotificationRecipient,
-  payload: NotificationPayload
+  payload: NotificationPayload,
 ): Promise<void> {
-  await supabaseAdmin.from('scheduled_notifications').insert({
+  await supabaseAdmin.from("scheduled_notifications").insert({
     id: notificationId,
     user_id: recipient.userId,
     recipient_data: recipient,
@@ -648,7 +676,7 @@ async function getQuietHoursEnd(userId: string): Promise<string> {
   const prefs = await getUserNotificationPreferences(userId);
   if (!prefs.quietHoursEnd) return new Date().toISOString();
 
-  const [hours, minutes] = prefs.quietHoursEnd.split(':').map(Number);
+  const [hours, minutes] = prefs.quietHoursEnd.split(":").map(Number);
   const deliveryTime = new Date();
   deliveryTime.setHours(hours, minutes, 0, 0);
 
@@ -661,7 +689,7 @@ async function getQuietHoursEnd(userId: string): Promise<string> {
 
 function stringifyData(data: Record<string, unknown>): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(data).map(([key, value]) => [key, String(value)])
+    Object.entries(data).map(([key, value]) => [key, String(value)]),
   );
 }
 
@@ -673,7 +701,7 @@ function generateEmailHtml(payload: NotificationPayload): string {
       ${
         payload.actionUrl
           ? `<a href="${payload.actionUrl}" style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin-top: 15px;">View Details</a>`
-          : ''
+          : ""
       }
       <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
       <p style="color: #999; font-size: 12px;">This email was sent by LMA. If you have questions, contact support.</p>

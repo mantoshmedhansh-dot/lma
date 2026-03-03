@@ -1,5 +1,5 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function createClient() {
   const cookieStore = await cookies();
@@ -21,26 +21,28 @@ export async function createClient() {
         },
         remove(name: string, options: CookieOptions) {
           try {
-            cookieStore.set({ name, value: '', ...options });
+            cookieStore.set({ name, value: "", ...options });
           } catch {
             // Handle cookies in Server Component
           }
         },
       },
-    }
+    },
   );
 }
 
 export async function getMerchant() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) return null;
 
   const { data: merchant } = await supabase
-    .from('merchants')
-    .select('*')
-    .eq('owner_id', user.id)
+    .from("merchants")
+    .select("*")
+    .eq("owner_id", user.id)
     .single();
 
   return merchant;

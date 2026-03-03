@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -11,17 +11,17 @@ import {
   Platform,
   TextInput,
   Linking,
-} from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '@/hooks/useThemeColor';
-import { useRouteStore } from '@/lib/store/route';
-import { PhotoCapture } from '@/components/PhotoCapture';
-import { SignatureCapture } from '@/components/SignatureCapture';
-import * as deliveryApi from '@/lib/api/delivery';
-import { FAILURE_REASONS, type FailureReason } from '@/lib/types/route';
+} from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useThemeColors } from "@/hooks/useThemeColor";
+import { useRouteStore } from "@/lib/store/route";
+import { PhotoCapture } from "@/components/PhotoCapture";
+import { SignatureCapture } from "@/components/SignatureCapture";
+import * as deliveryApi from "@/lib/api/delivery";
+import { FAILURE_REASONS, type FailureReason } from "@/lib/types/route";
 
-type DeliveryPath = null | 'deliver' | 'failed';
+type DeliveryPath = null | "deliver" | "failed";
 
 export default function DeliveryScreen() {
   const { orderId: stopId } = useLocalSearchParams<{ orderId: string }>();
@@ -41,7 +41,7 @@ export default function DeliveryScreen() {
 
   // OTP state
   const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
+  const [otpCode, setOtpCode] = useState("");
   const [otpVerified, setOtpVerified] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
@@ -53,11 +53,13 @@ export default function DeliveryScreen() {
   const [signature, setSignature] = useState<string | null>(null);
   const [showSignature, setShowSignature] = useState(false);
   const [codCollected, setCodCollected] = useState(false);
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState("");
 
   // Failure state
-  const [failureReason, setFailureReason] = useState<FailureReason | null>(null);
-  const [failureNotes, setFailureNotes] = useState('');
+  const [failureReason, setFailureReason] = useState<FailureReason | null>(
+    null,
+  );
+  const [failureNotes, setFailureNotes] = useState("");
   const [failurePhotos, setFailurePhotos] = useState<string[]>([]);
 
   // OTP resend timer
@@ -84,7 +86,7 @@ export default function DeliveryScreen() {
     try {
       await markArrived(stopId);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to mark arrival');
+      Alert.alert("Error", error.message || "Failed to mark arrival");
     } finally {
       setArriving(false);
     }
@@ -94,13 +96,13 @@ export default function DeliveryScreen() {
     if (!order) return;
     setSendingOtp(true);
     try {
-      await deliveryApi.sendOtp(order.id, 'delivery');
+      await deliveryApi.sendOtp(order.id, "delivery");
       setOtpSent(true);
       setResendTimer(30);
-      const masked = order.customer_phone.replace(/.(?=.{4})/g, '*');
-      Alert.alert('OTP Sent', `OTP sent to ${masked}`);
+      const masked = order.customer_phone.replace(/.(?=.{4})/g, "*");
+      Alert.alert("OTP Sent", `OTP sent to ${masked}`);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to send OTP');
+      Alert.alert("Error", error.message || "Failed to send OTP");
     } finally {
       setSendingOtp(false);
     }
@@ -110,14 +112,17 @@ export default function DeliveryScreen() {
     if (!order || !otpCode) return;
     setVerifyingOtp(true);
     try {
-      const result = await deliveryApi.verifyOtp(order.id, otpCode, 'delivery');
+      const result = await deliveryApi.verifyOtp(order.id, otpCode, "delivery");
       if (result.verified) {
         setOtpVerified(true);
       } else {
-        Alert.alert('Invalid OTP', 'The code you entered is incorrect. Please try again.');
+        Alert.alert(
+          "Invalid OTP",
+          "The code you entered is incorrect. Please try again.",
+        );
       }
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to verify OTP');
+      Alert.alert("Error", error.message || "Failed to verify OTP");
     } finally {
       setVerifyingOtp(false);
     }
@@ -127,18 +132,24 @@ export default function DeliveryScreen() {
     if (!stopId || !order) return;
 
     if (photos.length === 0) {
-      Alert.alert('Photo Required', 'Please take at least one photo as proof of delivery.');
+      Alert.alert(
+        "Photo Required",
+        "Please take at least one photo as proof of delivery.",
+      );
       return;
     }
     if (order.is_cod && !codCollected) {
-      Alert.alert('COD Required', 'Please confirm cash collection before completing.');
+      Alert.alert(
+        "COD Required",
+        "Please confirm cash collection before completing.",
+      );
       return;
     }
 
-    Alert.alert('Confirm Delivery', 'Mark this delivery as completed?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Confirm Delivery", "Mark this delivery as completed?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Confirm',
+        text: "Confirm",
         onPress: async () => {
           setSubmitting(true);
           try {
@@ -158,7 +169,7 @@ export default function DeliveryScreen() {
             // Record attempt
             await deliveryApi.recordAttempt({
               order_id: order.id,
-              status: 'delivered',
+              status: "delivered",
               photo_urls: photoUrls,
               signature_url: signatureUrl,
               cod_collected: order.is_cod ? codCollected : false,
@@ -167,38 +178,50 @@ export default function DeliveryScreen() {
             });
 
             // Complete the stop
-            await markComplete(stopId, 'delivered');
+            await markComplete(stopId, "delivered");
 
-            Alert.alert('Success', 'Delivery completed!', [
-              { text: 'OK', onPress: () => router.back() },
+            Alert.alert("Success", "Delivery completed!", [
+              { text: "OK", onPress: () => router.back() },
             ]);
           } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to complete delivery');
+            Alert.alert(
+              "Error",
+              error.message || "Failed to complete delivery",
+            );
           } finally {
             setSubmitting(false);
           }
         },
       },
     ]);
-  }, [stopId, order, photos, signature, codCollected, notes, markComplete, router]);
+  }, [
+    stopId,
+    order,
+    photos,
+    signature,
+    codCollected,
+    notes,
+    markComplete,
+    router,
+  ]);
 
   const handleFailDelivery = useCallback(async () => {
     if (!stopId || !order) return;
 
     if (!failureReason) {
-      Alert.alert('Reason Required', 'Please select a failure reason.');
+      Alert.alert("Reason Required", "Please select a failure reason.");
       return;
     }
-    if (failureReason === 'other' && !failureNotes.trim()) {
-      Alert.alert('Notes Required', 'Please add notes explaining the failure.');
+    if (failureReason === "other" && !failureNotes.trim()) {
+      Alert.alert("Notes Required", "Please add notes explaining the failure.");
       return;
     }
 
-    Alert.alert('Confirm Failed Delivery', 'Mark this delivery as failed?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert("Confirm Failed Delivery", "Mark this delivery as failed?", [
+      { text: "Cancel", style: "cancel" },
       {
-        text: 'Mark Failed',
-        style: 'destructive',
+        text: "Mark Failed",
+        style: "destructive",
         onPress: async () => {
           setSubmitting(true);
           try {
@@ -212,33 +235,47 @@ export default function DeliveryScreen() {
             // Record attempt
             await deliveryApi.recordAttempt({
               order_id: order.id,
-              status: 'failed',
+              status: "failed",
               photo_urls: photoUrls,
               failure_reason: failureReason,
               failure_notes: failureNotes || null,
             });
 
             // Complete the stop as failed
-            await markComplete(stopId, 'failed');
+            await markComplete(stopId, "failed");
 
-            Alert.alert('Marked Failed', 'Moving to next stop.', [
-              { text: 'OK', onPress: () => router.back() },
+            Alert.alert("Marked Failed", "Moving to next stop.", [
+              { text: "OK", onPress: () => router.back() },
             ]);
           } catch (error: any) {
-            Alert.alert('Error', error.message || 'Failed to record failure');
+            Alert.alert("Error", error.message || "Failed to record failure");
           } finally {
             setSubmitting(false);
           }
         },
       },
     ]);
-  }, [stopId, order, failureReason, failureNotes, failurePhotos, markComplete, router]);
+  }, [
+    stopId,
+    order,
+    failureReason,
+    failureNotes,
+    failurePhotos,
+    markComplete,
+    router,
+  ]);
 
   const openMaps = () => {
     if (!order) return;
-    const { delivery_latitude: lat, delivery_longitude: lng, delivery_address } = order;
+    const {
+      delivery_latitude: lat,
+      delivery_longitude: lng,
+      delivery_address,
+    } = order;
     if (lat && lng) {
-      Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`);
+      Linking.openURL(
+        `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+      );
     } else {
       Linking.openURL(
         `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(delivery_address)}`,
@@ -248,57 +285,92 @@ export default function DeliveryScreen() {
 
   if (!stop || !order) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: colors.background },
+        ]}
+      >
         <ActivityIndicator size="large" color={colors.tint} />
       </View>
     );
   }
 
-  const isArrived = stop.status === 'arrived';
-  const needsArrive = stop.status === 'pending';
+  const isArrived = stop.status === "arrived";
+  const needsArrive = stop.status === "pending";
 
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+      >
         {/* Stop Details Header */}
         <View style={[styles.section, { backgroundColor: colors.card }]}>
           <View style={styles.orderHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               Order #{order.order_number}
             </Text>
-            <View style={[styles.stopSeqBadge, { backgroundColor: colors.tint }]}>
+            <View
+              style={[styles.stopSeqBadge, { backgroundColor: colors.tint }]}
+            >
               <Text style={styles.stopSeqText}>Stop {stop.sequence}</Text>
             </View>
           </View>
 
           <View style={styles.detailRow}>
-            <Ionicons name="person-outline" size={18} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.text }]}>{order.customer_name}</Text>
-            <TouchableOpacity onPress={() => Linking.openURL(`tel:${order.customer_phone}`)}>
+            <Ionicons
+              name="person-outline"
+              size={18}
+              color={colors.textSecondary}
+            />
+            <Text style={[styles.detailText, { color: colors.text }]}>
+              {order.customer_name}
+            </Text>
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`tel:${order.customer_phone}`)}
+            >
               <Ionicons name="call" size={20} color={colors.tint} />
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity style={styles.detailRow} onPress={openMaps}>
-            <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
-            <Text style={[styles.detailText, { color: colors.text }]} numberOfLines={2}>
+            <Ionicons
+              name="location-outline"
+              size={18}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={[styles.detailText, { color: colors.text }]}
+              numberOfLines={2}
+            >
               {order.delivery_address}
             </Text>
             <Ionicons name="open-outline" size={16} color={colors.tint} />
           </TouchableOpacity>
 
           <View style={styles.detailRow}>
-            <Ionicons name="cube-outline" size={18} color={colors.textSecondary} />
+            <Ionicons
+              name="cube-outline"
+              size={18}
+              color={colors.textSecondary}
+            />
             <Text style={[styles.detailText, { color: colors.textSecondary }]}>
               {order.product_description}
             </Text>
           </View>
 
           {order.is_cod && (
-            <View style={[styles.codBanner, { backgroundColor: colors.warning + '15' }]}>
+            <View
+              style={[
+                styles.codBanner,
+                { backgroundColor: colors.warning + "15" },
+              ]}
+            >
               <Ionicons name="cash-outline" size={20} color={colors.warning} />
               <Text style={[styles.codBannerText, { color: colors.warning }]}>
                 COD: Rs. {order.cod_amount}
@@ -307,11 +379,19 @@ export default function DeliveryScreen() {
           )}
 
           <TouchableOpacity
-            style={[styles.navigateButton, { backgroundColor: colors.backgroundSecondary, borderColor: colors.border }]}
+            style={[
+              styles.navigateButton,
+              {
+                backgroundColor: colors.backgroundSecondary,
+                borderColor: colors.border,
+              },
+            ]}
             onPress={openMaps}
           >
             <Ionicons name="navigate" size={18} color={colors.tint} />
-            <Text style={[styles.navigateText, { color: colors.tint }]}>Navigate</Text>
+            <Text style={[styles.navigateText, { color: colors.tint }]}>
+              Navigate
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -336,18 +416,20 @@ export default function DeliveryScreen() {
         {/* Step 3: Choose Path */}
         {isArrived && !path && (
           <View style={styles.pathChoice}>
-            <Text style={[styles.pathTitle, { color: colors.text }]}>Delivery Outcome</Text>
+            <Text style={[styles.pathTitle, { color: colors.text }]}>
+              Delivery Outcome
+            </Text>
             <View style={styles.pathButtons}>
               <TouchableOpacity
                 style={[styles.pathButton, { backgroundColor: colors.success }]}
-                onPress={() => setPath('deliver')}
+                onPress={() => setPath("deliver")}
               >
                 <Ionicons name="checkmark-circle" size={28} color="#FFFFFF" />
                 <Text style={styles.pathButtonText}>Deliver</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.pathButton, { backgroundColor: colors.error }]}
-                onPress={() => setPath('failed')}
+                onPress={() => setPath("failed")}
               >
                 <Ionicons name="close-circle" size={28} color="#FFFFFF" />
                 <Text style={styles.pathButtonText}>Failed</Text>
@@ -357,15 +439,20 @@ export default function DeliveryScreen() {
         )}
 
         {/* Path A: Successful Delivery */}
-        {path === 'deliver' && (
+        {path === "deliver" && (
           <>
             {/* OTP Section */}
             <View style={[styles.section, { backgroundColor: colors.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>OTP Verification</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                OTP Verification
+              </Text>
 
               {!otpSent ? (
                 <TouchableOpacity
-                  style={[styles.otpSendButton, { backgroundColor: colors.tint }]}
+                  style={[
+                    styles.otpSendButton,
+                    { backgroundColor: colors.tint },
+                  ]}
                   onPress={handleSendOtp}
                   disabled={sendingOtp}
                 >
@@ -380,7 +467,11 @@ export default function DeliveryScreen() {
                   <TextInput
                     style={[
                       styles.otpInput,
-                      { backgroundColor: colors.background, borderColor: colors.border, color: colors.text },
+                      {
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                        color: colors.text,
+                      },
                     ]}
                     placeholder="Enter 6-digit OTP"
                     placeholderTextColor={colors.textSecondary}
@@ -394,12 +485,30 @@ export default function DeliveryScreen() {
                       onPress={handleSendOtp}
                       disabled={resendTimer > 0 || sendingOtp}
                     >
-                      <Text style={[styles.resendText, { color: resendTimer > 0 ? colors.textSecondary : colors.tint }]}>
-                        {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
+                      <Text
+                        style={[
+                          styles.resendText,
+                          {
+                            color:
+                              resendTimer > 0
+                                ? colors.textSecondary
+                                : colors.tint,
+                          },
+                        ]}
+                      >
+                        {resendTimer > 0
+                          ? `Resend in ${resendTimer}s`
+                          : "Resend OTP"}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={[styles.verifyButton, { backgroundColor: otpCode.length === 6 ? colors.tint : colors.border }]}
+                      style={[
+                        styles.verifyButton,
+                        {
+                          backgroundColor:
+                            otpCode.length === 6 ? colors.tint : colors.border,
+                        },
+                      ]}
                       onPress={handleVerifyOtp}
                       disabled={otpCode.length !== 6 || verifyingOtp}
                     >
@@ -412,9 +521,22 @@ export default function DeliveryScreen() {
                   </View>
                 </View>
               ) : (
-                <View style={[styles.otpVerifiedBanner, { backgroundColor: colors.success + '15' }]}>
-                  <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-                  <Text style={[styles.otpVerifiedText, { color: colors.success }]}>OTP Verified</Text>
+                <View
+                  style={[
+                    styles.otpVerifiedBanner,
+                    { backgroundColor: colors.success + "15" },
+                  ]}
+                >
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={22}
+                    color={colors.success}
+                  />
+                  <Text
+                    style={[styles.otpVerifiedText, { color: colors.success }]}
+                  >
+                    OTP Verified
+                  </Text>
                 </View>
               )}
             </View>
@@ -422,7 +544,9 @@ export default function DeliveryScreen() {
             {/* Photo + Signature + COD + Notes (only after OTP verified) */}
             {otpVerified && (
               <>
-                <View style={[styles.section, { backgroundColor: colors.card }]}>
+                <View
+                  style={[styles.section, { backgroundColor: colors.card }]}
+                >
                   <PhotoCapture
                     photos={photos}
                     onPhotosChange={setPhotos}
@@ -431,30 +555,73 @@ export default function DeliveryScreen() {
                   />
                 </View>
 
-                <View style={[styles.section, { backgroundColor: colors.card }]}>
+                <View
+                  style={[styles.section, { backgroundColor: colors.card }]}
+                >
                   <Text style={[styles.sectionTitle, { color: colors.text }]}>
                     Customer Signature (Optional)
                   </Text>
                   {signature ? (
                     <View style={styles.signaturePreview}>
-                      <View style={[styles.signatureBox, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                        <Text style={[styles.signatureText, { color: colors.textSecondary }]}>Signature captured</Text>
-                        <Ionicons name="checkmark-circle" size={24} color={colors.success} />
+                      <View
+                        style={[
+                          styles.signatureBox,
+                          {
+                            backgroundColor: colors.background,
+                            borderColor: colors.border,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.signatureText,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
+                          Signature captured
+                        </Text>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={24}
+                          color={colors.success}
+                        />
                       </View>
                       <TouchableOpacity
-                        style={[styles.changeButton, { borderColor: colors.tint }]}
+                        style={[
+                          styles.changeButton,
+                          { borderColor: colors.tint },
+                        ]}
                         onPress={() => setShowSignature(true)}
                       >
-                        <Text style={[styles.changeButtonText, { color: colors.tint }]}>Change</Text>
+                        <Text
+                          style={[
+                            styles.changeButtonText,
+                            { color: colors.tint },
+                          ]}
+                        >
+                          Change
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   ) : (
                     <TouchableOpacity
-                      style={[styles.signatureButton, { borderColor: colors.tint }]}
+                      style={[
+                        styles.signatureButton,
+                        { borderColor: colors.tint },
+                      ]}
                       onPress={() => setShowSignature(true)}
                     >
-                      <Ionicons name="create-outline" size={24} color={colors.tint} />
-                      <Text style={[styles.signatureButtonText, { color: colors.tint }]}>
+                      <Ionicons
+                        name="create-outline"
+                        size={24}
+                        color={colors.tint}
+                      />
+                      <Text
+                        style={[
+                          styles.signatureButtonText,
+                          { color: colors.tint },
+                        ]}
+                      >
                         Capture Signature
                       </Text>
                     </TouchableOpacity>
@@ -462,38 +629,75 @@ export default function DeliveryScreen() {
                 </View>
 
                 {order.is_cod && (
-                  <View style={[styles.section, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Cash on Delivery</Text>
+                  <View
+                    style={[styles.section, { backgroundColor: colors.card }]}
+                  >
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                      Cash on Delivery
+                    </Text>
                     <View style={styles.codRow}>
-                      <Text style={[styles.codLabel, { color: colors.textSecondary }]}>Amount to Collect:</Text>
-                      <Text style={[styles.codAmount, { color: colors.text }]}>Rs. {order.cod_amount}</Text>
+                      <Text
+                        style={[
+                          styles.codLabel,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        Amount to Collect:
+                      </Text>
+                      <Text style={[styles.codAmount, { color: colors.text }]}>
+                        Rs. {order.cod_amount}
+                      </Text>
                     </View>
                     <TouchableOpacity
                       style={[
                         styles.codConfirm,
                         {
-                          backgroundColor: codCollected ? colors.success : colors.background,
-                          borderColor: codCollected ? colors.success : colors.border,
+                          backgroundColor: codCollected
+                            ? colors.success
+                            : colors.background,
+                          borderColor: codCollected
+                            ? colors.success
+                            : colors.border,
                         },
                       ]}
                       onPress={() => setCodCollected(!codCollected)}
                     >
                       <Ionicons
-                        name={codCollected ? 'checkmark-circle' : 'ellipse-outline'}
+                        name={
+                          codCollected ? "checkmark-circle" : "ellipse-outline"
+                        }
                         size={24}
-                        color={codCollected ? '#FFFFFF' : colors.textSecondary}
+                        color={codCollected ? "#FFFFFF" : colors.textSecondary}
                       />
-                      <Text style={[styles.codConfirmText, { color: codCollected ? '#FFFFFF' : colors.text }]}>
-                        {codCollected ? 'Cash Collected' : `Cash Rs. ${order.cod_amount} collected`}
+                      <Text
+                        style={[
+                          styles.codConfirmText,
+                          { color: codCollected ? "#FFFFFF" : colors.text },
+                        ]}
+                      >
+                        {codCollected
+                          ? "Cash Collected"
+                          : `Cash Rs. ${order.cod_amount} collected`}
                       </Text>
                     </TouchableOpacity>
                   </View>
                 )}
 
-                <View style={[styles.section, { backgroundColor: colors.card }]}>
-                  <Text style={[styles.sectionTitle, { color: colors.text }]}>Notes (Optional)</Text>
+                <View
+                  style={[styles.section, { backgroundColor: colors.card }]}
+                >
+                  <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                    Notes (Optional)
+                  </Text>
                   <TextInput
-                    style={[styles.notesInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                    style={[
+                      styles.notesInput,
+                      {
+                        backgroundColor: colors.background,
+                        borderColor: colors.border,
+                        color: colors.text,
+                      },
+                    ]}
                     placeholder="Add any delivery notes..."
                     placeholderTextColor={colors.textSecondary}
                     value={notes}
@@ -509,38 +713,63 @@ export default function DeliveryScreen() {
         )}
 
         {/* Path B: Failed Delivery */}
-        {path === 'failed' && (
+        {path === "failed" && (
           <>
             <View style={[styles.section, { backgroundColor: colors.card }]}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Failure Reason</Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                Failure Reason
+              </Text>
               {FAILURE_REASONS.map((reason) => (
                 <TouchableOpacity
                   key={reason.value}
                   style={[
                     styles.reasonOption,
                     {
-                      borderColor: failureReason === reason.value ? colors.error : colors.border,
-                      backgroundColor: failureReason === reason.value ? colors.error + '10' : 'transparent',
+                      borderColor:
+                        failureReason === reason.value
+                          ? colors.error
+                          : colors.border,
+                      backgroundColor:
+                        failureReason === reason.value
+                          ? colors.error + "10"
+                          : "transparent",
                     },
                   ]}
                   onPress={() => setFailureReason(reason.value)}
                 >
                   <Ionicons
-                    name={failureReason === reason.value ? 'radio-button-on' : 'radio-button-off'}
+                    name={
+                      failureReason === reason.value
+                        ? "radio-button-on"
+                        : "radio-button-off"
+                    }
                     size={22}
-                    color={failureReason === reason.value ? colors.error : colors.textSecondary}
+                    color={
+                      failureReason === reason.value
+                        ? colors.error
+                        : colors.textSecondary
+                    }
                   />
-                  <Text style={[styles.reasonText, { color: colors.text }]}>{reason.label}</Text>
+                  <Text style={[styles.reasonText, { color: colors.text }]}>
+                    {reason.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
             <View style={[styles.section, { backgroundColor: colors.card }]}>
               <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                Notes {failureReason === 'other' ? '(Required)' : '(Optional)'}
+                Notes {failureReason === "other" ? "(Required)" : "(Optional)"}
               </Text>
               <TextInput
-                style={[styles.notesInput, { backgroundColor: colors.background, borderColor: colors.border, color: colors.text }]}
+                style={[
+                  styles.notesInput,
+                  {
+                    backgroundColor: colors.background,
+                    borderColor: colors.border,
+                    color: colors.text,
+                  },
+                ]}
                 placeholder="Describe what happened..."
                 placeholderTextColor={colors.textSecondary}
                 value={failureNotes}
@@ -567,10 +796,21 @@ export default function DeliveryScreen() {
       </ScrollView>
 
       {/* Bottom Action Bar */}
-      {path === 'deliver' && otpVerified && (
-        <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      {path === "deliver" && otpVerified && (
+        <View
+          style={[
+            styles.footer,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
           <TouchableOpacity
-            style={[styles.completeButton, { backgroundColor: photos.length > 0 ? colors.success : colors.border }]}
+            style={[
+              styles.completeButton,
+              {
+                backgroundColor:
+                  photos.length > 0 ? colors.success : colors.border,
+              },
+            ]}
             onPress={handleCompleteDelivery}
             disabled={photos.length === 0 || submitting}
           >
@@ -586,10 +826,18 @@ export default function DeliveryScreen() {
         </View>
       )}
 
-      {path === 'failed' && (
-        <View style={[styles.footer, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
+      {path === "failed" && (
+        <View
+          style={[
+            styles.footer,
+            { backgroundColor: colors.card, borderTopColor: colors.border },
+          ]}
+        >
           <TouchableOpacity
-            style={[styles.failButton, { backgroundColor: failureReason ? colors.error : colors.border }]}
+            style={[
+              styles.failButton,
+              { backgroundColor: failureReason ? colors.error : colors.border },
+            ]}
             onPress={handleFailDelivery}
             disabled={!failureReason || submitting}
           >
@@ -624,8 +872,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   centered: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   scrollView: {
     flex: 1,
@@ -642,12 +890,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   stopSeqBadge: {
     paddingHorizontal: 10,
@@ -655,13 +903,13 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   stopSeqText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   detailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   detailText: {
@@ -670,20 +918,20 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   codBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 10,
     borderRadius: 8,
     gap: 8,
   },
   codBannerText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   navigateButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
@@ -691,56 +939,56 @@ const styles = StyleSheet.create({
   },
   navigateText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   arriveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 18,
     borderRadius: 14,
     gap: 10,
   },
   arriveButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   pathChoice: {
     gap: 12,
   },
   pathTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
   },
   pathButtons: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   pathButton: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 24,
     borderRadius: 14,
     gap: 8,
   },
   pathButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   otpSendButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     padding: 14,
     borderRadius: 10,
   },
   otpSendText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   otpInputSection: {
     gap: 10,
@@ -750,18 +998,18 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     fontSize: 20,
-    textAlign: 'center',
+    textAlign: "center",
     letterSpacing: 8,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   otpActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   resendText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   verifyButton: {
     paddingHorizontal: 24,
@@ -769,32 +1017,32 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   verifyText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   otpVerifiedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 12,
     borderRadius: 8,
     gap: 8,
   },
   otpVerifiedText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   signaturePreview: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   signatureBox: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     borderRadius: 8,
     borderWidth: 1,
@@ -810,38 +1058,38 @@ const styles = StyleSheet.create({
   },
   changeButtonText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   signatureButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     gap: 8,
   },
   signatureButtonText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   codRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   codLabel: {
     fontSize: 14,
   },
   codAmount: {
     fontSize: 22,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   codConfirm: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
@@ -849,7 +1097,7 @@ const styles = StyleSheet.create({
   },
   codConfirmText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   notesInput: {
     borderWidth: 1,
@@ -859,8 +1107,8 @@ const styles = StyleSheet.create({
     minHeight: 80,
   },
   reasonOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 14,
     borderRadius: 10,
     borderWidth: 1,
@@ -875,24 +1123,24 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
   },
   completeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
   },
   failButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     paddingVertical: 16,
     borderRadius: 12,
     gap: 8,
   },
   completeButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });

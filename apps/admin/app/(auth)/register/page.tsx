@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/components/ui/toast';
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/toast";
 import {
   Store,
   Mail,
@@ -20,96 +20,96 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
-} from 'lucide-react';
+} from "lucide-react";
 
-type Step = 'account' | 'business' | 'location';
+type Step = "account" | "business" | "location";
 
 export default function MerchantRegisterPage() {
-  const [step, setStep] = useState<Step>('account');
+  const [step, setStep] = useState<Step>("account");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
   const supabase = createClient();
 
   // Account details
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
 
   // Business details
-  const [businessName, setBusinessName] = useState('');
-  const [businessType, setBusinessType] = useState('restaurant');
-  const [description, setDescription] = useState('');
+  const [businessName, setBusinessName] = useState("");
+  const [businessType, setBusinessType] = useState("restaurant");
+  const [description, setDescription] = useState("");
 
   // Location details
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [postalCode, setPostalCode] = useState('');
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
 
   const businessTypes = [
-    { value: 'restaurant', label: 'Restaurant' },
-    { value: 'grocery', label: 'Grocery Store' },
-    { value: 'pharmacy', label: 'Pharmacy' },
-    { value: 'convenience', label: 'Convenience Store' },
-    { value: 'bakery', label: 'Bakery' },
-    { value: 'cafe', label: 'Cafe' },
-    { value: 'other', label: 'Other' },
+    { value: "restaurant", label: "Restaurant" },
+    { value: "grocery", label: "Grocery Store" },
+    { value: "pharmacy", label: "Pharmacy" },
+    { value: "convenience", label: "Convenience Store" },
+    { value: "bakery", label: "Bakery" },
+    { value: "cafe", label: "Cafe" },
+    { value: "other", label: "Other" },
   ];
 
   const steps: { key: Step; label: string }[] = [
-    { key: 'account', label: 'Account' },
-    { key: 'business', label: 'Business' },
-    { key: 'location', label: 'Location' },
+    { key: "account", label: "Account" },
+    { key: "business", label: "Business" },
+    { key: "location", label: "Location" },
   ];
 
   const validateStep = (currentStep: Step): boolean => {
     switch (currentStep) {
-      case 'account':
+      case "account":
         if (!email || !password || !confirmPassword || !fullName || !phone) {
           toast({
-            title: 'Missing information',
-            description: 'Please fill in all required fields',
-            variant: 'destructive',
+            title: "Missing information",
+            description: "Please fill in all required fields",
+            variant: "destructive",
           });
           return false;
         }
         if (password !== confirmPassword) {
           toast({
-            title: 'Password mismatch',
-            description: 'Passwords do not match',
-            variant: 'destructive',
+            title: "Password mismatch",
+            description: "Passwords do not match",
+            variant: "destructive",
           });
           return false;
         }
         if (password.length < 8) {
           toast({
-            title: 'Weak password',
-            description: 'Password must be at least 8 characters',
-            variant: 'destructive',
+            title: "Weak password",
+            description: "Password must be at least 8 characters",
+            variant: "destructive",
           });
           return false;
         }
         return true;
-      case 'business':
+      case "business":
         if (!businessName || !businessType) {
           toast({
-            title: 'Missing information',
-            description: 'Please fill in all required fields',
-            variant: 'destructive',
+            title: "Missing information",
+            description: "Please fill in all required fields",
+            variant: "destructive",
           });
           return false;
         }
         return true;
-      case 'location':
+      case "location":
         if (!address || !city || !state || !postalCode) {
           toast({
-            title: 'Missing information',
-            description: 'Please fill in all required fields',
-            variant: 'destructive',
+            title: "Missing information",
+            description: "Please fill in all required fields",
+            variant: "destructive",
           });
           return false;
         }
@@ -150,25 +150,25 @@ export default function MerchantRegisterPage() {
           data: {
             full_name: fullName,
             phone,
-            role: 'merchant',
+            role: "merchant",
           },
         },
       });
 
       if (authError) {
         toast({
-          title: 'Registration failed',
+          title: "Registration failed",
           description: authError.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         return;
       }
 
       if (!authData.user) {
         toast({
-          title: 'Registration failed',
-          description: 'Failed to create account',
-          variant: 'destructive',
+          title: "Registration failed",
+          description: "Failed to create account",
+          variant: "destructive",
         });
         return;
       }
@@ -176,10 +176,10 @@ export default function MerchantRegisterPage() {
       // 2. Create merchant record
       const slug = businessName
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '');
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
 
-      const { error: merchantError } = await supabase.from('merchants').insert({
+      const { error: merchantError } = await supabase.from("merchants").insert({
         owner_id: authData.user.id,
         name: businessName,
         slug: `${slug}-${Date.now()}`,
@@ -190,11 +190,11 @@ export default function MerchantRegisterPage() {
           city,
           state,
           postal_code: postalCode,
-          country: 'India',
+          country: "India",
         },
         contact_phone: phone,
         contact_email: email,
-        status: 'pending',
+        status: "pending",
         is_featured: false,
         commission_rate: 15,
         preparation_time: 30,
@@ -206,25 +206,25 @@ export default function MerchantRegisterPage() {
 
       if (merchantError) {
         toast({
-          title: 'Registration failed',
+          title: "Registration failed",
           description: merchantError.message,
-          variant: 'destructive',
+          variant: "destructive",
         });
         // Clean up: delete auth user if merchant creation fails
         return;
       }
 
       toast({
-        title: 'Registration successful!',
-        description: 'Please check your email to verify your account.',
+        title: "Registration successful!",
+        description: "Please check your email to verify your account.",
       });
 
-      router.push('/login?registered=true');
+      router.push("/login?registered=true");
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred',
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -248,8 +248,7 @@ export default function MerchantRegisterPage() {
       {/* Progress Steps */}
       <div className="flex items-center justify-center gap-2">
         {steps.map((s, index) => {
-          const isCompleted =
-            steps.findIndex((st) => st.key === step) > index;
+          const isCompleted = steps.findIndex((st) => st.key === step) > index;
           const isCurrent = s.key === step;
 
           return (
@@ -259,10 +258,10 @@ export default function MerchantRegisterPage() {
                   w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium
                   ${
                     isCompleted
-                      ? 'bg-primary text-primary-foreground'
+                      ? "bg-primary text-primary-foreground"
                       : isCurrent
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground"
                   }
                 `}
               >
@@ -270,7 +269,9 @@ export default function MerchantRegisterPage() {
               </div>
               <span
                 className={`ml-2 text-sm ${
-                  isCurrent ? 'text-foreground font-medium' : 'text-muted-foreground'
+                  isCurrent
+                    ? "text-foreground font-medium"
+                    : "text-muted-foreground"
                 }`}
               >
                 {s.label}
@@ -286,7 +287,7 @@ export default function MerchantRegisterPage() {
       <div className="bg-card rounded-lg border p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Account Step */}
-          {step === 'account' && (
+          {step === "account" && (
             <>
               <div className="space-y-2">
                 <label htmlFor="fullName" className="text-sm font-medium">
@@ -350,7 +351,7 @@ export default function MerchantRegisterPage() {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Min 8 characters"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -372,14 +373,17 @@ export default function MerchantRegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-medium">
+                <label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium"
+                >
                   Confirm Password *
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
                     id="confirmPassword"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Confirm your password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -392,7 +396,7 @@ export default function MerchantRegisterPage() {
           )}
 
           {/* Business Step */}
-          {step === 'business' && (
+          {step === "business" && (
             <>
               <div className="space-y-2">
                 <label htmlFor="businessName" className="text-sm font-medium">
@@ -448,7 +452,7 @@ export default function MerchantRegisterPage() {
           )}
 
           {/* Location Step */}
-          {step === 'location' && (
+          {step === "location" && (
             <>
               <div className="space-y-2">
                 <label htmlFor="address" className="text-sm font-medium">
@@ -515,7 +519,7 @@ export default function MerchantRegisterPage() {
 
           {/* Navigation Buttons */}
           <div className="flex gap-3 pt-2">
-            {step !== 'account' && (
+            {step !== "account" && (
               <Button
                 type="button"
                 variant="outline"
@@ -526,22 +530,14 @@ export default function MerchantRegisterPage() {
                 Back
               </Button>
             )}
-            {step !== 'location' ? (
-              <Button
-                type="button"
-                onClick={nextStep}
-                className="flex-1"
-              >
+            {step !== "location" ? (
+              <Button type="button" onClick={nextStep} className="flex-1">
                 Next
                 <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             ) : (
-              <Button
-                type="submit"
-                className="flex-1"
-                disabled={loading}
-              >
-                {loading ? 'Registering...' : 'Register Business'}
+              <Button type="submit" className="flex-1" disabled={loading}>
+                {loading ? "Registering..." : "Register Business"}
               </Button>
             )}
           </div>
@@ -549,8 +545,11 @@ export default function MerchantRegisterPage() {
       </div>
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
-        <Link href="/login" className="text-primary hover:underline font-medium">
+        Already have an account?{" "}
+        <Link
+          href="/login"
+          className="text-primary hover:underline font-medium"
+        >
           Sign in
         </Link>
       </p>

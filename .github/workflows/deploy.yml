@@ -5,119 +5,22 @@ on:
     branches: [main]
   workflow_dispatch:
 
-env:
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-
 jobs:
-  # Check secrets availability (secrets can't be used in job-level if)
-  preflight:
-    name: Preflight Check
-    runs-on: ubuntu-latest
-    outputs:
-      has_render: ${{ steps.check.outputs.has_render }}
-      has_vercel_web: ${{ steps.check.outputs.has_vercel_web }}
-      has_vercel_admin: ${{ steps.check.outputs.has_vercel_admin }}
-    steps:
-      - name: Check secrets
-        id: check
-        run: |
-          echo "has_render=${{ secrets.RENDER_SERVICE_ID != '' && secrets.RENDER_API_KEY != '' }}" >> $GITHUB_OUTPUT
-          echo "has_vercel_web=${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_WEB_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
-          echo "has_vercel_admin=${{ secrets.VERCEL_TOKEN != '' && secrets.VERCEL_ADMIN_PROJECT_ID != '' }}" >> $GITHUB_OUTPUT
-
   deploy-api:
     name: Deploy API to Render
     runs-on: ubuntu-latest
-    needs: preflight
-    if: needs.preflight.outputs.has_render == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Deploy to Render
+        if: ${{ env.HAS_SECRETS == 'true' }}
         uses: johnbeynon/render-deploy-action@v0.0.8
         with:
           service-id: ${{ secrets.RENDER_SERVICE_ID }}
           api-key: ${{ secrets.RENDER_API_KEY }}
-
-  deploy-web:
-    name: Deploy Web to Vercel
-    runs-on: ubuntu-latest
-    needs: preflight
-    if: needs.preflight.outputs.has_vercel_web == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/web
         env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
+          HAS_SECRETS: ${{ secrets.RENDER_SERVICE_ID != '' && secrets.RENDER_API_KEY != '' }}
 
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/web
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/web
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_WEB_PROJECT_ID }}
-
-  deploy-admin:
-    name: Deploy Admin to Vercel
-    runs-on: ubuntu-latest
-    needs: preflight
-    if: needs.preflight.outputs.has_vercel_admin == 'true'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Install Vercel CLI
-        run: npm install -g vercel@latest
-
-      - name: Pull Vercel Environment Information
-        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/admin
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
-
-      - name: Build Project Artifacts
-        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/admin
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
-
-      - name: Deploy Project Artifacts to Vercel
-        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
-        working-directory: apps/admin
-        env:
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+  # Web deploys are handled by Vercel Git Integration (auto-deploys on push)
+  # For manual web deploys, use the deploy-web.yml workflow via workflow_dispatch

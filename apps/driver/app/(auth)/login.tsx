@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   View,
   Text,
@@ -9,15 +9,15 @@ import {
   Platform,
   ScrollView,
   Alert,
-} from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuthStore } from '@/lib/store/auth';
-import { useThemeColors } from '@/hooks/useThemeColor';
+} from "react-native";
+import { Link, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useAuthStore } from "@/lib/store/auth";
+import { useThemeColors } from "@/hooks/useThemeColor";
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const colors = useThemeColors();
@@ -25,35 +25,38 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Alert.alert("Error", "Please fill in all fields");
       return;
     }
 
     const { error } = await signIn(email, password);
 
     if (error) {
-      Alert.alert('Login Failed', error.message);
+      Alert.alert("Login Failed", error.message);
     } else {
-      router.replace('/(tabs)/home');
+      router.replace("/(tabs)/home");
     }
   };
 
   return (
     <KeyboardAvoidingView
       style={[styles.container, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={[styles.iconContainer, { backgroundColor: colors.tintLight }]}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: colors.tintLight },
+            ]}
+          >
             <Ionicons name="bicycle" size={48} color={colors.tint} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>
-            LMA Driver
-          </Text>
+          <Text style={[styles.title, { color: colors.text }]}>LMA Driver</Text>
           <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
             Sign in to start delivering
           </Text>
@@ -105,7 +108,7 @@ export default function LoginScreen() {
               style={styles.eyeIcon}
             >
               <Ionicons
-                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                name={showPassword ? "eye-off-outline" : "eye-outline"}
                 size={20}
                 color={colors.textSecondary}
               />
@@ -118,13 +121,13 @@ export default function LoginScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? "Signing in..." : "Sign In"}
             </Text>
           </TouchableOpacity>
 
           <View style={styles.footer}>
             <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-              Don't have an account?{' '}
+              Don't have an account?{" "}
             </Text>
             <Link href="/(auth)/register" asChild>
               <TouchableOpacity>
@@ -146,24 +149,24 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 24,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 48,
   },
   iconContainer: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 16,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   subtitle: {
@@ -173,10 +176,10 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   inputContainer: {
-    position: 'relative',
+    position: "relative",
   },
   inputIcon: {
-    position: 'absolute',
+    position: "absolute",
     left: 16,
     top: 14,
     zIndex: 1,
@@ -189,25 +192,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   eyeIcon: {
-    position: 'absolute',
+    position: "absolute",
     right: 16,
     top: 14,
   },
   button: {
     height: 48,
     borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginTop: 8,
   },
   buttonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 16,
   },
   footerText: {
@@ -215,6 +218,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
