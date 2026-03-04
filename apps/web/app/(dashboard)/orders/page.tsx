@@ -29,6 +29,8 @@ interface Order {
   status: string;
   priority: string;
   source: string;
+  external_order_id: string | null;
+  external_source: string | null;
   scheduled_date: string | null;
   route_id: string | null;
   driver_id: string | null;
@@ -56,6 +58,7 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("");
   const [page, setPage] = useState(1);
   const [stats, setStats] = useState({
     total: 0,
@@ -79,6 +82,7 @@ export default function OrdersPage() {
         page_size: "50",
       });
       if (statusFilter) params.set("status", statusFilter);
+      if (sourceFilter) params.set("source", sourceFilter);
       if (search) params.set("search", search);
 
       const res = await fetch(
@@ -93,7 +97,7 @@ export default function OrdersPage() {
       console.error("Failed to fetch orders:", err);
     }
     setLoading(false);
-  }, [page, statusFilter, search]);
+  }, [page, statusFilter, sourceFilter, search]);
 
   const fetchStats = useCallback(async () => {
     const supabase = createClient();
@@ -237,6 +241,20 @@ export default function OrdersPage() {
             <option value="returned_to_hub">Returned to Hub</option>
             <option value="cancelled">Cancelled</option>
           </select>
+          <select
+            className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            value={sourceFilter}
+            onChange={(e) => {
+              setSourceFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All Sources</option>
+            <option value="cjdquick">CJDQuick</option>
+            <option value="csv">CSV Import</option>
+            <option value="manual">Manual</option>
+            <option value="api">API</option>
+          </select>
           <Button variant="outline" size="sm" onClick={fetchOrders}>
             <Filter className="mr-2 h-4 w-4" />
             Apply
@@ -330,8 +348,20 @@ export default function OrdersPage() {
                           {order.priority}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground uppercase text-xs">
-                        {order.source}
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                            order.source === "cjdquick"
+                              ? "bg-purple-100 text-purple-800"
+                              : order.source === "csv"
+                                ? "bg-blue-100 text-blue-800"
+                                : "bg-gray-100 text-gray-600"
+                          }`}
+                        >
+                          {order.source === "cjdquick"
+                            ? "CJDQuick"
+                            : order.source.toUpperCase()}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground text-xs">
                         {new Date(order.created_at).toLocaleDateString()}

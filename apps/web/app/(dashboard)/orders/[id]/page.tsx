@@ -22,6 +22,8 @@ interface OrderDetail {
   order_number: string;
   hub_id: string;
   source: string;
+  external_order_id: string | null;
+  external_source: string | null;
   status: string;
   priority: string;
   customer_name: string;
@@ -158,9 +160,24 @@ export default function OrderDetailPage() {
               </span>
             )}
           </div>
-          <div className="text-sm text-muted-foreground">
-            Source: {order.source.toUpperCase()}
-            {order.marketplace && ` | ${order.marketplace}`}
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                order.source === "cjdquick"
+                  ? "bg-purple-100 text-purple-800"
+                  : "bg-gray-100 text-gray-600"
+              }`}
+            >
+              {order.source === "cjdquick"
+                ? "CJDQuick"
+                : order.source.toUpperCase()}
+            </span>
+            {order.marketplace && <span>| {order.marketplace}</span>}
+            {order.external_order_id && (
+              <span className="font-mono text-xs">
+                Ref: {order.external_order_id}
+              </span>
+            )}
           </div>
         </div>
 
