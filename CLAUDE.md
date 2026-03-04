@@ -55,9 +55,34 @@ Delivery Hub Operations System for consumer durable brands — modeled after [Sh
 - **Project URL:** https://rplvtxuvucafynujdyoy.supabase.co
 - **Project ID:** `rplvtxuvucafynujdyoy`
 - **Dashboard:** https://supabase.com/dashboard/project/rplvtxuvucafynujdyoy
-- **Database Host (pooler):** `aws-0-ap-northeast-1.pooler.supabase.com:6543`
+- **Database Host (pooler):** `aws-0-ap-northeast-1.pooler.supabase.com:6543` (transaction mode — do NOT use for migrations)
 - **Database Host (direct):** `db.rplvtxuvucafynujdyoy.supabase.co:5432`
-- **Credentials:** See `packages/api-python/.env` or auto-memory (not stored in repo)
+- **DB User:** `postgres`
+- **DB Password:** `Aquapurite2026`
+
+#### Running Migrations (working method)
+
+Use Python `psycopg2` with **direct connection** (NOT the pooler):
+
+```python
+import psycopg2
+conn = psycopg2.connect(
+    host="db.rplvtxuvucafynujdyoy.supabase.co",
+    port=5432,
+    dbname="postgres",
+    user="postgres",
+    password="Aquapurite2026",
+    sslmode="require",
+)
+conn.autocommit = True
+cur = conn.cursor()
+with open("packages/database/migrations/XXX.sql") as f:
+    cur.execute(f.read())
+cur.close()
+conn.close()
+```
+
+> **Important:** The pooler connection (`aws-0-ap-northeast-1.pooler.supabase.com:6543`) fails with "Tenant or user not found" for direct psycopg2. Always use the direct host. `psql` is not installed on this machine.
 
 ---
 
