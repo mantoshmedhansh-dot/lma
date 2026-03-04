@@ -15,6 +15,7 @@ from app.models.delivery_order import (
     DeliveryAttemptResponse,
 )
 from app.models.hub import RouteDetailResponse, RouteStopResponse, DeliveryOrderBrief, VehicleResponse
+from app.services import cjdquick as cjdquick_svc
 
 router = APIRouter(prefix="/delivery", tags=["Delivery"])
 
@@ -203,6 +204,19 @@ async def record_attempt(
             "actual_departure": now,
         }).eq("id", attempt_data.route_stop_id).execute()
 
+    # Sync status to CJDQuick OMS
+    try:
+        order_row = supabase.table("delivery_orders").select(
+            "external_order_id, external_source"
+        ).eq("id", attempt_data.order_id).single().execute()
+        if order_row.data and order_row.data.get("external_source") == "cjdquick":
+            ext_id = order_row.data["external_order_id"]
+            cjd_status = cjdquick_svc.get_cjdquick_status(attempt_data.status)
+            if cjd_status:
+                await cjdquick_svc.update_order_status(ext_id, cjd_status)
+    except Exception:
+        pass  # Don't fail delivery recording if sync fails
+
     return DeliveryAttemptResponse(**result.data[0])
 
 
@@ -221,6 +235,18 @@ async def return_to_hub(
 
     if not result.data:
         raise HTTPException(status_code=404, detail="Order not found")
+
+    # Create RTO return in CJDQuick
+    try:
+        order_data = result.data[0]
+        if order_data.get("external_source") == "cjdquick" and order_data.get("external_order_id"):
+            await cjdquick_svc.create_return(
+                external_order_id=order_data["external_order_id"],
+                reason="Delivery failed - returned to hub",
+                items=[{"skuId": order_data.get("product_sku", ""), "quantity": 1}],
+            )
+    except Exception:
+        pass  # Don't fail return if sync fails
 
     return {"message": "Order marked as returned to hub", "order_id": order_id}
 

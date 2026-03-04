@@ -7,6 +7,7 @@ import math
 from app.core.supabase import get_supabase
 from app.core.security import get_current_user, require_role
 from app.services.notifications import notify_route_assigned, notify_route_dispatched
+from app.services import cjdquick as cjdquick_svc
 from app.models.hub import (
     RouteCreate,
     RouteUpdate,
@@ -270,12 +271,25 @@ async def dispatch_route(
     }).eq("id", route_id).execute()
 
     # Update all orders to out_for_delivery
-    orders = supabase.table("delivery_orders").select("id").eq("route_id", route_id).execute()
+    orders = supabase.table("delivery_orders").select(
+        "id, external_order_id, external_source"
+    ).eq("route_id", route_id).execute()
+    route_name = result.data[0].get("route_name") or "LMA-Route"
     for order in (orders.data or []):
         supabase.table("delivery_orders").update({
             "status": "out_for_delivery",
             "out_for_delivery_at": datetime.utcnow().isoformat(),
         }).eq("id", order["id"]).execute()
+
+        # Notify CJDQuick that order is shipped
+        try:
+            if order.get("external_source") == "cjdquick" and order.get("external_order_id"):
+                await cjdquick_svc.create_shipment(
+                    external_order_id=order["external_order_id"],
+                    route_name=route_name,
+                )
+        except Exception:
+            pass
 
     # Update driver status
     supabase.table("drivers").update({"status": "on_delivery"}).eq("id", route.data["driver_id"]).execute()

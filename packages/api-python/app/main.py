@@ -20,6 +20,7 @@ from app.routers import (
     fleet_router,
     hub_delivery_router,
     hub_analytics_router,
+    integrations_router,
 )
 
 # Rate limiter
@@ -87,6 +88,7 @@ app.include_router(hub_routes_router, prefix="/api/v1")
 app.include_router(fleet_router, prefix="/api/v1")
 app.include_router(hub_delivery_router, prefix="/api/v1")
 app.include_router(hub_analytics_router, prefix="/api/v1")
+app.include_router(integrations_router, prefix="/api/v1")
 
 
 # Startup event

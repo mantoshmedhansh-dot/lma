@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings, Save } from "lucide-react";
+import { Settings, Save, Plug } from "lucide-react";
+import Link from "next/link";
 
 interface Hub {
   id: string;
@@ -206,6 +207,26 @@ export default function SettingsPage() {
                 onChange={(e) => setHub({ ...hub, phone: e.target.value })}
               />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Plug className="h-4 w-4" /> Integrations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">
+              Connect external order management systems to automatically sync
+              orders and delivery statuses.
+            </p>
+            <Link href="/settings/integrations">
+              <Button variant="outline" size="sm">
+                <Plug className="mr-2 h-4 w-4" />
+                Manage Integrations
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

@@ -10,6 +10,7 @@ from app.routers.hub_routes import router as hub_routes_router
 from app.routers.fleet import router as fleet_router
 from app.routers.hub_delivery import router as hub_delivery_router
 from app.routers.hub_analytics import router as hub_analytics_router
+from app.routers.integrations import router as integrations_router
 
 __all__ = [
     "health_router",
@@ -24,4 +25,5 @@ __all__ = [
     "fleet_router",
     "hub_delivery_router",
     "hub_analytics_router",
+    "integrations_router",
 ]

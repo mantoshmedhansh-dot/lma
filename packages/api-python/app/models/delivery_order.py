@@ -28,11 +28,16 @@ class OrderSource(str, Enum):
     CSV = "csv"
     API = "api"
     MANUAL = "manual"
+    CJDQUICK = "cjdquick"
 
 
 class DeliveryOrderCreate(BaseModel):
     hub_id: str
     source: str = "manual"
+
+    # External integration
+    external_order_id: Optional[str] = None
+    external_source: Optional[str] = None
 
     # Seller info
     seller_name: Optional[str] = None
@@ -104,6 +109,9 @@ class DeliveryOrderResponse(BaseModel):
     order_number: str
     source: str
     import_batch_id: Optional[str] = None
+
+    external_order_id: Optional[str] = None
+    external_source: Optional[str] = None
 
     seller_name: Optional[str] = None
     seller_order_ref: Optional[str] = None

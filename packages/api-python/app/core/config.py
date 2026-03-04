@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     TWILIO_FROM_NUMBER: str = ""
     MAPBOX_TOKEN: str = ""
 
+    # CJDQuick OMS Integration (optional)
+    CJDQUICK_API_URL: str = "https://lsp-oms-api.onrender.com/api/v1"
+    CJDQUICK_API_KEY: str = ""
+    CJDQUICK_WEBHOOK_SECRET: str = ""
+    CJDQUICK_LOCATION_ID: str = ""
+
     @property
     def cors_origins_list(self) -> List[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",")]
