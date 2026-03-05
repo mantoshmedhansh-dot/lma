@@ -12,6 +12,7 @@ import {
   Upload,
   Users,
   LayoutDashboard,
+  RotateCcw,
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -21,6 +22,7 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { href: "/orders", label: "Orders", icon: Package },
   { href: "/orders/import", label: "Import Orders", icon: Upload },
+  { href: "/pickups", label: "Reverse Pickups", icon: RotateCcw },
   { href: "/routes", label: "Routes", icon: Route },
   { href: "/routes/plan", label: "Route Planning", icon: LayoutDashboard },
   { href: "/fleet", label: "Vehicles", icon: Truck },

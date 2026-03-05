@@ -14,6 +14,13 @@ from app.models.delivery_order import (
     DeliveryAttemptCreate,
     DeliveryAttemptResponse,
 )
+from app.models.reverse_pickup import (
+    PickupAttemptCreate,
+    PickupAttemptResponse,
+    PickupOtpSendRequest,
+    PickupOtpVerifyRequest,
+    ReversePickupResponse,
+)
 from app.models.hub import RouteDetailResponse, RouteStopResponse, DeliveryOrderBrief, VehicleResponse
 from app.services import cjdquick as cjdquick_svc
 
@@ -345,6 +352,231 @@ async def complete_stop(
         raise HTTPException(status_code=404, detail="Stop not found")
 
     return {"message": f"Stop marked as {status_value}", "stop_id": stop_id}
+
+
+# =====================================================
+# DRIVER PICKUP ENDPOINTS
+# =====================================================
+
+
+@router.get("/my-pickups", response_model=list[ReversePickupResponse])
+async def get_my_pickups(
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Get driver's assigned pickups for today."""
+    supabase = get_supabase()
+
+    driver = supabase.table("drivers").select("id").eq("user_id", current_user["id"]).single().execute()
+    if not driver.data:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+
+    driver_id = driver.data["id"]
+    today = datetime.utcnow().date().isoformat()
+
+    result = supabase.table("reverse_pickups").select("*").eq(
+        "driver_id", driver_id
+    ).in_(
+        "status", ["assigned", "out_for_pickup"]
+    ).execute()
+
+    return [ReversePickupResponse(**p) for p in (result.data or [])]
+
+
+@router.post("/pickup/{pickup_id}/arrive")
+async def arrive_at_pickup(
+    pickup_id: str,
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Mark arrival at pickup location."""
+    supabase = get_supabase()
+
+    now = datetime.utcnow().isoformat()
+    result = supabase.table("reverse_pickups").update({
+        "status": "out_for_pickup",
+        "out_for_pickup_at": now,
+        "updated_at": now,
+    }).eq("id", pickup_id).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Pickup not found")
+
+    return {"message": "Arrived at pickup location", "pickup_id": pickup_id}
+
+
+@router.post("/pickup/otp/send", response_model=OtpResponse)
+async def send_pickup_otp(
+    otp_data: PickupOtpSendRequest,
+    current_user: Dict = Depends(require_role(["driver", "admin", "super_admin", "hub_manager"]))
+):
+    """Send OTP to customer for pickup verification."""
+    supabase = get_supabase()
+
+    pickup = supabase.table("reverse_pickups").select("customer_phone, customer_name").eq(
+        "id", otp_data.pickup_id
+    ).single().execute()
+
+    if not pickup.data:
+        raise HTTPException(status_code=404, detail="Pickup not found")
+
+    otp_code = generate_otp()
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    # Invalidate previous OTPs for this pickup
+    supabase.table("otp_tokens").update({
+        "is_verified": True,
+    }).eq("order_id", otp_data.pickup_id).eq("otp_type", "pickup").eq("is_verified", False).execute()
+
+    # Create new OTP (reuse order_id column for pickup_id)
+    supabase.table("otp_tokens").insert({
+        "order_id": otp_data.pickup_id,
+        "otp_code": otp_code,
+        "otp_type": "pickup",
+        "sent_to": pickup.data["customer_phone"],
+        "expires_at": expires_at.isoformat(),
+    }).execute()
+
+    # Send SMS via Twilio (if configured)
+    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN and settings.TWILIO_FROM_NUMBER:
+        try:
+            from twilio.rest import Client
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Your LMA pickup verification OTP is: {otp_code}. Valid for 10 minutes.",
+                from_=settings.TWILIO_FROM_NUMBER,
+                to=pickup.data["customer_phone"],
+            )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).warning(f"Failed to send SMS: {e}")
+    else:
+        import logging
+        logging.getLogger(__name__).info(f"Twilio not configured. OTP {otp_code} for pickup {otp_data.pickup_id} stored in DB.")
+
+    return OtpResponse(
+        success=True,
+        message=f"OTP sent to {pickup.data['customer_phone'][-4:].rjust(len(pickup.data['customer_phone']), '*')}",
+        expires_at=expires_at,
+    )
+
+
+@router.post("/pickup/otp/verify", response_model=OtpResponse)
+async def verify_pickup_otp(
+    otp_data: PickupOtpVerifyRequest,
+    current_user: Dict = Depends(require_role(["driver", "admin", "super_admin", "hub_manager"]))
+):
+    """Verify OTP for pickup."""
+    supabase = get_supabase()
+
+    result = supabase.table("otp_tokens").select("*").eq(
+        "order_id", otp_data.pickup_id
+    ).eq("otp_type", "pickup").eq("is_verified", False).order(
+        "created_at", desc=True
+    ).limit(1).execute()
+
+    if not result.data:
+        raise HTTPException(status_code=400, detail="No active OTP found")
+
+    token = result.data[0]
+
+    if token["otp_code"] != otp_data.otp_code:
+        return OtpResponse(success=False, message="Invalid OTP")
+
+    if datetime.fromisoformat(token["expires_at"].replace("Z", "+00:00")) < datetime.utcnow().replace(tzinfo=None):
+        return OtpResponse(success=False, message="OTP has expired")
+
+    # Mark verified
+    supabase.table("otp_tokens").update({
+        "is_verified": True,
+    }).eq("id", token["id"]).execute()
+
+    return OtpResponse(success=True, message="OTP verified successfully")
+
+
+@router.post("/pickup/attempt", response_model=PickupAttemptResponse)
+async def record_pickup_attempt(
+    attempt_data: PickupAttemptCreate,
+    current_user: Dict = Depends(require_role(["driver"]))
+):
+    """Record a pickup attempt (success or failure) with item condition."""
+    supabase = get_supabase()
+
+    # Get driver id
+    driver = supabase.table("drivers").select("id").eq("user_id", current_user["id"]).single().execute()
+    if not driver.data:
+        raise HTTPException(status_code=404, detail="Driver profile not found")
+
+    driver_id = driver.data["id"]
+
+    # Validate condition photos for successful pickups
+    if attempt_data.status == "picked_up":
+        if not attempt_data.condition_photo_urls or len(attempt_data.condition_photo_urls) < 2:
+            raise HTTPException(
+                status_code=400,
+                detail="At least 2 item condition photos are required for successful pickups"
+            )
+        if not attempt_data.item_condition:
+            raise HTTPException(
+                status_code=400,
+                detail="Item condition is required for successful pickups"
+            )
+
+    # Get attempt number
+    prev_attempts = supabase.table("pickup_attempts").select("attempt_number").eq(
+        "pickup_id", attempt_data.pickup_id
+    ).order("attempt_number", desc=True).limit(1).execute()
+
+    attempt_number = 1
+    if prev_attempts.data:
+        attempt_number = prev_attempts.data[0]["attempt_number"] + 1
+
+    attempt_dict = {
+        "pickup_id": attempt_data.pickup_id,
+        "driver_id": driver_id,
+        "attempt_number": attempt_number,
+        "status": attempt_data.status,
+        "otp_verified": attempt_data.otp_verified,
+        "otp_verified_at": datetime.utcnow().isoformat() if attempt_data.otp_verified else None,
+        "failure_reason": attempt_data.failure_reason,
+        "failure_notes": attempt_data.failure_notes,
+        "item_condition": attempt_data.item_condition,
+        "item_condition_notes": attempt_data.item_condition_notes,
+        "condition_photo_urls": attempt_data.condition_photo_urls,
+        "photo_urls": attempt_data.photo_urls,
+        "signature_url": attempt_data.signature_url,
+        "recipient_name": attempt_data.recipient_name,
+        "latitude": attempt_data.latitude,
+        "longitude": attempt_data.longitude,
+    }
+
+    result = supabase.table("pickup_attempts").insert(attempt_dict).execute()
+
+    # Update pickup status
+    now = datetime.utcnow().isoformat()
+    if attempt_data.status == "picked_up":
+        supabase.table("reverse_pickups").update({
+            "status": "picked_up",
+            "picked_up_at": now,
+            "updated_at": now,
+        }).eq("id", attempt_data.pickup_id).execute()
+
+        # Notify CJDQuick if applicable
+        try:
+            pickup_row = supabase.table("reverse_pickups").select(
+                "external_order_id, external_source, external_return_id"
+            ).eq("id", attempt_data.pickup_id).single().execute()
+            if pickup_row.data and pickup_row.data.get("external_source") == "cjdquick":
+                ext_id = pickup_row.data["external_order_id"]
+                return_id = pickup_row.data.get("external_return_id")
+                await cjdquick_svc.notify_pickup_completed(ext_id, return_id)
+        except Exception:
+            pass  # Don't fail pickup recording if sync fails
+
+    elif attempt_data.status == "failed":
+        supabase.table("reverse_pickups").update({
+            "updated_at": now,
+        }).eq("id", attempt_data.pickup_id).execute()
+
+    return PickupAttemptResponse(**result.data[0])
 
 
 # =====================================================

@@ -138,15 +138,80 @@ async def _handle_order_cancelled(data: dict) -> dict:
 
 
 async def _handle_return_approved(data: dict) -> dict:
-    """Mark order for pickup/return when CJDQuick approves a return."""
+    """Auto-create a reverse pickup when CJDQuick approves a return."""
     supabase = get_supabase()
     order_id = data.get("orderId")
+    return_id = data.get("returnId") or data.get("id")
     if not order_id:
         return {"status": "skipped"}
 
-    # Just log it — actual pickup is handled manually by hub
-    cjdquick._log_sync("inbound", "return_approved", order_id, "success")
-    return {"status": "logged", "order_id": order_id}
+    # Find the original delivery order
+    original = (
+        supabase.table("delivery_orders")
+        .select("*")
+        .eq("external_order_id", order_id)
+        .eq("external_source", "cjdquick")
+        .limit(1)
+        .execute()
+    )
+
+    if not original.data:
+        cjdquick._log_sync("inbound", "return_approved", order_id, "failed", "Original order not found")
+        return {"status": "error", "reason": "original order not found"}
+
+    order = original.data[0]
+
+    # Check for duplicate reverse pickup
+    existing = (
+        supabase.table("reverse_pickups")
+        .select("id")
+        .eq("external_order_id", order_id)
+        .eq("external_source", "cjdquick")
+        .execute()
+    )
+    if existing.data:
+        return {"status": "duplicate", "pickup_id": existing.data[0]["id"]}
+
+    # Create reverse pickup from original order data
+    pickup_dict = {
+        "hub_id": order["hub_id"],
+        "pickup_number": f"RP-{uuid.uuid4().hex[:8].upper()}",
+        "original_order_id": order["id"],
+        "source": "cjdquick",
+        "external_order_id": order_id,
+        "external_source": "cjdquick",
+        "external_return_id": return_id,
+        "return_reason": data.get("reason", "Customer return"),
+        "return_notes": data.get("notes"),
+        "customer_name": order.get("customer_name", ""),
+        "customer_phone": order.get("customer_phone", ""),
+        "customer_email": order.get("customer_email"),
+        "pickup_address": order.get("delivery_address", ""),
+        "pickup_city": order.get("delivery_city"),
+        "pickup_state": order.get("delivery_state"),
+        "pickup_postal_code": order.get("delivery_postal_code"),
+        "pickup_latitude": order.get("delivery_latitude"),
+        "pickup_longitude": order.get("delivery_longitude"),
+        "product_description": order.get("product_description", "Return Item"),
+        "product_sku": order.get("product_sku"),
+        "package_count": order.get("package_count", 1),
+        "total_weight_kg": order.get("total_weight_kg"),
+    }
+
+    result = supabase.table("reverse_pickups").insert(pickup_dict).execute()
+
+    if result.data:
+        cjdquick._log_sync(
+            "inbound",
+            "return_approved",
+            order_id,
+            "success",
+            lma_order_id=result.data[0]["id"],
+            hub_id=order["hub_id"],
+        )
+        return {"status": "pickup_created", "pickup_id": result.data[0]["id"]}
+
+    return {"status": "error", "reason": "insert failed"}
 
 
 async def _resolve_hub_id(location_id: Optional[str]) -> Optional[str]:

@@ -146,6 +146,36 @@ async def create_shipment(
         return False
 
 
+async def notify_pickup_completed(
+    external_order_id: str,
+    return_id: Optional[str] = None,
+) -> bool:
+    """Notify CJDQuick that a reverse pickup has been completed."""
+    if not is_configured() or not external_order_id:
+        return False
+
+    # Use return endpoint if return_id available, else update order status
+    if return_id:
+        url = f"{settings.CJDQUICK_API_URL}/returns/{return_id}"
+        body: Dict[str, Any] = {"status": "PICKED_UP"}
+    else:
+        url = f"{settings.CJDQUICK_API_URL}/orders/{external_order_id}"
+        body = {"status": "RETURN_PICKED_UP"}
+
+    try:
+        async with httpx.AsyncClient() as client:
+            res = await client.patch(url, json=body, headers=_headers(), timeout=10)
+            res.raise_for_status()
+            _log_sync("outbound", "pickup_completed", external_order_id, "success")
+            return True
+    except Exception as e:
+        logger.warning(f"CJDQuick pickup notification failed for {external_order_id}: {e}")
+        _log_sync(
+            "outbound", "pickup_completed", external_order_id, "failed", str(e)
+        )
+        return False
+
+
 # =====================================================
 # INBOUND: CJDQuick → LMA
 # =====================================================
@@ -238,6 +268,21 @@ LMA_TO_CJDQUICK_STATUS = {
 def get_cjdquick_status(lma_status: str) -> Optional[str]:
     """Map LMA order status to CJDQuick OMS status."""
     return LMA_TO_CJDQUICK_STATUS.get(lma_status)
+
+
+# Pickup status mapping
+LMA_PICKUP_TO_CJDQUICK_STATUS = {
+    "assigned": "RETURN_PROCESSING",
+    "out_for_pickup": "RETURN_IN_TRANSIT",
+    "picked_up": "RETURN_PICKED_UP",
+    "received_at_hub": "RETURN_RECEIVED",
+    "cancelled": "RETURN_CANCELLED",
+}
+
+
+def get_cjdquick_pickup_status(lma_pickup_status: str) -> Optional[str]:
+    """Map LMA pickup status to CJDQuick OMS return status."""
+    return LMA_PICKUP_TO_CJDQUICK_STATUS.get(lma_pickup_status)
 
 
 # =====================================================

@@ -11,6 +11,7 @@ from app.routers.fleet import router as fleet_router
 from app.routers.hub_delivery import router as hub_delivery_router
 from app.routers.hub_analytics import router as hub_analytics_router
 from app.routers.integrations import router as integrations_router
+from app.routers.reverse_pickups import router as reverse_pickups_router
 
 __all__ = [
     "health_router",
@@ -26,4 +27,5 @@ __all__ = [
     "hub_delivery_router",
     "hub_analytics_router",
     "integrations_router",
+    "reverse_pickups_router",
 ]

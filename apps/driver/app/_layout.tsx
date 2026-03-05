@@ -72,6 +72,10 @@ export default function RootLayout() {
           name="payment-methods"
           options={{ title: "Payment Methods", headerBackTitle: "Profile" }}
         />
+        <Stack.Screen
+          name="pickup"
+          options={{ headerShown: false }}
+        />
       </Stack>
     </>
   );
