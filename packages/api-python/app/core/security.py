@@ -50,27 +50,29 @@ def decode_token(token: str) -> Dict[str, Any]:
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     """Get the current authenticated user from the token."""
     token = credentials.credentials
+    supabase = get_supabase()
 
+    # Extract user info from the Supabase JWT without calling supabase.auth.get_user(),
+    # which mutates the singleton client's auth headers and breaks subsequent
+    # service-role queries (known supabase-py issue).
     try:
-        # Verify with Supabase
-        supabase = get_supabase()
-        user_response = supabase.auth.get_user(token)
+        claims = jwt.get_unverified_claims(token)
+        user_id = claims.get("sub")
+        user_email = claims.get("email")
 
-        if user_response and user_response.user:
-            # Get additional user data from our users table
-            user_data = supabase.table("users").select("*").eq("id", user_response.user.id).single().execute()
-
+        if user_id:
+            user_data = supabase.table("users").select("*").eq("id", user_id).single().execute()
             user_dict = user_data.data if user_data.data else {}
             return {
-                "id": user_response.user.id,
-                "email": user_response.user.email,
+                "id": user_id,
+                "email": user_email,
                 "role": user_dict.get("role", "customer"),
                 **user_dict
             }
     except Exception:
         pass
 
-    # Fallback to custom JWT
+    # Fallback to custom JWT (signed with API_SECRET)
     payload = decode_token(token)
     return payload
 

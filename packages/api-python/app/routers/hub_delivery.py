@@ -113,7 +113,9 @@ async def verify_otp(
     if token["otp_code"] != otp_data.otp_code:
         return OtpResponse(success=False, message="Invalid OTP")
 
-    if datetime.fromisoformat(token["expires_at"].replace("Z", "+00:00")) < datetime.utcnow().replace(tzinfo=None):
+    expires_at = datetime.fromisoformat(token["expires_at"].replace("Z", "+00:00"))
+    now = datetime.utcnow().replace(tzinfo=expires_at.tzinfo)
+    if expires_at < now:
         return OtpResponse(success=False, message="OTP has expired")
 
     # Mark verified
@@ -481,7 +483,9 @@ async def verify_pickup_otp(
     if token["otp_code"] != otp_data.otp_code:
         return OtpResponse(success=False, message="Invalid OTP")
 
-    if datetime.fromisoformat(token["expires_at"].replace("Z", "+00:00")) < datetime.utcnow().replace(tzinfo=None):
+    expires_at = datetime.fromisoformat(token["expires_at"].replace("Z", "+00:00"))
+    now = datetime.utcnow().replace(tzinfo=expires_at.tzinfo)
+    if expires_at < now:
         return OtpResponse(success=False, message="OTP has expired")
 
     # Mark verified
